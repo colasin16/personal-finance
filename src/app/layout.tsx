@@ -1,9 +1,9 @@
 /* eslint-disable perfectionist/sort-imports */
-import 'src/global.css';
+import '@src/global.css';
 
 // ----------------------------------------------------------------------
 
-import { type Metadata } from 'next';
+import { Viewport, type Metadata } from 'next';
 
 import { TRPCReactProvider } from '@src/trpc/react';
 
@@ -26,9 +26,7 @@ export const metadata: Metadata = {
   description:
     'The starting point for your next project with Minimal UI Kit, built on the newest version of Material-UI ©, ready to be customized to your style',
   keywords: 'react,material,kit,application,dashboard,admin,template',
-  themeColor: '#000000',
   manifest: '/manifest.json',
-  viewport: { width: 'device-width', initialScale: 1, maximumScale: 1 },
   icons: [
     { rel: 'icon', url: '/favicon/favicon.ico' },
     {
@@ -49,6 +47,13 @@ export const metadata: Metadata = {
       url: '/favicon/apple-touch-icon.png',
     },
   ],
+};
+
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 type Props = {

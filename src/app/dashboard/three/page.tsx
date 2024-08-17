@@ -1,4 +1,4 @@
-import ThreeView from 'src/sections/three/view';
+import ThreeView from '@src/sections/three/view';
 
 // ----------------------------------------------------------------------
 

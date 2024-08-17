@@ -1,4 +1,4 @@
-import { JwtRegisterView } from 'src/sections/auth/jwt';
+import { JwtRegisterView } from '@src/sections/auth/jwt';
 
 // ----------------------------------------------------------------------
 

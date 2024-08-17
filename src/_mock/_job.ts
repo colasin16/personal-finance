@@ -1,4 +1,4 @@
-import { countries } from 'src/assets/data';
+import { countries } from '@src/assets/data';
 
 import { _mock } from './_mock';
 
@@ -132,10 +132,13 @@ export const _jobs = [...Array(12)].map((_, index) => {
     negotiable: _mock.boolean(index),
   };
 
-  const benefits = JOB_BENEFIT_OPTIONS.slice(0, 3).map((option) => option.label);
+  const benefits = JOB_BENEFIT_OPTIONS.slice(0, 3).map(
+    (option) => option.label
+  );
 
   const experience =
-    JOB_EXPERIENCE_OPTIONS.map((option) => option.label)[index] || JOB_EXPERIENCE_OPTIONS[1].label;
+    JOB_EXPERIENCE_OPTIONS.map((option) => option.label)[index] ||
+    JOB_EXPERIENCE_OPTIONS[1].label;
 
   const employmentTypes = (index % 2 && ['Part-time']) ||
     (index % 3 && ['On Demand']) ||

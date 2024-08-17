@@ -4,11 +4,11 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { Theme, SxProps } from '@mui/material/styles';
 
-import { useMockedUser } from 'src/hooks/use-mocked-user';
+import { useMockedUser } from '@src/hooks/use-mocked-user';
 
-import { ForbiddenIllustration } from 'src/assets/illustrations';
+import { ForbiddenIllustration } from '@src/assets/illustrations';
 
-import { varBounce, MotionContainer } from 'src/components/animate';
+import { varBounce, MotionContainer } from '@src/app/_components/animate';
 
 // ----------------------------------------------------------------------
 
@@ -19,7 +19,12 @@ type RoleBasedGuardProp = {
   sx?: SxProps<Theme>;
 };
 
-export default function RoleBasedGuard({ hasContent, roles, children, sx }: RoleBasedGuardProp) {
+export default function RoleBasedGuard({
+  hasContent,
+  roles,
+  children,
+  sx,
+}: RoleBasedGuardProp) {
   // Logic here to get current user role
   const { user } = useMockedUser();
 
@@ -28,7 +33,10 @@ export default function RoleBasedGuard({ hasContent, roles, children, sx }: Role
 
   if (typeof roles !== 'undefined' && !roles.includes(currentRole)) {
     return hasContent ? (
-      <Container component={MotionContainer} sx={{ textAlign: 'center', ...sx }}>
+      <Container
+        component={MotionContainer}
+        sx={{ textAlign: 'center', ...sx }}
+      >
         <m.div variants={varBounce().in}>
           <Typography variant="h3" sx={{ mb: 2 }}>
             Permission Denied

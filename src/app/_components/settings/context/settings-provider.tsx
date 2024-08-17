@@ -3,9 +3,9 @@
 import isEqual from 'lodash/isEqual';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
-import { useLocalStorage } from 'src/hooks/use-local-storage';
+import { useLocalStorage } from '@src/hooks/use-local-storage';
 
-import { localStorageGetItem } from 'src/utils/storage-available';
+import { localStorageGetItem } from '@src/utils/storage-available';
 
 import { SettingsValueProps } from '../types';
 import { SettingsContext } from './settings-context';
@@ -19,8 +19,14 @@ type SettingsProviderProps = {
   defaultSettings: SettingsValueProps;
 };
 
-export function SettingsProvider({ children, defaultSettings }: SettingsProviderProps) {
-  const { state, update, reset } = useLocalStorage(STORAGE_KEY, defaultSettings);
+export function SettingsProvider({
+  children,
+  defaultSettings,
+}: SettingsProviderProps) {
+  const { state, update, reset } = useLocalStorage(
+    STORAGE_KEY,
+    defaultSettings
+  );
 
   const [openDrawer, setOpenDrawer] = useState(false);
 
@@ -78,5 +84,9 @@ export function SettingsProvider({ children, defaultSettings }: SettingsProvider
     ]
   );
 
-  return <SettingsContext.Provider value={memoizedValue}>{children}</SettingsContext.Provider>;
+  return (
+    <SettingsContext.Provider value={memoizedValue}>
+      {children}
+    </SettingsContext.Provider>
+  );
 }

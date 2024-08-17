@@ -5,7 +5,7 @@ import { alpha } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
-import { useSettingsContext } from 'src/components/settings';
+import { useSettingsContext } from '@src/app/_components/settings';
 
 // ----------------------------------------------------------------------
 

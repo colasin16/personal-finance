@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box';
 
-import { useBoolean } from 'src/hooks/use-boolean';
-import { useResponsive } from 'src/hooks/use-responsive';
+import { useBoolean } from '@src/hooks/use-boolean';
+import { useResponsive } from '@src/hooks/use-responsive';
 
-import { useSettingsContext } from 'src/components/settings';
+import { useSettingsContext } from '@src/app/_components/settings';
 
 import Main from './main';
 import Header from './header';
@@ -32,7 +32,9 @@ export default function DashboardLayout({ children }: Props) {
 
   const renderHorizontal = <NavHorizontal />;
 
-  const renderNavVertical = <NavVertical openNav={nav.value} onCloseNav={nav.onFalse} />;
+  const renderNavVertical = (
+    <NavVertical openNav={nav.value} onCloseNav={nav.onFalse} />
+  );
 
   if (isHorizontal) {
     return (

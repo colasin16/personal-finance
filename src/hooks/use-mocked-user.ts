@@ -1,13 +1,13 @@
-import { _mock } from 'src/_mock';
+import { _mock } from '@src/_mock';
 
 // TO GET THE USER FROM THE AUTHCONTEXT, YOU CAN USE
 
 // CHANGE:
-// import { useMockedUser } from 'src/hooks/use-mocked-user';
+// import { useMockedUser } from '@src/hooks/use-mocked-user';
 // const { user } = useMockedUser();
 
 // TO:
-// import { useAuthContext } from 'src/auth/hooks';
+// import { useAuthContext } from '@src/auth/hooks';
 // const { user } = useAuthContext();
 
 // ----------------------------------------------------------------------
@@ -25,7 +25,8 @@ export function useMockedUser() {
     state: 'California',
     city: 'San Francisco',
     zipCode: '94116',
-    about: 'Praesent turpis. Phasellus viverra nulla ut metus varius laoreet. Phasellus tempus.',
+    about:
+      'Praesent turpis. Phasellus viverra nulla ut metus varius laoreet. Phasellus tempus.',
     role: 'admin',
     isPublic: true,
   };

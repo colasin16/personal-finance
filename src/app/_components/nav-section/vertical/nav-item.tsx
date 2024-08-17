@@ -6,7 +6,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { alpha, styled } from '@mui/material/styles';
 import ListItemButton from '@mui/material/ListItemButton';
 
-import { RouterLink } from 'src/routes/components';
+import { RouterLink } from '@src/routes/components';
 
 import Iconify from '../../iconify';
 import { NavItemProps, NavItemStateProps } from '../types';
@@ -86,7 +86,11 @@ const NavItem = forwardRef<HTMLDivElement, NavItemProps>(
           <Iconify
             width={16}
             className="arrow"
-            icon={open ? 'eva:arrow-ios-downward-fill' : 'eva:arrow-ios-forward-fill'}
+            icon={
+              open
+                ? 'eva:arrow-ios-downward-fill'
+                : 'eva:arrow-ios-forward-fill'
+            }
           />
         )}
       </StyledNavItem>
@@ -176,7 +180,8 @@ const StyledNavItem = styled(ListItemButton, {
       ...noWrapStyles,
       ...theme.typography.body2,
       textTransform: 'capitalize',
-      fontWeight: theme.typography[active ? 'fontWeightSemiBold' : 'fontWeightMedium'],
+      fontWeight:
+        theme.typography[active ? 'fontWeightSemiBold' : 'fontWeightMedium'],
     },
     caption: {
       ...noWrapStyles,
@@ -218,7 +223,9 @@ const StyledNavItem = styled(ListItemButton, {
       },
       ...(active && {
         color:
-          theme.palette.mode === 'light' ? theme.palette.primary.main : theme.palette.primary.light,
+          theme.palette.mode === 'light'
+            ? theme.palette.primary.main
+            : theme.palette.primary.light,
         backgroundColor: alpha(theme.palette.primary.main, 0.08),
         '&:hover': {
           backgroundColor: alpha(theme.palette.primary.main, 0.16),

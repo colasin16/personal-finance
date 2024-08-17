@@ -1,4 +1,4 @@
-import FourView from 'src/sections/four/view';
+import FourView from '@src/sections/four/view';
 
 // ----------------------------------------------------------------------
 

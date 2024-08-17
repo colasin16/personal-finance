@@ -3,7 +3,7 @@ import { alpha } from '@mui/material/styles';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
 
-import Label from 'src/components/label';
+import Label from '@src/app/_components/label';
 
 // ----------------------------------------------------------------------
 
@@ -20,7 +20,12 @@ type Props = {
   onClickItem: VoidFunction;
 };
 
-export default function ResultItem({ title, path, groupLabel, onClickItem }: Props) {
+export default function ResultItem({
+  title,
+  path,
+  groupLabel,
+  onClickItem,
+}: Props) {
   return (
     <ListItemButton
       onClick={onClickItem}
@@ -33,7 +38,10 @@ export default function ResultItem({ title, path, groupLabel, onClickItem }: Pro
           borderRadius: 1,
           borderColor: (theme) => theme.palette.primary.main,
           backgroundColor: (theme) =>
-            alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
+            alpha(
+              theme.palette.primary.main,
+              theme.palette.action.hoverOpacity
+            ),
         },
       }}
     >

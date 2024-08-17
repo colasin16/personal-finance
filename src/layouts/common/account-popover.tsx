@@ -9,14 +9,14 @@ import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
-import { useRouter } from 'src/routes/hooks';
+import { useRouter } from '@src/routes/hooks';
 
-import { useMockedUser } from 'src/hooks/use-mocked-user';
+import { useMockedUser } from '@src/hooks/use-mocked-user';
 
-import { useAuthContext } from 'src/auth/hooks';
+import { useAuthContext } from '@src/auth/hooks';
 
-import { varHover } from 'src/components/animate';
-import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import { varHover } from '@src/app/_components/animate';
+import CustomPopover, { usePopover } from '@src/app/_components/custom-popover';
 
 // ----------------------------------------------------------------------
 
@@ -92,7 +92,11 @@ export default function AccountPopover() {
         </Avatar>
       </IconButton>
 
-      <CustomPopover open={popover.open} onClose={popover.onClose} sx={{ width: 200, p: 0 }}>
+      <CustomPopover
+        open={popover.open}
+        onClose={popover.onClose}
+        sx={{ width: 200, p: 0 }}
+      >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
             {user?.displayName}
@@ -107,7 +111,10 @@ export default function AccountPopover() {
 
         <Stack sx={{ p: 1 }}>
           {OPTIONS.map((option) => (
-            <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
+            <MenuItem
+              key={option.label}
+              onClick={() => handleClickItem(option.linkTo)}
+            >
               {option.label}
             </MenuItem>
           ))}

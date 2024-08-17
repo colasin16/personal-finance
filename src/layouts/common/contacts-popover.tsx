@@ -7,14 +7,14 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import ListItemText from '@mui/material/ListItemText';
 
-import { fToNow } from 'src/utils/format-time';
+import { fToNow } from '@src/utils/format-time';
 
-import { _contacts } from 'src/_mock';
+import { _contacts } from '@src/_mock';
 
-import Iconify from 'src/components/iconify';
-import Scrollbar from 'src/components/scrollbar';
-import { varHover } from 'src/components/animate';
-import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import Iconify from '@src/app/_components/iconify';
+import Scrollbar from '@src/app/_components/scrollbar';
+import { varHover } from '@src/app/_components/animate';
+import CustomPopover, { usePopover } from '@src/app/_components/custom-popover';
 
 // ----------------------------------------------------------------------
 
@@ -39,16 +39,23 @@ export default function ContactsPopover() {
         <Iconify icon="solar:users-group-rounded-bold-duotone" width={24} />
       </IconButton>
 
-      <CustomPopover open={popover.open} onClose={popover.onClose} sx={{ width: 320 }}>
+      <CustomPopover
+        open={popover.open}
+        onClose={popover.onClose}
+        sx={{ width: 320 }}
+      >
         <Typography variant="h6" sx={{ p: 1.5 }}>
-          Contacts <Typography component="span">({_contacts.length})</Typography>
+          Contacts{' '}
+          <Typography component="span">({_contacts.length})</Typography>
         </Typography>
 
         <Scrollbar sx={{ height: 320 }}>
           {_contacts.map((contact) => (
             <MenuItem key={contact.id} sx={{ p: 1 }}>
               <Badge
-                variant={contact.status as 'alway' | 'online' | 'busy' | 'offline'}
+                variant={
+                  contact.status as 'alway' | 'online' | 'busy' | 'offline'
+                }
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 sx={{ mr: 2 }}
               >
@@ -57,7 +64,11 @@ export default function ContactsPopover() {
 
               <ListItemText
                 primary={contact.name}
-                secondary={contact.status === 'offline' ? fToNow(contact.lastActivity) : ''}
+                secondary={
+                  contact.status === 'offline'
+                    ? fToNow(contact.lastActivity)
+                    : ''
+                }
                 primaryTypographyProps={{ typography: 'subtitle2' }}
                 secondaryTypographyProps={{
                   typography: 'caption',

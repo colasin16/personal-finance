@@ -1,4 +1,4 @@
-import FiveView from 'src/sections/five/view';
+import FiveView from '@src/sections/five/view';
 
 // ----------------------------------------------------------------------
 

@@ -4,14 +4,14 @@ import Toolbar from '@mui/material/Toolbar';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 
-import { useOffSetTop } from 'src/hooks/use-off-set-top';
-import { useResponsive } from 'src/hooks/use-responsive';
+import { useOffSetTop } from '@src/hooks/use-off-set-top';
+import { useResponsive } from '@src/hooks/use-responsive';
 
-import { bgBlur } from 'src/theme/css';
+import { bgBlur } from '@src/theme/css';
 
-import Logo from 'src/components/logo';
-import SvgColor from 'src/components/svg-color';
-import { useSettingsContext } from 'src/components/settings';
+import Logo from '@src/app/_components/logo';
+import SvgColor from '@src/app/_components/svg-color';
+import { useSettingsContext } from '@src/app/_components/settings';
 
 import Searchbar from '../common/searchbar';
 import { NAV, HEADER } from '../config-layout';

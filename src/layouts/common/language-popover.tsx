@@ -4,9 +4,9 @@ import { useCallback } from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 
-import Iconify from 'src/components/iconify';
-import { varHover } from 'src/components/animate';
-import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import Iconify from '@src/app/_components/iconify';
+import { varHover } from '@src/app/_components/animate';
+import CustomPopover, { usePopover } from '@src/app/_components/custom-popover';
 
 // ----------------------------------------------------------------------
 
@@ -63,17 +63,27 @@ export default function LanguagePopover() {
           }),
         }}
       >
-        <Iconify icon={currentLang.icon} sx={{ borderRadius: 0.65, width: 28 }} />
+        <Iconify
+          icon={currentLang.icon}
+          sx={{ borderRadius: 0.65, width: 28 }}
+        />
       </IconButton>
 
-      <CustomPopover open={popover.open} onClose={popover.onClose} sx={{ width: 160 }}>
+      <CustomPopover
+        open={popover.open}
+        onClose={popover.onClose}
+        sx={{ width: 160 }}
+      >
         {allLangs.map((option) => (
           <MenuItem
             key={option.value}
             selected={option.value === currentLang.value}
             onClick={handleChangeLang}
           >
-            <Iconify icon={option.icon} sx={{ borderRadius: 0.65, width: 28 }} />
+            <Iconify
+              icon={option.icon}
+              sx={{ borderRadius: 0.65, width: 28 }}
+            />
 
             {option.label}
           </MenuItem>

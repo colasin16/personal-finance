@@ -1,13 +1,16 @@
 import { useMemo } from 'react';
 
-import { paths } from 'src/routes/paths';
+import { paths } from '@src/routes/paths';
 
-import SvgColor from 'src/components/svg-color';
+import SvgColor from '@src/app/_components/svg-color';
 
 // ----------------------------------------------------------------------
 
 const icon = (name: string) => (
-  <SvgColor src={`/assets/icons/navbar/${name}.svg`} sx={{ width: 1, height: 1 }} />
+  <SvgColor
+    src={`/assets/icons/navbar/${name}.svg`}
+    sx={{ width: 1, height: 1 }}
+  />
   // OR
   // <Iconify icon="fluent:mail-24-filled" />
   // https://icon-sets.iconify.design/solar/

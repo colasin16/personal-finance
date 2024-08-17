@@ -1,6 +1,6 @@
 'use client';
 
-import { LoadingScreen } from 'src/components/loading-screen';
+import { LoadingScreen } from '@src/app/_components/loading-screen';
 
 // ----------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { SplashScreen } from 'src/components/loading-screen';
+import { SplashScreen } from '@src/app/_components/loading-screen';
 
 import { AuthContext } from './auth-context';
 

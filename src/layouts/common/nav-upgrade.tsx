@@ -4,11 +4,11 @@ import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 
-import { paths } from 'src/routes/paths';
+import { paths } from '@src/routes/paths';
 
-import { useMockedUser } from 'src/hooks/use-mocked-user';
+import { useMockedUser } from '@src/hooks/use-mocked-user';
 
-import Label from 'src/components/label';
+import Label from '@src/app/_components/label';
 
 // ----------------------------------------------------------------------
 
@@ -25,7 +25,11 @@ export default function NavUpgrade() {
     >
       <Stack alignItems="center">
         <Box sx={{ position: 'relative' }}>
-          <Avatar src={user?.photoURL} alt={user?.displayName} sx={{ width: 48, height: 48 }} />
+          <Avatar
+            src={user?.photoURL}
+            alt={user?.displayName}
+            sx={{ width: 48, height: 48 }}
+          />
           <Label
             color="success"
             variant="filled"
@@ -52,7 +56,12 @@ export default function NavUpgrade() {
           </Typography>
         </Stack>
 
-        <Button variant="contained" href={paths.minimalUI} target="_blank" rel="noopener">
+        <Button
+          variant="contained"
+          href={paths.minimalUI}
+          target="_blank"
+          rel="noopener"
+        >
           Upgrade to Pro
         </Button>
       </Stack>

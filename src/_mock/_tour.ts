@@ -1,4 +1,4 @@
-import { countries } from 'src/assets/data';
+import { countries } from '@src/assets/data';
 
 import { _mock } from './_mock';
 import { _tags } from './assets';
@@ -98,7 +98,9 @@ export const _tourGuides = [...Array(12)].map((_, index) => ({
   phoneNumber: _mock.phoneNumber(index),
 }));
 
-export const TRAVEL_IMAGES = [...Array(16)].map((_, index) => _mock.image.travel(index));
+export const TRAVEL_IMAGES = [...Array(16)].map((_, index) =>
+  _mock.image.travel(index)
+);
 
 export const _tours = [...Array(12)].map((_, index) => {
   const available = {

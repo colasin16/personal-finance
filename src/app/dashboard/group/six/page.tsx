@@ -1,4 +1,4 @@
-import SixView from 'src/sections/six/view';
+import SixView from '@src/sections/six/view';
 
 // ----------------------------------------------------------------------
 

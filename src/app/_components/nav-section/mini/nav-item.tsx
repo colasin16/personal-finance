@@ -6,7 +6,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { alpha, styled } from '@mui/material/styles';
 import ListItemButton from '@mui/material/ListItemButton';
 
-import { RouterLink } from 'src/routes/components';
+import { RouterLink } from '@src/routes/components';
 
 import Iconify from '../../iconify';
 import { NavItemProps, NavItemStateProps } from '../types';
@@ -70,7 +70,13 @@ const NavItem = forwardRef<HTMLDivElement, NavItemProps>(
           </Box>
         )}
 
-        {hasChild && <Iconify width={16} className="arrow" icon="eva:arrow-ios-forward-fill" />}
+        {hasChild && (
+          <Iconify
+            width={16}
+            className="arrow"
+            icon="eva:arrow-ios-forward-fill"
+          />
+        )}
       </StyledNavItem>
     );
 
@@ -192,7 +198,9 @@ const StyledNavItem = styled(ListItemButton, {
       ...(active && {
         fontWeight: theme.typography.fontWeightBold,
         backgroundColor: alpha(theme.palette.primary.main, 0.08),
-        color: lightMode ? theme.palette.primary.main : theme.palette.primary.light,
+        color: lightMode
+          ? theme.palette.primary.main
+          : theme.palette.primary.light,
         '&:hover': {
           backgroundColor: alpha(theme.palette.primary.main, 0.16),
         },

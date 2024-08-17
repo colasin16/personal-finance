@@ -11,16 +11,16 @@ import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Dialog, { dialogClasses } from '@mui/material/Dialog';
 
-import { useRouter } from 'src/routes/hooks';
+import { useRouter } from '@src/routes/hooks';
 
-import { useBoolean } from 'src/hooks/use-boolean';
-import { useResponsive } from 'src/hooks/use-responsive';
-import { useEventListener } from 'src/hooks/use-event-listener';
+import { useBoolean } from '@src/hooks/use-boolean';
+import { useResponsive } from '@src/hooks/use-responsive';
+import { useEventListener } from '@src/hooks/use-event-listener';
 
-import Label from 'src/components/label';
-import Iconify from 'src/components/iconify';
-import Scrollbar from 'src/components/scrollbar';
-import SearchNotFound from 'src/components/search-not-found';
+import Label from '@src/app/_components/label';
+import Iconify from '@src/app/_components/iconify';
+import Scrollbar from '@src/app/_components/scrollbar';
+import SearchNotFound from '@src/app/_components/search-not-found';
 
 import ResultItem from './result-item';
 import { useNavData } from '../../dashboard/config-navigation';
@@ -67,9 +67,12 @@ function Searchbar() {
     [handleClose, router]
   );
 
-  const handleSearch = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSearchQuery(event.target.value);
-  }, []);
+  const handleSearch = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setSearchQuery(event.target.value);
+    },
+    []
+  );
 
   const dataFiltered = applyFilter({
     inputData: getAllItems({ data: navData }),
@@ -112,7 +115,11 @@ function Searchbar() {
         <Iconify icon="eva:search-fill" />
       </IconButton>
 
-      {lgUp && <Label sx={{ px: 0.75, fontSize: 12, color: 'text.secondary' }}>⌘K</Label>}
+      {lgUp && (
+        <Label sx={{ px: 0.75, fontSize: 12, color: 'text.secondary' }}>
+          ⌘K
+        </Label>
+      )}
     </Stack>
   );
 
@@ -150,10 +157,18 @@ function Searchbar() {
             onChange={handleSearch}
             startAdornment={
               <InputAdornment position="start">
-                <Iconify icon="eva:search-fill" width={24} sx={{ color: 'text.disabled' }} />
+                <Iconify
+                  icon="eva:search-fill"
+                  width={24}
+                  sx={{ color: 'text.disabled' }}
+                />
               </InputAdornment>
             }
-            endAdornment={<Label sx={{ letterSpacing: 1, color: 'text.secondary' }}>esc</Label>}
+            endAdornment={
+              <Label sx={{ letterSpacing: 1, color: 'text.secondary' }}>
+                esc
+              </Label>
+            }
             inputProps={{
               sx: { typography: 'h6' },
             }}
@@ -161,7 +176,11 @@ function Searchbar() {
         </Box>
 
         <Scrollbar sx={{ p: 3, pt: 2, height: 400 }}>
-          {notFound ? <SearchNotFound query={searchQuery} sx={{ py: 10 }} /> : renderItems()}
+          {notFound ? (
+            <SearchNotFound query={searchQuery} sx={{ py: 10 }} />
+          ) : (
+            renderItems()
+          )}
         </Scrollbar>
       </Dialog>
     </>

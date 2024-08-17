@@ -4,9 +4,13 @@ import { useMemo } from 'react';
 import merge from 'lodash/merge';
 
 import CssBaseline from '@mui/material/CssBaseline';
-import { createTheme, ThemeOptions, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import {
+  createTheme,
+  ThemeOptions,
+  ThemeProvider as MuiThemeProvider,
+} from '@mui/material/styles';
 
-import { useSettingsContext } from 'src/components/settings';
+import { useSettingsContext } from '@src/app/_components/settings';
 
 // system
 import { palette } from './palette';
