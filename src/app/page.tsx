@@ -1,11 +1,11 @@
-import Link from "next/link";
+import Link from 'next/link';
 
-import { LatestPost } from "~/app/_components/post";
-import { api, HydrateClient } from "~/trpc/server";
-import styles from "./index.module.css";
+import { LatestPost } from '@src/app/_components/post';
+import { api, HydrateClient } from '@src/trpc/server';
+import styles from './index.module.css';
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
+  const hello = await api.post.hello({ text: 'from tRPC' });
 
   void api.post.getLatest.prefetch();
 
@@ -42,7 +42,7 @@ export default async function Home() {
           </div>
           <div className={styles.showcaseContainer}>
             <p className={styles.showcaseText}>
-              {hello ? hello.greeting : "Loading tRPC query..."}
+              {hello ? hello.greeting : 'Loading tRPC query...'}
             </p>
           </div>
 
