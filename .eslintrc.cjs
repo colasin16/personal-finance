@@ -3,6 +3,18 @@ const config = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+    },
+  },
+  settings: {
+    'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true,
+      },
+    },
   },
   plugins: ['perfectionist', 'unused-imports', '@typescript-eslint'],
   extends: [

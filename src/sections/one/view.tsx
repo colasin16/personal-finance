@@ -6,6 +6,7 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
 import { useSettingsContext } from '@src/app/_components/settings';
+import { LatestMovements } from '@src/app/_components/movements';
 
 // ----------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ export default function OneView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'xl'}>
       <Typography variant="h4"> Page One </Typography>
-
+      <LatestMovements />
       <Box
         sx={{
           mt: 5,
