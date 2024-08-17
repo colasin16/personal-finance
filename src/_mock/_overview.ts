@@ -3,41 +3,55 @@ import { _mock } from './_mock';
 // APP
 // ----------------------------------------------------------------------
 
-export const _appRelated = ['Chrome', 'Drive', 'Dropbox', 'Evernote', 'Github'].map(
-  (name, index) => {
-    const system = [2, 4].includes(index) ? 'Windows' : 'Mac';
+export const _appRelated = [
+  'Chrome',
+  'Drive',
+  'Dropbox',
+  'Evernote',
+  'Github',
+].map((name, index) => {
+  const system = [2, 4].includes(index) ? 'Windows' : 'Mac';
 
-    const price = [2, 4].includes(index) ? _mock.number.price(index) : 0;
+  const price = [2, 4].includes(index) ? _mock.number.price(index) : 0;
 
-    const shortcut =
-      (name === 'Chrome' && '/assets/icons/app/ic_chrome.svg') ||
-      (name === 'Drive' && '/assets/icons/app/ic_drive.svg') ||
-      (name === 'Dropbox' && '/assets/icons/app/ic_dropbox.svg') ||
-      (name === 'Evernote' && '/assets/icons/app/ic_evernote.svg') ||
-      '/assets/icons/app/ic_github.svg';
+  const shortcut =
+    (name === 'Chrome' && '/assets/icons/app/ic_chrome.svg') ||
+    (name === 'Drive' && '/assets/icons/app/ic_drive.svg') ||
+    (name === 'Dropbox' && '/assets/icons/app/ic_dropbox.svg') ||
+    (name === 'Evernote' && '/assets/icons/app/ic_evernote.svg') ||
+    '/assets/icons/app/ic_github.svg';
 
-    return {
-      id: _mock.id(index),
-      name,
-      price,
-      system,
-      shortcut,
-      ratingNumber: _mock.number.rating(index),
-      totalReviews: _mock.number.nativeL(index),
-    };
-  }
-);
-
-export const _appInstalled = ['Germany', 'England', 'France', 'Korean', 'USA'].map(
-  (name, index) => ({
+  return {
     id: _mock.id(index),
     name,
-    android: _mock.number.nativeL(index),
-    windows: _mock.number.nativeL(index + 1),
-    apple: _mock.number.nativeL(index + 2),
-    flag: ['flagpack:de', 'flagpack:gb-nir', 'flagpack:fr', 'flagpack:kr', 'flagpack:us'][index],
-  })
-);
+    price,
+    system,
+    shortcut,
+    ratingNumber: _mock.number.rating(index),
+    totalReviews: _mock.number.nativeL(index),
+  };
+});
+
+export const _appInstalled = [
+  'Germany',
+  'England',
+  'France',
+  'Korean',
+  'USA',
+].map((name, index) => ({
+  id: _mock.id(index),
+  name,
+  android: _mock.number.nativeL(index),
+  windows: _mock.number.nativeL(index + 1),
+  apple: _mock.number.nativeL(index + 2),
+  flag: [
+    'flagpack:de',
+    'flagpack:gb-nir',
+    'flagpack:fr',
+    'flagpack:kr',
+    'flagpack:us',
+  ][index],
+}));
 
 export const _appAuthors = [...Array(3)].map((_, index) => ({
   id: _mock.id(index),
@@ -130,20 +144,32 @@ export const _analyticTraffic = [
 // ECOMMERCE
 // ----------------------------------------------------------------------
 
-export const _ecommerceSalesOverview = ['Total Profit', 'Total Income', 'Total Expenses'].map(
-  (label, index) => ({
-    label,
-    totalAmount: _mock.number.price(index) * 100,
-    value: _mock.number.percent(index),
-  })
-);
+export const _ecommerceSalesOverview = [
+  'Total Profit',
+  'Total Income',
+  'Total Expenses',
+].map((label, index) => ({
+  label,
+  totalAmount: _mock.number.price(index) * 100,
+  value: _mock.number.percent(index),
+}));
 
 export const _ecommerceBestSalesman = [...Array(5)].map((_, index) => {
-  const category = ['CAP', 'Branded Shoes', 'Headphone', 'Cell Phone', 'Earings'][index];
+  const category = [
+    'CAP',
+    'Branded Shoes',
+    'Headphone',
+    'Cell Phone',
+    'Earings',
+  ][index];
 
-  const flag = ['flagpack:de', 'flagpack:gb-nir', 'flagpack:fr', 'flagpack:kr', 'flagpack:us'][
-    index
-  ];
+  const flag = [
+    'flagpack:de',
+    'flagpack:gb-nir',
+    'flagpack:fr',
+    'flagpack:kr',
+    'flagpack:us',
+  ][index];
 
   return {
     id: _mock.id(index),
@@ -158,9 +184,21 @@ export const _ecommerceBestSalesman = [...Array(5)].map((_, index) => {
 });
 
 export const _ecommerceLatestProducts = [...Array(5)].map((_, index) => {
-  const colors = (index === 0 && ['#2EC4B6', '#E71D36', '#FF9F1C', '#011627']) ||
+  const colors = (index === 0 && [
+    '#2EC4B6',
+    '#E71D36',
+    '#FF9F1C',
+    '#011627',
+  ]) ||
     (index === 1 && ['#92140C', '#FFCF99']) ||
-    (index === 2 && ['#0CECDD', '#FFF338', '#FF67E7', '#C400FF', '#52006A', '#046582']) ||
+    (index === 2 && [
+      '#0CECDD',
+      '#FFF338',
+      '#FF67E7',
+      '#C400FF',
+      '#52006A',
+      '#046582',
+    ]) ||
     (index === 3 && ['#845EC2', '#E4007C', '#2A1A5E']) || ['#090088'];
 
   return {
