@@ -1,0 +1,18 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "import": "Importar",
+    "transactions": "Movimientos",
+    "issues": "Pendientes",
+    "accounts": "Cuentas",
+    "settings": "Ajustes"
+  },
+  "uploadStatements": "Subir extractos",
+  "openMenu": "Abrir menú",
+  "closeMenu": "Cerrar menú",
+  "signOut": "Cerrar sesión",
+  "offlineMode": "{count, plural, one {Modo sin conexión · # servicio simulado} other {Modo sin conexión · # servicios simulados}}",
+  "allLive": "Todos los servicios conectados",
+  "serviceAdapters": "Adaptadores de servicios",
+  "switchHint": "Define las variables de .env.example para usar los servicios reales."
+}

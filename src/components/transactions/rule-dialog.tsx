@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { createRuleAction, previewRuleAction, type RuleInput } from "@/lib/actions/transactions";
@@ -12,11 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CategoryPicker, type CategoryOption } from "./category-picker";
 
-const MATCH_TYPES = [
-  { value: "merchant", label: "Merchant is" },
-  { value: "contains", label: "Description contains" },
-  { value: "regex", label: "Description matches regex" },
-] as const;
+const MATCH_TYPES = ["merchant", "contains", "regex"] as const;
 
 /** "Always categorize X as Y" — with a live preview of how many past transactions it would change. */
 export function RuleDialog({
@@ -30,6 +27,8 @@ export function RuleDialog({
   categories: CategoryOption[];
   initial: Partial<RuleInput>;
 }) {
+  const t = useTranslations("transactions.rule");
+  const tc = useTranslations("common");
   const [matchType, setMatchType] = useState<RuleInput["matchType"]>(initial.matchType ?? "merchant");
   const [pattern, setPattern] = useState(initial.pattern ?? "");
   const [categoryId, setCategoryId] = useState<string | null>(initial.categoryId ?? null);
@@ -55,7 +54,7 @@ export function RuleDialog({
       if (!categoryId) return;
       const result = await createRuleAction({ matchType, pattern, categoryId }, apply);
       if (!result.ok) return void toast.error(result.error);
-      toast.success(result.data.applied ? `Rule saved and applied to ${result.data.applied} transactions` : "Rule saved");
+      toast.success(result.data.applied ? t("savedApplied", { count: result.data.applied }) : t("saved"));
       onOpenChange(false);
     });
 
@@ -64,9 +63,9 @@ export function RuleDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Wand2 className="size-4" /> Create a rule
+            <Wand2 className="size-4" /> {t("title")}
           </DialogTitle>
-          <DialogDescription>Rules run first on every new statement, before automatic categorization.</DialogDescription>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid gap-2 sm:grid-cols-[180px_1fr]">
@@ -76,24 +75,24 @@ export function RuleDialog({
               </SelectTrigger>
               <SelectContent>
                 {MATCH_TYPES.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>
-                    {m.label}
+                  <SelectItem key={m} value={m}>
+                    {t(`matchTypes.${m}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Input value={pattern} onChange={(e) => setPattern(e.target.value)} placeholder="Mercadona" aria-label="Pattern" />
+            <Input value={pattern} onChange={(e) => setPattern(e.target.value)} placeholder="Mercadona" aria-label={t("pattern")} />
           </div>
           <div className="flex items-center gap-3">
-            <Label>Categorize as</Label>
-            <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} placeholder="Pick a category" variant="outline" />
+            <Label>{t("categorizeAs")}</Label>
+            <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} placeholder={t("pickCategory")} variant="outline" />
           </div>
           {preview && "error" in preview && <p className="text-sm text-destructive">{preview.error}</p>}
           {preview && "count" in preview && (
             <div className="rounded-lg bg-muted p-3 text-sm">
               <label className="flex items-center gap-2">
                 <Checkbox checked={apply} onCheckedChange={(c) => setApply(c === true)} disabled={preview.count === 0} />
-                Also update <strong>{preview.count}</strong> existing transaction{preview.count === 1 ? "" : "s"}
+                <span>{t.rich("applyExisting", { count: preview.count, b: (c) => <strong>{c}</strong> })}</span>
               </label>
               {preview.examples.length > 0 && (
                 <ul className="mt-2 space-y-0.5 pl-6 text-xs text-muted-foreground">
@@ -104,16 +103,16 @@ export function RuleDialog({
                   ))}
                 </ul>
               )}
-              <p className="mt-2 text-xs text-muted-foreground">Transactions you categorized by hand are never overwritten.</p>
+              <p className="mt-2 text-xs text-muted-foreground">{t("manualNeverOverwritten")}</p>
             </div>
           )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc("actions.cancel")}
           </Button>
           <Button onClick={save} disabled={pending || !categoryId || pattern.trim().length < 2}>
-            {pending && <Loader2 className="animate-spin" />} Save rule
+            {pending && <Loader2 className="animate-spin" />} {t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

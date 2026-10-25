@@ -1,10 +1,13 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import type { Period } from "@/lib/queries";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export function DashboardFilters({ scopes, periods }: { scopes: { value: string; label: string }[]; periods: { value: string; label: string }[] }) {
+export function DashboardFilters({ scopes, periods }: { scopes: { value: string; label: string }[]; periods: Period[] }) {
+  const t = useTranslations("dashboard");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -15,7 +18,7 @@ export function DashboardFilters({ scopes, periods }: { scopes: { value: string;
   };
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
       <div className="flex flex-wrap items-center gap-2">
         <Tabs value={params.get("scope") ?? "household"} onValueChange={(v) => set("scope", v)}>
           <TabsList>
@@ -32,8 +35,8 @@ export function DashboardFilters({ scopes, periods }: { scopes: { value: string;
           </SelectTrigger>
           <SelectContent>
             {periods.map((p) => (
-              <SelectItem key={p.value} value={p.value}>
-                {p.label}
+              <SelectItem key={p} value={p}>
+                {t(`periods.${p}`)}
               </SelectItem>
             ))}
           </SelectContent>

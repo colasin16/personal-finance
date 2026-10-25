@@ -1,5 +1,6 @@
 "use server";
 
+import { UserError } from "@/lib/errors";
 import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { accounts, statements } from "@/lib/db/schema";
@@ -16,10 +17,10 @@ async function loadStatement(statementId: string) {
     .select()
     .from(statements)
     .where(and(eq(statements.id, statementId), eq(statements.householdId, ctx.household.id)));
-  if (!statement) throw new Error("Statement not found");
+  if (!statement) throw new UserError("statement_not_found");
   if (statement.accountId) {
     const visible = await getVisibleAccounts(ctx.db, ctx.household.id, ctx.user.id);
-    if (!visible.some((a) => a.id === statement.accountId)) throw new Error("Statement not found");
+    if (!visible.some((a) => a.id === statement.accountId)) throw new UserError("statement_not_found");
   }
   return { ...ctx, statement };
 }
@@ -31,8 +32,8 @@ function reprocess(db: Parameters<typeof processStatement>[0], statementId: stri
 export async function retryStatementAction(statementId: string): Promise<ActionResult> {
   try {
     const { db, statement } = await loadStatement(statementId);
-    if (statement.status === "confirmed") throw new Error("Confirmed statements can't be reprocessed.");
-    await db.update(statements).set({ status: "uploaded", progress: "Queued", error: null }).where(eq(statements.id, statement.id));
+    if (statement.status === "confirmed") throw new UserError("confirmed_cannot_reprocess");
+    await db.update(statements).set({ status: "uploaded", progress: "queued", error: null }).where(eq(statements.id, statement.id));
     reprocess(db, statement.id);
     revalidatePath("/", "layout");
     return ok();
@@ -47,14 +48,14 @@ export async function assignStatementAccountAction(statementId: string, accountI
     const { db, household, user, statement } = await loadStatement(statementId);
     const visible = await getVisibleAccounts(db, household.id, user.id);
     const account = visible.find((a) => a.id === accountId);
-    if (!account) throw new Error("Unknown account");
+    if (!account) throw new UserError("account_not_found");
     if (!account.ibanHash && statement.detected?.ibanHash) {
       await db
         .update(accounts)
         .set({ ibanHash: statement.detected.ibanHash, ibanLast4: statement.detected.ibanLast4 })
         .where(and(eq(accounts.id, accountId), isNull(accounts.ibanHash)));
     }
-    await db.update(statements).set({ accountId, status: "uploaded", progress: "Queued", error: null }).where(eq(statements.id, statement.id));
+    await db.update(statements).set({ accountId, status: "uploaded", progress: "queued", error: null }).where(eq(statements.id, statement.id));
     reprocess(db, statement.id);
     revalidatePath("/", "layout");
     return ok();
@@ -66,7 +67,7 @@ export async function assignStatementAccountAction(statementId: string, accountI
 export async function confirmStatementAction(statementId: string): Promise<ActionResult> {
   try {
     const { db, household, statement } = await loadStatement(statementId);
-    if (!(await confirmStatement(db, household.id, statement.id))) throw new Error("Only statements waiting for review can be confirmed.");
+    if (!(await confirmStatement(db, household.id, statement.id))) throw new UserError("only_review_can_confirm");
     revalidatePath("/", "layout");
     return ok();
   } catch (error) {

@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, Link2, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { categorizeMerchantAction, dismissSuggestionAction, linkTransferAction } from "@/lib/actions/transactions";
-import { formatDate } from "@/lib/labels";
+import { FLAG_CODES, formatDate } from "@/lib/labels";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CategoryPicker, type CategoryOption } from "@/components/transactions/category-picker";
+
+const isFlagCode = (s: string): s is (typeof FLAG_CODES)[number] => FLAG_CODES.includes(s as (typeof FLAG_CODES)[number]);
 
 export function MerchantGroupCard({
   merchant,
@@ -24,6 +27,9 @@ export function MerchantGroupCard({
   rows: { id: string; bookedAt: string; amountCents: number; accountName: string; reason: string | null; description: string }[];
   categories: CategoryOption[];
 }) {
+  const t = useTranslations("issues.merchants");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const [remember, setRemember] = useState(true);
   const [pending, start] = useTransition();
   const [expanded, setExpanded] = useState(false);
@@ -38,9 +44,13 @@ export function MerchantGroupCard({
         remember,
       );
       if (!result.ok) return void toast.error(result.error);
-      toast.success(`${rows.length} transaction${rows.length > 1 ? "s" : ""} categorized${remember ? " · rule saved" : ""}`);
+      toast.success(t(remember ? "categorizedWithRule" : "categorized", { count: rows.length }));
     });
   };
+
+  // flag_reason holds a FLAG_CODES code; older rows may still hold raw English text.
+  const reason = rows[0]?.reason;
+  const reasonLabel = !reason ? t("lowConfidence") : isFlagCode(reason) ? tc(`flags.${reason}`) : reason;
 
   return (
     <Card className="py-0">
@@ -49,14 +59,14 @@ export function MerchantGroupCard({
           <div className="min-w-0">
             <p className="truncate font-medium">{merchant}</p>
             <p className="text-xs text-muted-foreground">
-              {rows.length} transaction{rows.length > 1 ? "s" : ""} · <Money cents={totalCents} /> · {rows[0]?.reason ?? "Low confidence"}
+              {tc("transactionsCount", { count: rows.length })} · <Money cents={totalCents} /> · {reasonLabel}
             </p>
           </div>
           <Button
             variant="ghost"
             size="icon"
             className="size-7 shrink-0"
-            aria-label="Dismiss"
+            aria-label={tc("actions.dismiss")}
             disabled={pending}
             onClick={() => start(async () => void (await dismissSuggestionAction(dismissKey)))}
           >
@@ -66,24 +76,24 @@ export function MerchantGroupCard({
         {(expanded ? rows : rows.slice(0, 3)).map((r) => (
           <div key={r.id} className="flex justify-between gap-3 text-xs text-muted-foreground">
             <span className="truncate">
-              {formatDate(r.bookedAt)} · {r.accountName} · {r.description}
+              {formatDate(r.bookedAt, locale)} · {r.accountName} · {r.description}
             </span>
             <Money cents={r.amountCents} className="shrink-0" />
           </div>
         ))}
         {rows.length > 3 && (
           <button className="text-xs text-muted-foreground underline" onClick={() => setExpanded(!expanded)}>
-            {expanded ? "Show less" : `Show ${rows.length - 3} more`}
+            {expanded ? tc("actions.showLess") : tc("actions.showMore", { count: rows.length - 3 })}
           </button>
         )}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
           <label className="flex items-center gap-2 text-xs">
             <Checkbox checked={remember} onCheckedChange={(c) => setRemember(c === true)} />
-            Remember for future statements
+            {t("remember")}
           </label>
           <div className="flex items-center gap-2">
             {pending && <Loader2 className="size-4 animate-spin" />}
-            <CategoryPicker categories={categories} value={null} onChange={choose} placeholder="Choose category" variant="outline" disabled={pending} />
+            <CategoryPicker categories={categories} value={null} onChange={choose} placeholder={t("chooseCategory")} variant="outline" disabled={pending} />
           </div>
         </div>
       </CardContent>
@@ -104,13 +114,15 @@ export function TransferSuggestionCard({
   amountCents: number;
   dismissKey: string;
 }) {
+  const t = useTranslations("issues.transfers");
+  const locale = useLocale();
   const [pending, start] = useTransition();
   return (
     <Card className="py-0">
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center justify-between">
           <Money cents={amountCents} className="text-lg font-semibold" />
-          <span className="text-xs text-muted-foreground">{formatDate(outgoing.date)}</span>
+          <span className="text-xs text-muted-foreground">{formatDate(outgoing.date, locale)}</span>
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
           <div className="min-w-0">
@@ -125,7 +137,7 @@ export function TransferSuggestionCard({
         </div>
         <div className="flex justify-end gap-2 border-t pt-3">
           <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => void (await dismissSuggestionAction(dismissKey)))}>
-            Not a transfer
+            {t("notTransfer")}
           </Button>
           <Button
             size="sm"
@@ -133,12 +145,12 @@ export function TransferSuggestionCard({
             onClick={() =>
               start(async () => {
                 const result = await linkTransferAction(outgoing.id, incoming.id);
-                if (result.ok) toast.success("Linked as transfer");
+                if (result.ok) toast.success(t("linked"));
                 else toast.error(result.error);
               })
             }
           >
-            {pending ? <Loader2 className="animate-spin" /> : <Link2 />} Link as transfer
+            {pending ? <Loader2 className="animate-spin" /> : <Link2 />} {t("link")}
           </Button>
         </div>
       </CardContent>

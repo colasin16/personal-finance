@@ -1,5 +1,7 @@
 "use server";
 
+import { UserError } from "@/lib/errors";
+import { fail } from "./result";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
@@ -12,9 +14,9 @@ const safeNext = (next: unknown) => (typeof next === "string" && next.startsWith
 /** Mock magic link: in this offline build signing in with an email logs you in immediately. */
 export async function signIn(_: unknown, formData: FormData) {
   const parsed = z
-    .object({ email: z.string().trim().email("Enter a valid email address"), name: z.string().trim().max(60).optional() })
+    .object({ email: z.string().trim().email("invalid_email"), name: z.string().trim().max(60).optional() })
     .safeParse({ email: formData.get("email"), name: formData.get("name") || undefined });
-  if (!parsed.success) return { error: parsed.error.issues[0]!.message };
+  if (!parsed.success) return { error: (await fail(parsed.error)).error };
   const db = await getDb();
   const user = await findOrCreateUser(db, parsed.data.email, parsed.data.name);
   await startSession(user.id);
@@ -22,7 +24,7 @@ export async function signIn(_: unknown, formData: FormData) {
 }
 
 export async function signInDemo(who: "alex" | "sam") {
-  if (process.env.NODE_ENV === "production" && process.env.ENABLE_DEMO !== "1") throw new Error("Demo is disabled");
+  if (process.env.NODE_ENV === "production" && process.env.ENABLE_DEMO !== "1") throw new UserError("demo_disabled");
   const db = await getDb();
   const { alex, sam } = await ensureDemoHousehold(db);
   await startSession(who === "sam" ? sam.id : alex.id);

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Archive, ArchiveRestore, Landmark, Lock, MoreHorizontal, Pencil, Plus, Users } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { archiveAccountAction } from "@/lib/actions/household";
 import { AccountDialog, type AccountFormValue, type BankOption, type MemberOption } from "@/components/accounts/account-dialog";
@@ -10,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { accountTypeLabel, formatDate } from "@/lib/labels";
+import { formatDate } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 type AccountItem = {
@@ -41,15 +42,19 @@ export function AccountsView({
   members: MemberOption[];
   currentUserId: string;
 }) {
+  const t = useTranslations("accounts");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const [dialog, setDialog] = useState<{ key: number; initial?: Partial<AccountFormValue> } | null>(null);
   const [, start] = useTransition();
   const active = accounts.filter((a) => !a.archived);
   const archived = accounts.filter((a) => a.archived);
 
   const groups = [
-    { title: "Shared", items: active.filter((a) => a.isShared) },
+    { key: "shared", title: tc("shared"), items: active.filter((a) => a.isShared) },
     ...members.map((m) => ({
-      title: m.id === currentUserId ? "Yours" : `${m.displayName}'s`,
+      key: m.id,
+      title: m.id === currentUserId ? t("groups.yours") : t("groups.member", { name: m.displayName }),
       items: active.filter((a) => !a.isShared && a.owners[0]?.userId === m.id),
     })),
   ].filter((g) => g.items.length > 0);
@@ -59,7 +64,7 @@ export function AccountsView({
   const archive = (id: string, value: boolean) =>
     start(async () => {
       const result = await archiveAccountAction(id, value);
-      if (result.ok) toast.success(value ? "Account archived" : "Account restored");
+      if (result.ok) toast.success(value ? t("toasts.archived") : t("toasts.restored"));
       else toast.error(result.error);
     });
 
@@ -71,13 +76,13 @@ export function AccountsView({
           <div className="min-w-0">
             <p className="truncate font-medium">{a.name}</p>
             <p className="text-xs text-muted-foreground">
-              {a.bankName} · {accountTypeLabel(a.type)}
+              {a.bankName} · {tc(`accountTypes.${a.type}`)}
               {a.ibanLast4 && ` · •••• ${a.ibanLast4}`}
             </p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-8" aria-label="Account actions">
+              <Button variant="ghost" size="icon" className="size-8" aria-label={t("card.actions")}>
                 <MoreHorizontal />
               </Button>
             </DropdownMenuTrigger>
@@ -95,17 +100,17 @@ export function AccountsView({
                   })
                 }
               >
-                <Pencil /> Edit
+                <Pencil /> {tc("actions.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => archive(a.id, !a.archived)}>
-                {a.archived ? <ArchiveRestore /> : <Archive />} {a.archived ? "Restore" : "Archive"}
+                {a.archived ? <ArchiveRestore /> : <Archive />} {a.archived ? t("card.restore") : t("card.archive")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
         <div>
           <p className="text-xl font-semibold">{a.balanceCents === null ? "—" : <Money cents={a.balanceCents} currency={a.currency} />}</p>
-          <p className="text-xs text-muted-foreground">{a.balanceDate ? `Balance on ${formatDate(a.balanceDate)}` : "No statements yet"}</p>
+          <p className="text-xs text-muted-foreground">{a.balanceDate ? t("card.balanceOn", { date: formatDate(a.balanceDate, locale) }) : t("card.noStatements")}</p>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {a.isShared && (
@@ -116,10 +121,10 @@ export function AccountsView({
           )}
           {a.isPrivate && (
             <Badge variant="outline" className="gap-1">
-              <Lock className="size-3" /> Private
+              <Lock className="size-3" /> {tc("private")}
             </Badge>
           )}
-          {!a.ibanLast4 && <Badge variant="outline">No IBAN — statements need manual matching</Badge>}
+          {!a.ibanLast4 && <Badge variant="outline">{t("card.noIban")}</Badge>}
         </div>
       </CardContent>
     </Card>
@@ -131,18 +136,18 @@ export function AccountsView({
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <Landmark className="size-10 text-muted-foreground" />
-            <p className="font-medium">Add your first account</p>
+            <p className="font-medium">{t("empty.title")}</p>
             <p className="max-w-sm text-sm text-muted-foreground">
-              Add each bank account you want to track. Include the IBAN so uploaded statements are matched automatically.
+              {t("empty.description")}
             </p>
             <Button onClick={() => open()}>
-              <Plus /> Add account
+              <Plus /> {t("addAccount")}
             </Button>
           </CardContent>
         </Card>
       ) : (
         groups.map((g) => (
-          <section key={g.title} className="space-y-3">
+          <section key={g.key} className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground">{g.title}</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{g.items.map(card)}</div>
           </section>
@@ -151,13 +156,13 @@ export function AccountsView({
 
       {active.length > 0 && (
         <Button variant="outline" onClick={() => open()}>
-          <Plus /> Add account
+          <Plus /> {t("addAccount")}
         </Button>
       )}
 
       {archived.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">Archived</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">{t("groups.archived")}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{archived.map(card)}</div>
         </section>
       )}

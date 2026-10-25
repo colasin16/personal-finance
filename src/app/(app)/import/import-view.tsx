@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { ArrowRight, FileText, FileUp, Loader2, MoreHorizontal, Plus, RotateCw, Trash2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { DetectedStatementInfo } from "@/lib/db/schema";
 import { assignStatementAccountAction, deleteStatementAction, retryStatementAction } from "@/lib/actions/statements";
+import { translateError } from "@/i18n/errors";
 import { formatDate } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { AccountDialog, type BankOption, type MemberOption } from "@/components/accounts/account-dialog";
@@ -51,6 +53,7 @@ export function ImportView({
   statements: StatementItem[];
   jobsRunning: boolean;
 }) {
+  const t = useTranslations("import");
   const router = useRouter();
   const { upload, uploading } = useUpload();
   const [target, setTarget] = useState(AUTO);
@@ -96,19 +99,19 @@ export function ImportView({
           {uploading ? <Loader2 className="size-7 animate-spin" /> : <FileUp className="size-7" />}
         </div>
         <div>
-          <p className="text-lg font-medium">Drag & drop your PDF statements here</p>
-          <p className="text-sm text-muted-foreground">Several files and banks at once are fine · up to 15 MB each</p>
+          <p className="text-lg font-medium">{t("dropzone.title")}</p>
+          <p className="text-sm text-muted-foreground">{t("dropzone.hint")}</p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Button onClick={() => input.current?.click()} disabled={uploading} className="bg-emerald-600 hover:bg-emerald-700">
-            Choose files
+            {t("dropzone.chooseFiles")}
           </Button>
           <Select value={target} onValueChange={setTarget}>
-            <SelectTrigger className="w-60" aria-label="Account for these files">
+            <SelectTrigger className="w-60" aria-label={t("dropzone.accountLabel")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={AUTO}>Detect account automatically</SelectItem>
+              <SelectItem value={AUTO}>{t("dropzone.autoDetect")}</SelectItem>
               {accounts.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
                   {a.name} · {a.bankName}
@@ -130,7 +133,13 @@ export function ImportView({
         />
         {accounts.length === 0 && (
           <p className="text-sm text-amber-700 dark:text-amber-400">
-            Tip: <Link href="/accounts" className="underline">add your accounts</Link> with their IBAN first so statements are matched automatically.
+            {t.rich("dropzone.tip", {
+              link: (chunks) => (
+                <Link href="/accounts" className="underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         )}
       </div>
@@ -140,7 +149,7 @@ export function ImportView({
           {statements.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-12 text-center text-sm text-muted-foreground">
               <FileText className="size-8" />
-              No statements yet. Your uploads will appear here.
+              {t("empty")}
             </div>
           ) : (
             <ul className="divide-y">
@@ -178,6 +187,10 @@ function StatementRow({
   currentUserId: string;
   stuck: boolean;
 }) {
+  const t = useTranslations("import");
+  const tc = useTranslations("common");
+  const te = useTranslations("errors");
+  const locale = useLocale();
   const [pending, start] = useTransition();
   const [creating, setCreating] = useState(false);
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, success?: string) =>
@@ -186,7 +199,7 @@ function StatementRow({
       if (!result.ok) toast.error(result.error);
       else if (success) toast.success(success);
     });
-  const assign = (accountId: string) => run(() => assignStatementAccountAction(s.id, accountId), "Account assigned — processing");
+  const assign = (accountId: string) => run(() => assignStatementAccountAction(s.id, accountId), t("toasts.assigned"));
   const detectedBank = banks.find((b) => b.id === s.detected?.bankId);
 
   return (
@@ -196,14 +209,18 @@ function StatementRow({
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{s.fileName}</p>
           <p className="text-xs text-muted-foreground">
-            {s.accountName ? `${s.accountName} · ${s.bankName}` : detectedBank ? `Detected ${detectedBank.name}` : "Account not detected yet"}
-            {s.detected?.ibanLast4 && !s.accountName && ` · IBAN •••• ${s.detected.ibanLast4}`}
-            {s.periodStart && s.periodEnd && ` · ${formatDate(s.periodStart)} – ${formatDate(s.periodEnd)}`}
+            {s.accountName
+              ? `${s.accountName} · ${s.bankName}`
+              : detectedBank
+                ? t("row.detected", { bank: detectedBank.name })
+                : t("row.notDetected")}
+            {s.detected?.ibanLast4 && !s.accountName && ` · ${t("row.iban", { last4: s.detected.ibanLast4 })}`}
+            {s.periodStart && s.periodEnd && ` · ${formatDate(s.periodStart, locale)} – ${formatDate(s.periodEnd, locale)}`}
           </p>
-          {s.status === "failed" && s.error && <p className="mt-1 text-xs text-red-600">{s.error}</p>}
-          {stuck && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">Processing was interrupted (server restarted). Retry to continue.</p>}
+          {s.status === "failed" && s.error && <p className="mt-1 text-xs text-red-600">{translateError(te, s.error)}</p>}
+          {stuck && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t("row.stuck")}</p>}
           {s.status === "needs_review" && s.issues > 0 && (
-            <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{s.issues} balance check{s.issues > 1 ? "s" : ""} didn&apos;t add up — please review.</p>
+            <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t("row.balanceIssues", { count: s.issues })}</p>
           )}
         </div>
       </div>
@@ -213,7 +230,7 @@ function StatementRow({
           <>
             <Select onValueChange={assign} disabled={pending}>
               <SelectTrigger className="w-48" size="sm">
-                <SelectValue placeholder="Which account is it?" />
+                <SelectValue placeholder={t("row.whichAccount")} />
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((a) => (
@@ -224,7 +241,7 @@ function StatementRow({
               </SelectContent>
             </Select>
             <Button size="sm" variant="outline" onClick={() => setCreating(true)}>
-              <Plus /> New
+              <Plus /> {t("row.new")}
             </Button>
           </>
         ) : (
@@ -233,40 +250,40 @@ function StatementRow({
         {(s.status === "needs_review" || s.status === "confirmed") && (
           <Button asChild size="sm" variant={s.status === "needs_review" ? "default" : "ghost"}>
             <Link href={`/statements/${s.id}`}>
-              {s.status === "needs_review" ? "Review" : "Open"} <ArrowRight />
+              {s.status === "needs_review" ? tc("actions.review") : tc("actions.open")} <ArrowRight />
             </Link>
           </Button>
         )}
         {(s.status === "failed" || stuck) && (
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => retryStatementAction(s.id), "Retrying")}>
-            {pending ? <Loader2 className="animate-spin" /> : <RotateCw />} Retry
+          <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => retryStatementAction(s.id), t("toasts.retrying"))}>
+            {pending ? <Loader2 className="animate-spin" /> : <RotateCw />} {tc("actions.retry")}
           </Button>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" className="size-8" aria-label="More actions">
+            <Button size="icon" variant="ghost" className="size-8" aria-label={t("row.moreActions")}>
               <MoreHorizontal />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
               <a href={`/api/statements/${s.id}/file`} target="_blank" rel="noreferrer">
-                <FileText /> View PDF
+                <FileText /> {t("row.viewPdf")}
               </a>
             </DropdownMenuItem>
             {s.status !== "confirmed" && s.status !== "needs_account" && (
-              <DropdownMenuItem onSelect={() => run(() => retryStatementAction(s.id), "Reprocessing")}>
-                <RotateCw /> Reprocess
+              <DropdownMenuItem onSelect={() => run(() => retryStatementAction(s.id), t("toasts.reprocessing"))}>
+                <RotateCw /> {t("row.reprocess")}
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
               onSelect={() => {
-                if (confirm(`Delete ${s.fileName} and its transactions?`)) run(() => deleteStatementAction(s.id), "Statement deleted");
+                if (confirm(t("row.confirmDelete", { fileName: s.fileName }))) run(() => deleteStatementAction(s.id), t("toasts.deleted"));
               }}
             >
-              <Trash2 /> Delete
+              <Trash2 /> {tc("actions.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -279,10 +296,10 @@ function StatementRow({
           banks={banks}
           members={members}
           currentUserId={currentUserId}
-          initial={{ bankId: s.detected?.bankId ?? undefined, name: detectedBank ? `${detectedBank.name} account` : "" }}
+          initial={{ bankId: s.detected?.bankId ?? undefined, name: detectedBank ? t("row.newAccountName", { bank: detectedBank.name }) : "" }}
           hint={
             s.detected?.ibanLast4
-              ? `We found IBAN •••• ${s.detected.ibanLast4} in this statement. Future statements of this account will be matched automatically.`
+              ? t("row.ibanHint", { last4: s.detected.ibanLast4 })
               : undefined
           }
           onSaved={assign}

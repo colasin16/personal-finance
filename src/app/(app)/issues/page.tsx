@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ArrowRight, CalendarX, CircleCheckBig, FileQuestion, FileWarning, FileSearch } from "lucide-react";
 import { getCategories, getIssues, merchantSuggestionKey, transferSuggestionKey } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
+import { formatMonth } from "@/lib/labels";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MerchantGroupCard, TransferSuggestionCard } from "./suggestion-cards";
 
-export const metadata: Metadata = { title: "Issues" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("issues");
+  return { title: t("title") };
+}
 
 export default async function IssuesPage() {
   const { db, user, household } = await requireContext();
-  const [issues, cats] = await Promise.all([getIssues(db, household.id, user.id), getCategories(db, household.id)]);
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("issues")]);
+  const [issues, cats] = await Promise.all([getIssues(db, household.id, user.id), getCategories(db, household.id, locale)]);
   const categories = cats.map((c) => ({ id: c.id, name: c.name, color: c.color, kind: c.kind }));
 
   const statementCards = [
@@ -20,31 +26,31 @@ export default async function IssuesPage() {
       key: "needs-account",
       items: issues.needsAccount,
       icon: FileQuestion,
-      title: (n: number) => `${n} statement${n > 1 ? "s" : ""} from an unknown account`,
-      description: "Tell us which account they belong to — we'll remember it for next month.",
+      title: (n: number) => t("needsAccount.title", { count: n }),
+      description: t("needsAccount.description"),
       href: "/import",
-      cta: "Assign accounts",
+      cta: t("needsAccount.cta"),
     },
     {
       key: "failed",
       items: issues.failed,
       icon: FileWarning,
-      title: (n: number) => `${n} statement${n > 1 ? "s" : ""} couldn't be read`,
-      description: "Usually a scanned PDF or a layout we don't know yet. Retry or upload the bank's digital PDF.",
+      title: (n: number) => t("failed.title", { count: n }),
+      description: t("failed.description"),
       href: "/import",
-      cta: "See details",
+      cta: t("failed.cta"),
     },
   ].filter((c) => c.items.length > 0);
 
   return (
     <>
-      <PageHeader title="Issues" description="Everything that needs a human decision. Fix one, and we learn for next time." />
+      <PageHeader title={t("title")} description={t("description")} />
       {issues.total === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
             <CircleCheckBig className="size-12 text-emerald-600" />
-            <p className="text-lg font-medium">All clear</p>
-            <p className="text-sm text-muted-foreground">Every statement is imported, categorized and reconciled.</p>
+            <p className="text-lg font-medium">{t("allClear")}</p>
+            <p className="text-sm text-muted-foreground">{t("allClearDescription")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -72,15 +78,16 @@ export default async function IssuesPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
-                      <FileSearch className="size-4 text-violet-600" /> {issues.toReview.length} statement{issues.toReview.length > 1 ? "s" : ""} ready to review
+                      <FileSearch className="size-4 text-violet-600" /> {t("toReview.title", { count: issues.toReview.length })}
                     </CardTitle>
-                    <CardDescription>Have a quick look and confirm — it takes seconds when everything adds up.</CardDescription>
+                    <CardDescription>{t("toReview.description")}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex flex-wrap gap-2">
                     {issues.toReview.slice(0, 6).map((s) => (
                       <Button key={s.statement.id} asChild size="sm" variant="outline">
                         <Link href={`/statements/${s.statement.id}`}>
-                          {s.accountName} · {s.statement.periodStart?.slice(0, 7)}
+                          {s.accountName}
+                          {s.statement.periodStart && ` · ${formatMonth(s.statement.periodStart, "short", locale)}`}
                         </Link>
                       </Button>
                     ))}
@@ -91,14 +98,14 @@ export default async function IssuesPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">
-                      <CalendarX className="size-4 text-amber-600" /> {issues.gaps} missing monthly statement{issues.gaps > 1 ? "s" : ""}
+                      <CalendarX className="size-4 text-amber-600" /> {t("gaps.title", { count: issues.gaps })}
                     </CardTitle>
-                    <CardDescription>Some months have no statement for an account, so totals for those months are incomplete.</CardDescription>
+                    <CardDescription>{t("gaps.description")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Button asChild size="sm" variant="outline">
                       <Link href="/import">
-                        View coverage <ArrowRight />
+                        {t("gaps.cta")} <ArrowRight />
                       </Link>
                     </Button>
                   </CardContent>
@@ -110,10 +117,8 @@ export default async function IssuesPage() {
           {issues.merchantGroups.length > 0 && (
             <section className="space-y-3">
               <div>
-                <h2 className="font-semibold">Uncategorized transactions</h2>
-                <p className="text-sm text-muted-foreground">
-                  {issues.flaggedCount} transactions we weren&apos;t sure about, grouped by merchant. One choice fixes them all.
-                </p>
+                <h2 className="font-semibold">{t("merchants.title")}</h2>
+                <p className="text-sm text-muted-foreground">{t("merchants.description", { count: issues.flaggedCount })}</p>
               </div>
               <div className="grid gap-3 lg:grid-cols-2">
                 {issues.merchantGroups.slice(0, 30).map((g) => (
@@ -140,8 +145,8 @@ export default async function IssuesPage() {
           {issues.transfers.length > 0 && (
             <section className="space-y-3">
               <div>
-                <h2 className="font-semibold">Possible transfers between your accounts</h2>
-                <p className="text-sm text-muted-foreground">Linked transfers are excluded from income and spending so nothing is counted twice.</p>
+                <h2 className="font-semibold">{t("transfers.title")}</h2>
+                <p className="text-sm text-muted-foreground">{t("transfers.description")}</p>
               </div>
               <div className="grid gap-3 lg:grid-cols-2">
                 {issues.transfers.map((t) => (

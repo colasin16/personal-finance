@@ -290,5 +290,5 @@ What was built differs from the plan above in a few deliberate ways:
   - Jobs: an in-process queue (Inngest later).
   - Auth: a signed-cookie session with an instant "magic link"; invites are shared as links instead of emails.
 - **Authorization lives in the server layer** (every query is scoped by household and visible accounts). `supabase/rls.sql` holds the equivalent RLS policies, tested on PGlite, for when the DB moves to Supabase.
-- Assumed answers to §13 until confirmed: English UI, EUR only, Spanish banks with text-based PDFs, personal accounts visible to the partner unless marked private.
+- Assumed answers to §13 until confirmed: English and Spanish UI (next-intl, cookie-based locale, no URL prefix), light/dark/system theme, EUR only, Spanish banks with text-based PDFs, personal accounts visible to the partner unless marked private.
 - Not built yet: OCR, Sentry, Google login, real email sending, settle-up, budgets.

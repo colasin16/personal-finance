@@ -1,0 +1,58 @@
+{
+  "title": "Importar",
+  "pageTitle": "Importar extractos",
+  "pageDescription": "Suelta los extractos mensuales en PDF de todos tus bancos. Detectamos la cuenta, leemos cada movimiento y lo categorizamos.",
+  "dropzone": {
+    "title": "Arrastra y suelta aquí tus extractos en PDF",
+    "hint": "Puedes subir varios archivos y bancos a la vez · hasta 15 MB cada uno",
+    "chooseFiles": "Elegir archivos",
+    "accountLabel": "Cuenta para estos archivos",
+    "autoDetect": "Detectar cuenta automáticamente",
+    "tip": "Consejo: primero <link>añade tus cuentas</link> con su IBAN para que los extractos se asignen automáticamente."
+  },
+  "empty": "Aún no hay extractos. Lo que subas aparecerá aquí.",
+  "row": {
+    "detected": "Detectado: {bank}",
+    "notDetected": "Cuenta aún sin detectar",
+    "iban": "IBAN •••• {last4}",
+    "stuck": "El procesamiento se interrumpió (el servidor se reinició). Reintenta para continuar.",
+    "balanceIssues": "{count, plural, one {# comprobación de saldo no cuadra} other {# comprobaciones de saldo no cuadran}}: revísalo.",
+    "whichAccount": "¿De qué cuenta es?",
+    "new": "Nueva",
+    "moreActions": "Más acciones",
+    "viewPdf": "Ver PDF",
+    "reprocess": "Volver a procesar",
+    "confirmDelete": "¿Eliminar {fileName} y sus movimientos?",
+    "newAccountName": "Cuenta {bank}",
+    "ibanHint": "Hemos encontrado el IBAN •••• {last4} en este extracto. Los próximos extractos de esta cuenta se asignarán automáticamente."
+  },
+  "toasts": {
+    "assigned": "Cuenta asignada; procesando",
+    "retrying": "Reintentando",
+    "reprocessing": "Volviendo a procesar",
+    "deleted": "Extracto eliminado"
+  },
+  "coverage": {
+    "title": "Cobertura de extractos",
+    "description": "Cada cuenta, cada mes. Las celdas ámbar son meses sin extracto todavía.",
+    "empty": "Añade una cuenta para empezar a controlar tus extractos.",
+    "status": {
+      "confirmed": "Confirmado",
+      "needs_review": "Listo para revisar",
+      "processing": "Procesando",
+      "failed": "Requiere atención",
+      "missing": "Falta el extracto",
+      "none": "Sin seguimiento aún"
+    }
+  },
+  "upload": {
+    "overlayTitle": "Suelta tus extractos bancarios",
+    "overlayHint": "PDF de cualquier banco: detectamos la cuenta automáticamente",
+    "skipped": "{count, plural, one {# archivo omitido} other {# archivos omitidos}}: solo se admiten extractos en PDF.",
+    "uploading": "Subiendo {count, plural, one {# extracto} other {# extractos}}…",
+    "added": "{count} subidos; procesando en segundo plano",
+    "duplicates": "{count} ya importados",
+    "nothingNew": "Nada nuevo que importar",
+    "failed": "Error al subir"
+  }
+}

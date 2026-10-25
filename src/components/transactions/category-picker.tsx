@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -8,8 +9,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 
 export type CategoryOption = { id: string; name: string; color: string; kind: "expense" | "income" | "transfer" };
-
-const KIND_LABEL = { expense: "Expenses", income: "Income", transfer: "Transfers" } as const;
 
 export function CategoryDot({ color, className }: { color: string; className?: string }) {
   return <span className={cn("inline-block size-2.5 shrink-0 rounded-full", className)} style={{ background: color }} />;
@@ -19,7 +18,7 @@ export function CategoryPicker({
   categories,
   value,
   onChange,
-  placeholder = "Uncategorized",
+  placeholder,
   disabled,
   className,
   allowNone = false,
@@ -34,6 +33,8 @@ export function CategoryPicker({
   allowNone?: boolean;
   variant?: "ghost" | "outline";
 }) {
+  const t = useTranslations("transactions.picker");
+  const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
   const current = categories.find((c) => c.id === value);
   return (
@@ -47,16 +48,16 @@ export function CategoryPicker({
         >
           <span className="flex min-w-0 items-center gap-1.5">
             <CategoryDot color={current?.color ?? "#f59e0b"} />
-            <span className="truncate">{current?.name ?? placeholder}</span>
+            <span className="truncate">{current?.name ?? placeholder ?? tc("uncategorized")}</span>
           </span>
           <ChevronDown className="size-3 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-60 p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search categories…" />
+          <CommandInput placeholder={t("search")} />
           <CommandList>
-            <CommandEmpty>No category found.</CommandEmpty>
+            <CommandEmpty>{t("empty")}</CommandEmpty>
             {allowNone && (
               <CommandGroup>
                 <CommandItem
@@ -66,12 +67,12 @@ export function CategoryPicker({
                     setOpen(false);
                   }}
                 >
-                  <CategoryDot color="#f59e0b" /> Uncategorized
+                  <CategoryDot color="#f59e0b" /> {tc("uncategorized")}
                 </CommandItem>
               </CommandGroup>
             )}
             {(["expense", "income", "transfer"] as const).map((kind) => (
-              <CommandGroup key={kind} heading={KIND_LABEL[kind]}>
+              <CommandGroup key={kind} heading={t(`kinds.${kind}`)}>
                 {categories
                   .filter((c) => c.kind === kind)
                   .map((c) => (

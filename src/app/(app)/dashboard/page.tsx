@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight, FileUp, Minus } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getMembers } from "@/lib/households";
 import { formatDate } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
@@ -13,9 +14,22 @@ import { cn } from "@/lib/utils";
 import { CashFlowChart, NetWorthChart } from "./charts";
 import { DashboardFilters } from "./filters";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("dashboard");
+  return { title: t("title") };
+}
 
-function Delta({ current, previous, invert = false }: { current: number; previous: number | undefined | null; invert?: boolean }) {
+function Delta({
+  current,
+  previous,
+  invert = false,
+  label,
+}: {
+  current: number;
+  previous: number | undefined | null;
+  invert?: boolean;
+  label: (pct: string) => string;
+}) {
   if (previous === undefined || previous === null || previous === 0) return null;
   const change = (current - previous) / Math.abs(previous);
   const good = invert ? change < 0 : change > 0;
@@ -23,7 +37,7 @@ function Delta({ current, previous, invert = false }: { current: number; previou
   return (
     <span className={cn("inline-flex items-center text-xs font-medium", Math.abs(change) < 0.005 ? "text-muted-foreground" : good ? "text-emerald-600" : "text-red-600")}>
       <Icon className="size-3.5" />
-      {Math.abs(change * 100).toFixed(0)}% vs previous period
+      {label(Math.abs(change * 100).toFixed(0))}
     </span>
   );
 }
@@ -33,13 +47,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const scope = parseScope(params.scope);
   const period = parsePeriod(params.period);
   const { db, user, household } = await requireContext();
-  const [data, members] = await Promise.all([getDashboard(db, household.id, user.id, scope, period), getMembers(db, household.id)]);
+  const locale = await getLocale();
+  const [t, tc] = await Promise.all([getTranslations("dashboard"), getTranslations("common")]);
+  const [data, members] = await Promise.all([getDashboard(db, household.id, user.id, scope, period, locale), getMembers(db, household.id)]);
   const { kpis, previous } = data;
   const scopes = [
-    { value: "household", label: "Household" },
-    ...(members.length > 1 ? [{ value: "shared", label: "Shared" }] : []),
-    ...members.map((m) => ({ value: `member:${m.id}`, label: m.id === user.id ? `${m.displayName} (you)` : m.displayName })),
+    { value: "household", label: tc("household") },
+    ...(members.length > 1 ? [{ value: "shared", label: tc("shared") }] : []),
+    ...members.map((m) => ({ value: `member:${m.id}`, label: m.id === user.id ? tc("you", { name: m.displayName }) : m.displayName })),
   ];
+  const deltaLabel = (pct: string) => t("kpis.delta", { pct });
 
   if (!data.range.hasData) {
     return (
@@ -49,15 +66,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
             <FileUp className="size-12 text-emerald-600" />
             <div>
-              <p className="text-lg font-medium">Your dashboard fills up as you import statements</p>
-              <p className="text-sm text-muted-foreground">Add your accounts, then drop last month&apos;s PDFs from each bank.</p>
+              <p className="text-lg font-medium">{t("empty.title")}</p>
+              <p className="text-sm text-muted-foreground">{t("empty.description")}</p>
             </div>
             <div className="flex gap-2">
               <Button asChild variant="outline">
-                <Link href="/accounts">Add accounts</Link>
+                <Link href="/accounts">{t("empty.addAccounts")}</Link>
               </Button>
               <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
-                <Link href="/import">Upload statements</Link>
+                <Link href="/import">{t("empty.upload")}</Link>
               </Button>
             </div>
           </CardContent>
@@ -68,23 +85,27 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const kpiCards = [
     {
-      label: "Net worth",
+      label: t("kpis.netWorth"),
       value: kpis.netWorth === null ? "—" : formatMoney(kpis.netWorth),
       sub:
         kpis.netWorthChange === null ? null : (
           <span className={cn("text-xs font-medium", kpis.netWorthChange >= 0 ? "text-emerald-600" : "text-red-600")}>
-            {formatMoney(kpis.netWorthChange, "EUR", { signed: true })} this period
+            {t("kpis.netWorthChange", { amount: formatMoney(kpis.netWorthChange, "EUR", { signed: true }) })}
           </span>
         ),
     },
-    { label: "Income", value: formatMoney(kpis.income), sub: <Delta current={kpis.income} previous={previous?.income} /> },
-    { label: "Spending", value: formatMoney(kpis.expenses), sub: <Delta current={kpis.expenses} previous={previous?.expenses} invert /> },
+    { label: t("kpis.income"), value: formatMoney(kpis.income), sub: <Delta current={kpis.income} previous={previous?.income} label={deltaLabel} /> },
     {
-      label: "Saved",
+      label: t("kpis.spending"),
+      value: formatMoney(kpis.expenses),
+      sub: <Delta current={kpis.expenses} previous={previous?.expenses} invert label={deltaLabel} />,
+    },
+    {
+      label: t("kpis.saved"),
       value: formatMoney(kpis.net),
       sub: (
         <span className="text-xs text-muted-foreground">
-          {kpis.savingsRate === null ? "—" : `${Math.round(kpis.savingsRate * 100)}% of income`}
+          {kpis.savingsRate === null ? "—" : t("kpis.savingsRate", { pct: Math.round(kpis.savingsRate * 100) })}
         </span>
       ),
     },
@@ -96,8 +117,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     <>
       <DashboardFilters scopes={scopes} periods={PERIODS} />
       <p className="mb-4 text-xs text-muted-foreground">
-        {formatDate(data.range.start)} – {formatDate(data.range.end)} · {data.accounts.length} account{data.accounts.length === 1 ? "" : "s"}
-        {scope.startsWith("member:") && " · shared accounts counted at this person's share"} · transfers between your accounts are excluded
+        {t("range.period", { start: formatDate(data.range.start, locale), end: formatDate(data.range.end, locale) })} ·{" "}
+        {tc("accountsCount", { count: data.accounts.length })}
+        {scope.startsWith("member:") && ` · ${t("range.memberShare")}`} · {t("range.transfersExcluded")}
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -115,8 +137,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Net worth</CardTitle>
-            <CardDescription>Sum of account balances. Arrows mark your biggest expenses.</CardDescription>
+            <CardTitle>{t("netWorth.title")}</CardTitle>
+            <CardDescription>{t("netWorth.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <NetWorthChart netWorth={data.netWorth} accounts={data.accountSeries} markers={data.markers} />
@@ -124,9 +146,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </Card>
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Monthly cash flow</CardTitle>
+            <CardTitle>{t("cashFlow.title")}</CardTitle>
             <CardDescription>
-              <span className="text-emerald-600">Income</span> vs <span className="text-red-500">spending</span>, line = saved
+              {t.rich("cashFlow.description", {
+                income: (c) => <span className="text-emerald-600">{c}</span>,
+                spending: (c) => <span className="text-red-500">{c}</span>,
+              })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -138,11 +163,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Where the money goes</CardTitle>
-            <CardDescription>Spending by category · click to see the transactions</CardDescription>
+            <CardTitle>{t("ranking.title")}</CardTitle>
+            <CardDescription>{t("ranking.description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.categoryRanking.length === 0 && <p className="text-sm text-muted-foreground">No spending in this period.</p>}
+            {data.categoryRanking.length === 0 && <p className="text-sm text-muted-foreground">{t("ranking.empty")}</p>}
             {data.categoryRanking.map((c) => (
               <Link
                 key={c.categoryId ?? "none"}
@@ -152,8 +177,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <span className="flex items-center gap-2">
                     <span className="size-2.5 rounded-full" style={{ background: c.color }} />
-                    {c.name}
-                    <span className="text-xs text-muted-foreground">{c.count} tx</span>
+                    {c.name ?? tc("uncategorized")}
+                    <span className="text-xs text-muted-foreground">{t("ranking.count", { count: c.count })}</span>
                   </span>
                   <span className="tabular-nums">
                     <Money cents={c.cents} className="font-medium" /> <span className="text-xs text-muted-foreground">{Math.round(c.pct * 100)}%</span>
@@ -168,8 +193,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </Card>
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Top merchants</CardTitle>
-            <CardDescription>Where you spent the most</CardDescription>
+            <CardTitle>{t("topMerchants.title")}</CardTitle>
+            <CardDescription>{t("topMerchants.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="divide-y">

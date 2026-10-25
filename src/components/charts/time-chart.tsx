@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import {
   AreaSeries,
@@ -14,8 +15,10 @@ import {
   type ISeriesApi,
   type SeriesMarker,
   type SeriesType,
+  TickMarkType,
   type Time,
 } from "lightweight-charts";
+import { intlLocale } from "@/i18n/config";
 
 /** Values are integer cents; dates are "YYYY-MM-DD". */
 export type ChartPoint = { time: string; value: number; color?: string };
@@ -47,19 +50,24 @@ export function TimeChart({
   markers?: ChartMarker[];
   height?: number;
   currency?: string;
+  /** Locale for money formatting; date labels follow the active app locale. */
   locale?: string;
   monthly?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const dark = useTheme().resolvedTheme === "dark";
+  const dateLocale = intlLocale(useLocale());
 
   useEffect(() => {
     const el = container.current;
     if (!el) return;
     const money = new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 });
     const compact = new Intl.NumberFormat(locale, { style: "currency", currency, notation: "compact", maximumFractionDigits: 1 });
-    const monthFmt = new Intl.DateTimeFormat("en-GB", { month: "short", year: "2-digit" });
-    const dayFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    const monthFmt = new Intl.DateTimeFormat(dateLocale, { month: "short", year: "2-digit" });
+    const dayFmt = new Intl.DateTimeFormat(dateLocale, { day: "numeric", month: "short", year: "numeric" });
+    const tickYear = new Intl.DateTimeFormat(dateLocale, { year: "numeric" });
+    const tickMonth = new Intl.DateTimeFormat(dateLocale, { month: "short" });
+    const tickDay = new Intl.DateTimeFormat(dateLocale, { day: "numeric" });
     const asDate = (t: Time) =>
       typeof t === "string" ? new Date(`${t}T00:00:00`) : typeof t === "number" ? new Date(t * 1000) : new Date(t.year, t.month - 1, t.day);
 
@@ -73,7 +81,18 @@ export function TimeChart({
       },
       grid: { vertLines: { visible: false }, horzLines: { color: dark ? "#27272a" : "#f1f1f4" } },
       rightPriceScale: { borderVisible: false, minimumWidth: 64, scaleMargins: { top: 0.15, bottom: 0.1 } },
-      timeScale: { borderVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true },
+      timeScale: {
+        borderVisible: false,
+        fixLeftEdge: true,
+        fixRightEdge: true,
+        lockVisibleTimeRangeOnResize: true,
+        tickMarkFormatter: (t: Time, type: TickMarkType) => {
+          const d = asDate(t);
+          if (type === TickMarkType.Year) return tickYear.format(d);
+          if (type === TickMarkType.Month) return tickMonth.format(d).replace(".", "");
+          return tickDay.format(d);
+        },
+      },
       crosshair: {
         mode: CrosshairMode.Magnet,
         vertLine: { labelBackgroundColor: dark ? "#3f3f46" : "#18181b" },
@@ -126,7 +145,7 @@ export function TimeChart({
     }
     chart.timeScale().fitContent();
     return () => chart.remove();
-  }, [series, markers, currency, locale, monthly, dark]);
+  }, [series, markers, currency, locale, dateLocale, monthly, dark]);
 
   return <div ref={container} style={{ height }} className="w-full" />;
 }

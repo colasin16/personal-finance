@@ -50,6 +50,15 @@ In production, `AUTH_SECRET` is required and demo login is disabled unless `ENAB
 
 Authorization is enforced in the server layer (`src/lib/queries.ts`, `src/lib/actions/*`). `supabase/rls.sql` contains matching Row Level Security policies for when the database moves to Supabase. They are tested in `tests/rls.test.ts`.
 
+## Languages and themes
+
+The UI is available in **English and Spanish** ([next-intl](https://next-intl.dev)). The language comes from the `locale` cookie set by the language switch in the header, and falls back to the browser's `Accept-Language`. URLs don't change between languages. The light, dark and system themes use `next-themes`.
+
+- Translations are in `messages/<locale>/<namespace>.json`. English is the source of truth, and keys are type-checked against it.
+- Server errors are thrown as `UserError` codes (`src/lib/errors.ts`) and translated from `messages/*/errors.json`.
+- Default category names are translated by slug (`src/lib/i18n/categories.ts`). Categories you rename are shown exactly as you typed them.
+- To add a language: add it to `LOCALES` in `src/i18n/config.ts` and copy `messages/en/` to `messages/<locale>/`, then translate. `tests/i18n.test.ts` fails if any key or placeholder is missing.
+
 ## Project layout
 
 ```
@@ -60,6 +69,7 @@ src/lib/pipeline/   upload → extract text → parse → dedupe → categorize 
 src/lib/services/   storage, LLM and job-queue adapters (mock + real)
 src/lib/actions/    server actions (all mutations)
 src/lib/queries.ts  read models (dashboard, issues, transactions, completeness)
+src/i18n/, messages/ locale config and en/es translations
 samples/            generated sample statements for 3 accounts, May–Oct 2026
 ```
 

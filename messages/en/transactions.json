@@ -1,0 +1,85 @@
+{
+  "title": "Transactions",
+  "description": "Click a category to change it. Select several rows to recategorize them at once.",
+  "summary": "{count, plural, one {# transaction} other {# transactions}} · net <money></money>",
+  "previousPage": "Previous page",
+  "nextPage": "Next page",
+  "filters": {
+    "search": "Search description, merchant, notes",
+    "allAccounts": "All accounts",
+    "allCategories": "All categories",
+    "clearCategory": "Clear category",
+    "from": "From",
+    "to": "To",
+    "needsAttention": "Needs attention",
+    "reset": "Reset"
+  },
+  "picker": {
+    "search": "Search categories…",
+    "empty": "No category found.",
+    "kinds": {
+      "expense": "Expenses",
+      "income": "Income",
+      "transfer": "Transfers"
+    }
+  },
+  "table": {
+    "empty": "No transactions match these filters.",
+    "selected": "{count} selected",
+    "setCategory": "Set category…",
+    "clear": "Clear",
+    "selectAll": "Select all",
+    "selectRow": "Select transaction",
+    "date": "Date",
+    "description": "Description",
+    "account": "Account",
+    "category": "Category",
+    "amount": "Amount",
+    "balance": "Balance",
+    "linkedTransfer": "Linked transfer",
+    "hasNotes": "Has notes",
+    "needsAttention": "Needs attention",
+    "checkCategory": "Please check this category",
+    "autoCategorized": "Automatically categorized",
+    "confidence": "{percent}% confident",
+    "categorizedAs": "Categorized as {category}",
+    "suggestRule": "Always categorize “{merchant}” as {category}?",
+    "createRule": "Create rule",
+    "updated": "{count, plural, one {# transaction updated} other {# transactions updated}}"
+  },
+  "detail": {
+    "originalDescription": "Original description",
+    "notes": "Notes (visible to your household)",
+    "notesPlaceholder": "e.g. Dinner with friends — they paid back half",
+    "showHistory": "Show change history",
+    "noHistory": "No manual changes yet.",
+    "deletedCategory": "Deleted category",
+    "fields": {
+      "category": "category",
+      "notes": "notes"
+    },
+    "sourcePdf": "Source PDF",
+    "rule": "Rule",
+    "unlinkTransfer": "Unlink transfer",
+    "transferUnlinked": "Transfer unlinked",
+    "saveNotes": "Save notes",
+    "notesSaved": "Notes saved"
+  },
+  "rule": {
+    "title": "Create a rule",
+    "description": "Rules run first on every new statement, before automatic categorization.",
+    "matchTypes": {
+      "merchant": "Merchant is",
+      "contains": "Description contains",
+      "regex": "Description matches regex"
+    },
+    "pattern": "Pattern",
+    "categorizeAs": "Categorize as",
+    "pickCategory": "Pick a category",
+    "applyExisting": "Also update {count, plural, one {<b>#</b> existing transaction} other {<b>#</b> existing transactions}}",
+    "manualNeverOverwritten": "Transactions you categorized by hand are never overwritten.",
+    "save": "Save rule",
+    "saved": "Rule saved",
+    "savedApplied": "Rule saved and applied to {count, plural, one {# transaction} other {# transactions}}"
+  }
+}

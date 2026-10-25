@@ -1,3 +1,4 @@
+import { UserError } from "@/lib/errors";
 import { randomBytes } from "node:crypto";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { z } from "zod";
@@ -37,7 +38,7 @@ export async function getMembers(db: Db, householdId: string) {
 }
 
 export async function createHousehold(db: Db, userId: string, name: string, baseCurrency = "EUR") {
-  if (await getMembership(db, userId)) throw new Error("You already belong to a household.");
+  if (await getMembership(db, userId)) throw new UserError("already_in_household");
   const [household] = await db.insert(households).values({ name: name.trim() || "Our household", baseCurrency }).returning();
   await db.insert(householdMembers).values({ householdId: household!.id, userId, role: "owner" });
   await seedHouseholdCategories(db, household!.id);
@@ -80,8 +81,8 @@ export async function pendingInvitesFor(db: Db, email: string) {
 
 export async function acceptInvite(db: Db, token: string, userId: string) {
   const row = await getInvite(db, token);
-  if (!row) throw new Error("This invitation is invalid or has expired.");
-  if (await getMembership(db, userId)) throw new Error("You already belong to a household.");
+  if (!row) throw new UserError("invite_invalid");
+  if (await getMembership(db, userId)) throw new UserError("already_in_household");
   await db.insert(householdMembers).values({ householdId: row.invite.householdId, userId, role: "member" });
   await db.update(householdInvites).set({ acceptedAt: new Date() }).where(eq(householdInvites.id, row.invite.id));
   return row.invite.householdId;
@@ -103,7 +104,7 @@ export const accountInputSchema = z
     owners: z.array(z.object({ userId: z.string().uuid(), sharePct: z.number().min(0).max(100) })).min(1, "Pick at least one owner"),
   })
   .refine((v) => Math.abs(v.owners.reduce((s, o) => s + o.sharePct, 0) - 100) < 0.01, {
-    message: "Ownership shares must add up to 100%",
+    message: "shares_must_total_100",
     path: ["owners"],
   });
 
@@ -111,7 +112,7 @@ export type AccountInput = z.input<typeof accountInputSchema>;
 
 async function assertOwnersAreMembers(db: Db, householdId: string, owners: { userId: string }[]) {
   const members = new Set((await getMembers(db, householdId)).map((m) => m.id));
-  if (owners.some((o) => !members.has(o.userId))) throw new Error("Owners must be household members.");
+  if (owners.some((o) => !members.has(o.userId))) throw new UserError("owners_not_members");
 }
 
 export async function createAccount(db: Db, householdId: string, input: AccountInput) {
@@ -149,7 +150,7 @@ export async function updateAccount(db: Db, householdId: string, accountId: stri
     })
     .where(and(eq(accounts.id, accountId), eq(accounts.householdId, householdId)))
     .returning();
-  if (!account) throw new Error("Account not found");
+  if (!account) throw new UserError("account_not_found");
   await db.delete(accountOwners).where(eq(accountOwners.accountId, accountId));
   await db.insert(accountOwners).values(data.owners.map((o) => ({ accountId, ...o })));
   return account;

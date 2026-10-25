@@ -1,0 +1,44 @@
+{
+  "title": "Dashboard",
+  "periods": { "3m": "Last 3 months", "6m": "Last 6 months", "12m": "Last 12 months", "ytd": "Year to date", "all": "All time" },
+  "empty": {
+    "title": "Your dashboard fills up as you import statements",
+    "description": "Add your accounts, then drop last month's PDFs from each bank.",
+    "addAccounts": "Add accounts",
+    "upload": "Upload statements"
+  },
+  "range": {
+    "period": "{start} – {end}",
+    "memberShare": "shared accounts counted at this person's share",
+    "transfersExcluded": "transfers between your accounts are excluded"
+  },
+  "kpis": {
+    "netWorth": "Net worth",
+    "netWorthChange": "{amount} this period",
+    "income": "Income",
+    "spending": "Spending",
+    "saved": "Saved",
+    "savingsRate": "{pct}% of income",
+    "delta": "{pct}% vs previous period"
+  },
+  "netWorth": {
+    "title": "Net worth",
+    "description": "Sum of account balances. Arrows mark your biggest expenses.",
+    "total": "Total",
+    "byAccount": "By account"
+  },
+  "cashFlow": {
+    "title": "Monthly cash flow",
+    "description": "<income>Income</income> vs <spending>spending</spending>, line = saved"
+  },
+  "ranking": {
+    "title": "Where the money goes",
+    "description": "Spending by category · click to see the transactions",
+    "empty": "No spending in this period.",
+    "count": "{count} tx"
+  },
+  "topMerchants": {
+    "title": "Top merchants",
+    "description": "Where you spent the most"
+  }
+}

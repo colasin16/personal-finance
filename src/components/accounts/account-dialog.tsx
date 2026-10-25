@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Check, ChevronsUpDown, Loader2, Lock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { saveAccountAction } from "@/lib/actions/household";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ACCOUNT_TYPES as TYPES } from "@/lib/labels";
+import { ACCOUNT_TYPES, type AccountType } from "@/lib/labels";
 
 export type BankOption = { id: string; name: string; color: string; country: string };
 export type MemberOption = { id: string; displayName: string };
@@ -22,7 +23,7 @@ export type AccountFormValue = {
   bankId: string;
   name: string;
   ibanLast4?: string | null;
-  type: "checking" | "savings" | "credit" | "investment";
+  type: AccountType;
   isPrivate: boolean;
   owners: { userId: string; sharePct: number }[];
 };
@@ -52,6 +53,8 @@ export function AccountDialog({
   hint?: string;
   onSaved?: (accountId: string) => void;
 }) {
+  const t = useTranslations("accounts");
+  const tc = useTranslations("common");
   const editing = Boolean(initial?.id);
   const [bankId, setBankId] = useState(initial?.bankId ?? "");
   const [bankOpen, setBankOpen] = useState(!initial?.bankId);
@@ -74,7 +77,7 @@ export function AccountDialog({
     start(async () => {
       const result = await saveAccountAction({ bankId, name, iban: iban || undefined, type, isPrivate, owners, currency: "EUR" }, initial?.id);
       if (!result.ok) return void toast.error(result.error);
-      toast.success(editing ? "Account updated" : "Account added");
+      toast.success(editing ? t("toasts.updated") : t("toasts.added"));
       onOpenChange(false);
       onSaved?.(result.data.id);
     });
@@ -85,12 +88,12 @@ export function AccountDialog({
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={submit} className="space-y-5">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit account" : "Add an account"}</DialogTitle>
-            <DialogDescription>{hint ?? "Pick your bank and tell us who owns the account."}</DialogDescription>
+            <DialogTitle>{editing ? t("dialog.editTitle") : t("dialog.addTitle")}</DialogTitle>
+            <DialogDescription>{hint ?? t("dialog.description")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2">
-            <Label>Bank</Label>
+            <Label>{t("dialog.bank")}</Label>
             <Popover open={bankOpen} onOpenChange={setBankOpen}>
               <PopoverTrigger asChild>
                 <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
@@ -100,16 +103,16 @@ export function AccountDialog({
                       {bank.name}
                     </span>
                   ) : (
-                    <span className="text-muted-foreground">Search for your bank…</span>
+                    <span className="text-muted-foreground">{t("dialog.bankPlaceholder")}</span>
                   )}
                   <ChevronsUpDown className="opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                 <Command>
-                  <CommandInput placeholder="ING, BBVA, Revolut…" />
+                  <CommandInput placeholder={t("dialog.bankSearch")} />
                   <CommandList>
-                    <CommandEmpty>No bank found — choose “Other bank”.</CommandEmpty>
+                    <CommandEmpty>{t("dialog.bankEmpty")}</CommandEmpty>
                     <CommandGroup>
                       {banks.map((b) => (
                         <CommandItem
@@ -117,7 +120,7 @@ export function AccountDialog({
                           value={`${b.name} ${b.id}`}
                           onSelect={() => {
                             setBankId(b.id);
-                            if (!name) setName(b.id === "other" ? "" : `${b.name} account`);
+                            if (!name) setName(b.id === "other" ? "" : t("dialog.defaultName", { bank: b.name }));
                             setBankOpen(false);
                           }}
                         >
@@ -136,19 +139,19 @@ export function AccountDialog({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="account-name">Name</Label>
-              <Input id="account-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Joint account" required maxLength={80} />
+              <Label htmlFor="account-name">{t("dialog.name")}</Label>
+              <Input id="account-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("dialog.namePlaceholder")} required maxLength={80} />
             </div>
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t("dialog.type")}</Label>
               <Select value={type} onValueChange={(v) => setType(v as AccountFormValue["type"])}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                  {ACCOUNT_TYPES.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {tc(`accountTypes.${value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -158,20 +161,20 @@ export function AccountDialog({
 
           <div className="space-y-2">
             <Label htmlFor="iban">
-              IBAN <span className="text-muted-foreground">(optional — lets us recognise this account&apos;s statements)</span>
+              {t("dialog.iban")} <span className="text-muted-foreground">{t("dialog.ibanHint")}</span>
             </Label>
             <Input
               id="iban"
               value={iban}
               onChange={(e) => setIban(e.target.value)}
-              placeholder={initial?.ibanLast4 ? `•••• ${initial.ibanLast4} (leave empty to keep)` : "ES00 0000 0000 0000 0000 0000"}
+              placeholder={initial?.ibanLast4 ? t("dialog.ibanKeep", { last4: initial.ibanLast4 }) : "ES00 0000 0000 0000 0000 0000"}
               autoComplete="off"
             />
-            <p className="text-xs text-muted-foreground">Only the last 4 digits and a salted hash are stored.</p>
+            <p className="text-xs text-muted-foreground">{t("dialog.ibanStorage")}</p>
           </div>
 
           <div className="space-y-2">
-            <Label>Owners</Label>
+            <Label>{t("dialog.owners")}</Label>
             <div className="divide-y rounded-lg border">
               {members.map((m) => {
                 const owner = owners.find((o) => o.userId === m.id);
@@ -180,7 +183,7 @@ export function AccountDialog({
                     <Checkbox id={`owner-${m.id}`} checked={!!owner} onCheckedChange={(c) => toggleOwner(m.id, c === true)} />
                     <Label htmlFor={`owner-${m.id}`} className="flex-1 font-normal">
                       {m.displayName}
-                      {m.id === currentUserId && <span className="text-muted-foreground"> (you)</span>}
+                      {m.id === currentUserId && <span className="text-muted-foreground"> {t("dialog.you")}</span>}
                     </Label>
                     {owner && owners.length > 1 && (
                       <div className="flex items-center gap-1">
@@ -191,7 +194,7 @@ export function AccountDialog({
                           step="0.01"
                           className="h-8 w-20 text-right"
                           value={owner.sharePct}
-                          aria-label={`${m.displayName} share`}
+                          aria-label={t("dialog.share", { name: m.displayName })}
                           onChange={(e) =>
                             setOwners(owners.map((o) => (o.userId === m.id ? { ...o, sharePct: Number(e.target.value) } : o)))
                           }
@@ -203,27 +206,27 @@ export function AccountDialog({
                 );
               })}
             </div>
-            {owners.length > 1 && Math.abs(total - 100) > 0.01 && <p className="text-xs text-destructive">Shares add up to {total}% — they must total 100%.</p>}
-            {members.length === 1 && <p className="text-xs text-muted-foreground">Invite your partner in Settings to share accounts.</p>}
+            {owners.length > 1 && Math.abs(total - 100) > 0.01 && <p className="text-xs text-destructive">{t("dialog.sharesTotal", { total })}</p>}
+            {members.length === 1 && <p className="text-xs text-muted-foreground">{t("dialog.inviteHint")}</p>}
           </div>
 
           <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
             <div>
               <Label htmlFor="private" className="flex items-center gap-1.5">
-                <Lock className="size-3.5" /> Private
+                <Lock className="size-3.5" /> {t("dialog.private")}
               </Label>
-              <p className="text-xs text-muted-foreground">Only the owners can see this account and its transactions.</p>
+              <p className="text-xs text-muted-foreground">{t("dialog.privateHint")}</p>
             </div>
             <Switch id="private" checked={isPrivate} onCheckedChange={setIsPrivate} />
           </div>
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tc("actions.cancel")}
             </Button>
             <Button type="submit" disabled={pending || !bankId || owners.length === 0 || Math.abs(total - 100) > 0.01}>
               {pending && <Loader2 className="animate-spin" />}
-              {editing ? "Save changes" : "Add account"}
+              {editing ? tc("actions.saveChanges") : t("addAccount")}
             </Button>
           </DialogFooter>
         </form>

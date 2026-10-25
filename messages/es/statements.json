@@ -1,0 +1,34 @@
+{
+  "title": "Revisar extracto",
+  "backToImport": "Importar",
+  "unknownDate": "?",
+  "parsedBy": "leído por {provider}",
+  "openPdf": "Abrir PDF",
+  "kpi": {
+    "openingBalance": "Saldo inicial",
+    "moneyIn": "Entradas",
+    "moneyOut": "Salidas",
+    "closingBalance": "Saldo final"
+  },
+  "balanced": {
+    "title": "Los saldos cuadran",
+    "description": "Saldo inicial + {count, plural, one {# movimiento} other {# movimientos}} = saldo final. Todos los movimientos se han leído correctamente."
+  },
+  "unbalanced": {
+    "title": "Algunas cifras no cuadran",
+    "hint": "Compáralo con el PDF: puede faltar algún movimiento o haberse leído mal. Puedes volver a procesar el archivo desde la página Importar."
+  },
+  "issues": {
+    "balance_mismatch": "Saldo inicial + movimientos = {actual}, pero el extracto indica {expected}.",
+    "running_balance_mismatch": "Fila {row}: el saldo debería ser {actual}, pero el extracto muestra {expected}.",
+    "no_transactions": "No se han encontrado movimientos en este extracto.",
+    "missing_balances": "No se ha podido leer el saldo inicial o final, así que no se pueden verificar los totales."
+  },
+  "flagged": "{count, plural, one {# movimiento necesita categoría; aparece primero.} other {# movimientos necesitan categoría; aparecen primero.}}",
+  "empty": "Este extracto no tiene movimientos.",
+  "confirm": {
+    "button": "Confirmar extracto",
+    "prompt": "{count, plural, one {# movimiento sigue sin categoría. ¿Confirmar de todos modos?} other {# movimientos siguen sin categoría. ¿Confirmar de todos modos?}}",
+    "success": "Extracto confirmado"
+  }
+}

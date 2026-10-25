@@ -1,3 +1,4 @@
+import { UserError } from "@/lib/errors";
 import { and, eq } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { accounts, statements } from "@/lib/db/schema";
@@ -6,7 +7,7 @@ import { getStorage, type FileStorage } from "@/lib/services/storage";
 
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 
-export class UploadError extends Error {}
+export class UploadError extends UserError {}
 
 export async function createStatementFromUpload(
   db: Db,
@@ -14,8 +15,8 @@ export async function createStatementFromUpload(
   storage: FileStorage = getStorage(),
 ) {
   const { householdId, userId, fileName, bytes } = input;
-  if (bytes.byteLength > MAX_UPLOAD_BYTES) throw new UploadError(`${fileName} is larger than 15 MB.`);
-  if (new TextDecoder().decode(bytes.slice(0, 5)) !== "%PDF-") throw new UploadError(`${fileName} is not a PDF file.`);
+  if (bytes.byteLength > MAX_UPLOAD_BYTES) throw new UploadError("file_too_large", { file: fileName, maxMb: 15 });
+  if (new TextDecoder().decode(bytes.slice(0, 5)) !== "%PDF-") throw new UploadError("not_a_pdf", { file: fileName });
 
   const accountId = input.accountId || null;
   if (accountId) {
@@ -23,7 +24,7 @@ export async function createStatementFromUpload(
       .select({ id: accounts.id })
       .from(accounts)
       .where(and(eq(accounts.id, accountId), eq(accounts.householdId, householdId)));
-    if (!account) throw new UploadError("Unknown account.");
+    if (!account) throw new UploadError("account_not_found");
   }
 
   const fileSha256 = sha256(bytes);

@@ -1,0 +1,85 @@
+{
+  "title": "Movimientos",
+  "description": "Haz clic en una categoría para cambiarla. Selecciona varias filas para recategorizarlas a la vez.",
+  "summary": "{count, plural, one {# movimiento} other {# movimientos}} · neto <money></money>",
+  "previousPage": "Página anterior",
+  "nextPage": "Página siguiente",
+  "filters": {
+    "search": "Busca por descripción, comercio o notas",
+    "allAccounts": "Todas las cuentas",
+    "allCategories": "Todas las categorías",
+    "clearCategory": "Quitar categoría",
+    "from": "Desde",
+    "to": "Hasta",
+    "needsAttention": "Requiere atención",
+    "reset": "Restablecer"
+  },
+  "picker": {
+    "search": "Buscar categorías…",
+    "empty": "No hay ninguna categoría.",
+    "kinds": {
+      "expense": "Gastos",
+      "income": "Ingresos",
+      "transfer": "Traspasos"
+    }
+  },
+  "table": {
+    "empty": "Ningún movimiento coincide con estos filtros.",
+    "selected": "{count} seleccionados",
+    "setCategory": "Asignar categoría…",
+    "clear": "Limpiar",
+    "selectAll": "Seleccionar todo",
+    "selectRow": "Seleccionar movimiento",
+    "date": "Fecha",
+    "description": "Descripción",
+    "account": "Cuenta",
+    "category": "Categoría",
+    "amount": "Importe",
+    "balance": "Saldo",
+    "linkedTransfer": "Traspaso vinculado",
+    "hasNotes": "Tiene notas",
+    "needsAttention": "Requiere atención",
+    "checkCategory": "Revisa esta categoría",
+    "autoCategorized": "Categorizado automáticamente",
+    "confidence": "{percent}% de confianza",
+    "categorizedAs": "Categorizado como {category}",
+    "suggestRule": "¿Categorizar siempre “{merchant}” como {category}?",
+    "createRule": "Crear regla",
+    "updated": "{count, plural, one {# movimiento actualizado} other {# movimientos actualizados}}"
+  },
+  "detail": {
+    "originalDescription": "Descripción original",
+    "notes": "Notas (visibles para tu hogar)",
+    "notesPlaceholder": "p. ej. Cena con amigos — me devolvieron la mitad",
+    "showHistory": "Ver historial de cambios",
+    "noHistory": "Todavía no hay cambios manuales.",
+    "deletedCategory": "Categoría eliminada",
+    "fields": {
+      "category": "categoría",
+      "notes": "notas"
+    },
+    "sourcePdf": "PDF original",
+    "rule": "Regla",
+    "unlinkTransfer": "Desvincular traspaso",
+    "transferUnlinked": "Traspaso desvinculado",
+    "saveNotes": "Guardar notas",
+    "notesSaved": "Notas guardadas"
+  },
+  "rule": {
+    "title": "Crear una regla",
+    "description": "Las reglas se aplican primero en cada extracto nuevo, antes de la categorización automática.",
+    "matchTypes": {
+      "merchant": "El comercio es",
+      "contains": "La descripción contiene",
+      "regex": "La descripción cumple la regex"
+    },
+    "pattern": "Patrón",
+    "categorizeAs": "Categorizar como",
+    "pickCategory": "Elige una categoría",
+    "applyExisting": "Actualizar también {count, plural, one {<b>#</b> movimiento existente} other {<b>#</b> movimientos existentes}}",
+    "manualNeverOverwritten": "Los movimientos que categorizaste a mano nunca se sobrescriben.",
+    "save": "Guardar regla",
+    "saved": "Regla guardada",
+    "savedApplied": "Regla guardada y aplicada a {count, plural, one {# movimiento} other {# movimientos}}"
+  }
+}

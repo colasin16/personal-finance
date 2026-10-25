@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { UploadResult } from "@/app/api/statements/route";
 
@@ -23,6 +24,7 @@ const isPdf = (f: File) => f.type === "application/pdf" || f.name.toLowerCase().
 
 /** Statements can be dropped anywhere in the app (Summ-style "just drop your files"). */
 export function UploadProvider({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("import.upload");
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -32,37 +34,37 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
     async (files: File[], accountId?: string | null) => {
       const pdfs = files.filter(isPdf);
       const skipped = files.length - pdfs.length;
-      if (skipped > 0) toast.warning(`${skipped} file${skipped > 1 ? "s" : ""} skipped — only PDF statements are supported.`);
+      if (skipped > 0) toast.warning(t("skipped", { count: skipped }));
       if (pdfs.length === 0) return [];
       setUploading(true);
-      const id = toast.loading(`Uploading ${pdfs.length} statement${pdfs.length > 1 ? "s" : ""}…`);
+      const id = toast.loading(t("uploading", { count: pdfs.length }));
       try {
         const body = new FormData();
         for (const file of pdfs) body.append("files", file);
         if (accountId) body.append("accountId", accountId);
         const response = await fetch("/api/statements", { method: "POST", body });
         const json = (await response.json()) as { results?: UploadResult[]; error?: string };
-        if (!response.ok || !json.results) throw new Error(json.error ?? "Upload failed");
+        if (!response.ok || !json.results) throw new Error(json.error ?? t("failed"));
         const results = json.results;
         const added = results.filter((r) => r.statementId && !r.duplicate).length;
         const dupes = results.filter((r) => r.duplicate).length;
         const errors = results.filter((r) => r.error);
         toast.success(
-          [added && `${added} uploaded — processing in the background`, dupes && `${dupes} already imported`].filter(Boolean).join(" · ") ||
-            "Nothing new to import",
+          [added && t("added", { count: added }), dupes && t("duplicates", { count: dupes })].filter(Boolean).join(" · ") ||
+            t("nothingNew"),
           { id },
         );
         for (const e of errors) toast.error(`${e.fileName}: ${e.error}`);
         router.refresh();
         return results;
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Upload failed", { id });
+        toast.error(error instanceof Error ? error.message : t("failed"), { id });
         return [];
       } finally {
         setUploading(false);
       }
     },
-    [router],
+    [router, t],
   );
 
   useEffect(() => {
@@ -110,8 +112,8 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-emerald-600/10 backdrop-blur-[2px]">
           <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-emerald-500 bg-background px-12 py-10 shadow-xl">
             <FileUp className="size-10 text-emerald-600" />
-            <p className="text-lg font-medium">Drop your bank statements</p>
-            <p className="text-sm text-muted-foreground">PDFs from any bank — we&apos;ll detect the account automatically</p>
+            <p className="text-lg font-medium">{t("overlayTitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("overlayHint")}</p>
           </div>
         </div>
       )}

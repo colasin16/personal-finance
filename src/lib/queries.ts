@@ -1,3 +1,4 @@
+import { localizeCategoryName } from "@/lib/i18n/categories";
 import { addDays, differenceInCalendarDays, format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, type SQL } from "drizzle-orm";
 import type { Db } from "@/lib/db";
@@ -88,23 +89,22 @@ export function scopeAccounts(list: VisibleAccount[], scope: Scope) {
   });
 }
 
-export async function getCategories(db: Db, householdId: string) {
-  return db.select().from(categories).where(eq(categories.householdId, householdId)).orderBy(asc(categories.kind), asc(categories.name));
+/** Categories with built-in names translated to `locale` (see lib/i18n/categories). */
+export async function getCategories(db: Db, householdId: string, locale = "en") {
+  const rows = await db.select().from(categories).where(eq(categories.householdId, householdId)).orderBy(asc(categories.kind));
+  return rows
+    .map((c) => ({ ...c, name: localizeCategoryName(c, locale) }))
+    .sort((a, b) => a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name, locale));
 }
 
 /* ───────────────────────────────────── Dashboard ───────────────────────────────────── */
 
 export type Period = "3m" | "6m" | "12m" | "ytd" | "all";
-export const PERIODS: { value: Period; label: string }[] = [
-  { value: "3m", label: "3 months" },
-  { value: "6m", label: "6 months" },
-  { value: "12m", label: "12 months" },
-  { value: "ytd", label: "Year to date" },
-  { value: "all", label: "All time" },
-];
+/** Labels: messages/<locale>/dashboard.json `periods.<value>`. */
+export const PERIODS: Period[] = ["3m", "6m", "12m", "ytd", "all"];
 
 export function parsePeriod(value: string | undefined | null): Period {
-  return PERIODS.some((p) => p.value === value) ? (value as Period) : "6m";
+  return PERIODS.includes(value as Period) ? (value as Period) : "6m";
 }
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
@@ -133,11 +133,11 @@ type DashboardTx = {
   descriptionRaw: string;
 };
 
-export async function getDashboard(db: Db, householdId: string, userId: string, scope: Scope, period: Period) {
+export async function getDashboard(db: Db, householdId: string, userId: string, scope: Scope, period: Period, locale = "en") {
   const visible = await getVisibleAccounts(db, householdId, userId);
   const inScope = scopeAccounts(visible, scope);
   const shareBy = new Map(inScope.map((s) => [s.account.id, s.sharePct]));
-  const cats = await getCategories(db, householdId);
+  const cats = await getCategories(db, householdId, locale);
   const catBy = new Map(cats.map((c) => [c.id, c]));
 
   const txs: DashboardTx[] = inScope.length
@@ -251,7 +251,8 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
       const cat: Category | undefined = categoryId ? catBy.get(categoryId) : undefined;
       return {
         categoryId,
-        name: cat?.name ?? "Uncategorized",
+        /** null = uncategorized; the UI shows the translated label. */
+        name: cat?.name ?? null,
         color: cat?.color ?? "#94a3b8",
         icon: cat?.icon ?? "circle-help",
         ...v,

@@ -1,0 +1,64 @@
+{
+  "title": "Ajustes",
+  "household": {
+    "title": "Hogar",
+    "description": "Todos los miembros del hogar ven las cuentas compartidas y las cuentas personales que no son privadas.",
+    "name": "Nombre",
+    "renamed": "Hogar renombrado",
+    "members": "Miembros",
+    "you": "(tú)",
+    "invited": "invitado",
+    "roles": { "owner": "propietario", "member": "miembro" }
+  },
+  "invite": {
+    "label": "Invita a tu pareja",
+    "placeholder": "pareja@ejemplo.com",
+    "submit": "Invitar",
+    "mockedEmail": "En modo sin conexión no se envían emails: comparte este enlace (válido 14 días):",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "Enlace copiado"
+  },
+  "rules": {
+    "title": "Reglas",
+    "description": "Se aplican primero a cada extracto nuevo. Créalas desde cualquier movimiento o desde Pendientes.",
+    "empty": "Aún no hay reglas.",
+    "match": { "merchant": "El comercio es", "contains": "Contiene", "regex": "Coincide con" },
+    "hits": "{count, plural, one {# uso} other {# usos}}",
+    "delete": "Eliminar regla",
+    "deleted": "Regla eliminada"
+  },
+  "categories": {
+    "title": "Categorías",
+    "description": "Compartidas por todo el hogar.",
+    "kinds": { "expense": "Gasto", "income": "Ingreso", "transfer": "Traspaso" },
+    "new": "Nueva categoría",
+    "placeholder": "Mascotas",
+    "color": "Color",
+    "added": "Categoría añadida"
+  },
+  "about": {
+    "title": "Acerca de",
+    "description": "Servicios y créditos.",
+    "credits": "Gráficos con <link>TradingView</link> Lightweight Charts™ (Apache-2.0). Copyright © 2025 TradingView, Inc."
+  },
+  "services": {
+    "mock": "simulado",
+    "labels": {
+      "database": "Base de datos",
+      "storage": "Almacenamiento de archivos",
+      "llm": "Lector de extractos / categorizador",
+      "auth": "Autenticación",
+      "jobs": "Tareas en segundo plano"
+    },
+    "values": {
+      "postgres": "Postgres",
+      "pglite": "PGlite (integrado)",
+      "localDisk": "Disco local (.data/uploads)",
+      "supabase": "Supabase Storage",
+      "llmMock": "Heurística simulada",
+      "llmOpenai": "Compatible con OpenAI",
+      "mockMagicLink": "Enlace mágico simulado (cookie firmada)",
+      "inProcessQueue": "Cola en el mismo proceso"
+    }
+  }
+}

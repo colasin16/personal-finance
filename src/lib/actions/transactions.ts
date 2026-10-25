@@ -1,5 +1,6 @@
 "use server";
 
+import { UserError } from "@/lib/errors";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -22,7 +23,7 @@ async function loadTransactions(ids: string[]) {
     .from(transactions)
     .where(and(eq(transactions.householdId, ctx.household.id), inArray(transactions.id, parsed)));
   const allowed = rows.filter((r) => visible.has(r.accountId));
-  if (allowed.length !== parsed.length) throw new Error("Some transactions were not found.");
+  if (allowed.length !== parsed.length) throw new UserError("transactions_not_found");
   return { ...ctx, rows: allowed };
 }
 
@@ -32,7 +33,7 @@ async function assertCategory(db: Awaited<ReturnType<typeof requireContext>>["db
     .select()
     .from(categories)
     .where(and(eq(categories.id, uuid.parse(categoryId)), eq(categories.householdId, householdId)));
-  if (!category) throw new Error("Unknown category");
+  if (!category) throw new UserError("category_not_found");
   return category;
 }
 
@@ -86,7 +87,7 @@ const ruleSchema = z
     pattern: z.string().trim().min(2, "Pattern is too short").max(120),
     categoryId: uuid,
   })
-  .refine((r) => r.matchType !== "regex" || isValidRegex(r.pattern), { message: "Invalid regular expression", path: ["pattern"] });
+  .refine((r) => r.matchType !== "regex" || isValidRegex(r.pattern), { message: "invalid_regex", path: ["pattern"] });
 
 export type RuleInput = z.input<typeof ruleSchema>;
 
@@ -142,7 +143,7 @@ export async function linkTransferAction(outgoingId: string, incomingId: string)
   try {
     const { db, household, rows } = await loadTransactions([outgoingId, incomingId]);
     const [a, b] = [rows.find((r) => r.id === outgoingId)!, rows.find((r) => r.id === incomingId)!];
-    if (a.accountId === b.accountId || a.amountCents !== -b.amountCents) throw new Error("These movements don't mirror each other.");
+    if (a.accountId === b.accountId || a.amountCents !== -b.amountCents) throw new UserError("not_mirror_transfer");
     await linkTransfer(db, household.id, outgoingId, incomingId);
     revalidatePath("/", "layout");
     return ok();

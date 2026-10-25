@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { TimeChart, type ChartMarker, type ChartSeries } from "@/components/charts/time-chart";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export function NetWorthChart({
   accounts: { accountId: string; name: string; color: string; points: Point[] }[];
   markers: { time: string; cents: number; label: string }[];
 }) {
+  const t = useTranslations("dashboard.netWorth");
   const [split, setSplit] = useState(false);
   const series = useMemo<ChartSeries[]>(
     () =>
@@ -38,10 +40,10 @@ export function NetWorthChart({
     <div className="space-y-2">
       <div className="flex justify-end gap-1">
         <Button size="sm" variant={split ? "ghost" : "secondary"} onClick={() => setSplit(false)}>
-          Total
+          {t("total")}
         </Button>
         <Button size="sm" variant={split ? "secondary" : "ghost"} onClick={() => setSplit(true)}>
-          By account
+          {t("byAccount")}
         </Button>
       </div>
       <TimeChart series={series} markers={chartMarkers} height={300} />

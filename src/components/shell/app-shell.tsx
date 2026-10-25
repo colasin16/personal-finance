@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import {
   ArrowLeftRight,
@@ -30,7 +31,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { LanguageSwitch } from "@/components/theme/language-switch";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import type { ServiceMode } from "@/lib/services/modes";
 import { UploadProvider } from "./upload-provider";
 
 type Props = {
@@ -38,18 +41,18 @@ type Props = {
   household: { name: string };
   members: { id: string; displayName: string }[];
   issuesCount: number;
-  modes: { service: string; value: string; mocked: boolean }[];
+  modes: ServiceMode[];
   children: React.ReactNode;
 };
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/import", label: "Import", icon: FileUp },
-  { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-  { href: "/issues", label: "Issues", icon: CircleAlert },
-  { href: "/accounts", label: "Accounts", icon: Landmark },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+  { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
+  { href: "/import", key: "import", icon: FileUp },
+  { href: "/transactions", key: "transactions", icon: ArrowLeftRight },
+  { href: "/issues", key: "issues", icon: CircleAlert },
+  { href: "/accounts", key: "accounts", icon: Landmark },
+  { href: "/settings", key: "settings", icon: Settings },
+] as const;
 
 export const initials = (name: string) =>
   name
@@ -61,12 +64,14 @@ export const initials = (name: string) =>
 
 export function AppShell({ user, household, members, issuesCount, modes, children }: Props) {
   const pathname = usePathname();
+  const t = useTranslations("shell");
+  const ts = useTranslations("settings");
   const [open, setOpen] = useState(false);
   const mockedCount = modes.filter((m) => m.mocked).length;
 
   const nav = (
     <nav className="flex flex-1 flex-col gap-1">
-      {NAV.map(({ href, label, icon: Icon }) => {
+      {NAV.map(({ href, key, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`) || (href === "/import" && pathname.startsWith("/statements"));
         return (
           <Link
@@ -79,7 +84,7 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
             )}
           >
             <Icon className="size-4" />
-            {label}
+            {t(`nav.${key}`)}
             {href === "/issues" && issuesCount > 0 && (
               <Badge className="ml-auto h-5 min-w-5 rounded-full bg-amber-500 px-1.5 text-white hover:bg-amber-500">{issuesCount}</Badge>
             )}
@@ -94,20 +99,23 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
       <PopoverTrigger asChild>
         <button className="flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-left text-xs text-muted-foreground hover:bg-muted">
           <span className="size-2 rounded-full bg-amber-500" />
-          {mockedCount > 0 ? `Offline mode · ${mockedCount} services mocked` : "All services live"}
+          {mockedCount > 0 ? t("offlineMode", { count: mockedCount }) : t("allLive")}
         </button>
       </PopoverTrigger>
       <PopoverContent side="top" align="start" className="w-80">
-        <p className="mb-2 text-sm font-medium">Service adapters</p>
+        <p className="mb-2 text-sm font-medium">{t("serviceAdapters")}</p>
         <ul className="space-y-1.5 text-xs">
           {modes.map((m) => (
-            <li key={m.service} className="flex justify-between gap-3">
-              <span className="text-muted-foreground">{m.service}</span>
-              <span className={cn("text-right font-medium", m.mocked && "text-amber-600 dark:text-amber-400")}>{m.value}</span>
+            <li key={m.key} className="flex justify-between gap-3">
+              <span className="text-muted-foreground">{ts(`services.labels.${m.key}`)}</span>
+              <span className={cn("text-right font-medium", m.mocked && "text-amber-600 dark:text-amber-400")}>
+                {ts(`services.values.${m.value}`)}
+                {m.detail && ` (${m.detail})`}
+              </span>
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-xs text-muted-foreground">Set the variables in .env.example to switch to real services.</p>
+        <p className="mt-3 text-xs text-muted-foreground">{t("switchHint")}</p>
       </PopoverContent>
     </Popover>
   );
@@ -125,13 +133,13 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
             <Link href="/dashboard">
               <Logo />
             </Link>
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(false)} aria-label="Close menu">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(false)} aria-label={t("closeMenu")}>
               <X />
             </Button>
           </div>
           <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
             <Link href="/import" onClick={() => setOpen(false)}>
-              <Upload /> Upload statements
+              <Upload /> {t("uploadStatements")}
             </Link>
           </Button>
           {nav}
@@ -141,7 +149,7 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
 
         <div className="flex min-w-0 flex-1 flex-col md:pl-64">
           <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur md:px-8">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(true)} aria-label={t("openMenu")}>
               <Menu />
             </Button>
             <div className="flex min-w-0 items-center gap-2">
@@ -155,6 +163,7 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
               </div>
             </div>
             <div className="ml-auto flex items-center gap-1">
+              <LanguageSwitch />
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -173,11 +182,11 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/settings">
-                      <Settings /> Settings
+                      <Settings /> {t("nav.settings")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => void signOut()}>
-                    <LogOut /> Sign out
+                    <LogOut /> {t("signOut")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

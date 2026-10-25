@@ -57,16 +57,3 @@ export function fillRunningBalances<T extends { amountCents: number; balanceAfte
     return { ...row, balanceAfterCents: running };
   });
 }
-
-export function describeIssue(issue: StatementIssue, format: (cents: number) => string): string {
-  switch (issue.kind) {
-    case "balance_mismatch":
-      return `Opening balance + movements = ${format(issue.actualCents)}, but the statement says ${format(issue.expectedCents)}.`;
-    case "running_balance_mismatch":
-      return `Row ${issue.rowIndex + 1}: running balance should be ${format(issue.actualCents)} but the statement shows ${format(issue.expectedCents)}.`;
-    case "no_transactions":
-      return "No transactions were found in this statement.";
-    case "missing_balances":
-      return "Opening or closing balance could not be read, so totals can't be verified.";
-  }
-}

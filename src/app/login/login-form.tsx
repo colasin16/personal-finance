@@ -2,6 +2,7 @@
 
 import { useActionState, useTransition } from "react";
 import { Loader2, Mail, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { signIn, signInDemo } from "@/lib/actions/auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,20 +13,21 @@ import { Separator } from "@/components/ui/separator";
 export function LoginForm({ next, demoEnabled }: { next?: string; demoEnabled: boolean }) {
   const [state, action, pending] = useActionState(signIn, null);
   const [demoPending, startDemo] = useTransition();
+  const t = useTranslations("auth.login");
 
   return (
     <div className="space-y-6">
       <form action={action} className="space-y-4">
         <input type="hidden" name="next" value={next ?? ""} />
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" placeholder="you@example.com" autoComplete="email" required autoFocus />
+          <Label htmlFor="email">{t("email")}</Label>
+          <Input id="email" name="email" type="email" placeholder={t("emailPlaceholder")} autoComplete="email" required autoFocus />
         </div>
         <div className="space-y-2">
           <Label htmlFor="name">
-            Your name <span className="text-muted-foreground">(first time only)</span>
+            {t("name")} <span className="text-muted-foreground">{t("nameHint")}</span>
           </Label>
-          <Input id="name" name="name" placeholder="Alex" autoComplete="given-name" />
+          <Input id="name" name="name" placeholder={t("namePlaceholder")} autoComplete="given-name" />
         </div>
         {state?.error && (
           <Alert variant="destructive">
@@ -34,27 +36,27 @@ export function LoginForm({ next, demoEnabled }: { next?: string; demoEnabled: b
         )}
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? <Loader2 className="animate-spin" /> : <Mail />}
-          Continue with email
+          {t("continue")}
         </Button>
         <p className="text-center text-xs text-muted-foreground">
-          Offline mode: the magic link is mocked, so you&apos;re signed in straight away.
+          {t("mockNotice")}
         </p>
       </form>
 
       {demoEnabled && (
         <>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <Separator className="flex-1" /> or explore with sample data <Separator className="flex-1" />
+            <Separator className="flex-1" /> {t("orDemo")} <Separator className="flex-1" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             {(["alex", "sam"] as const).map((who) => (
               <Button key={who} variant="outline" disabled={demoPending} onClick={() => startDemo(() => signInDemo(who))}>
                 {demoPending ? <Loader2 className="animate-spin" /> : <Sparkles />}
-                Demo as {who === "alex" ? "Alex" : "Sam"}
+                {t("demoAs", { name: who === "alex" ? "Alex" : "Sam" })}
               </Button>
             ))}
           </div>
-          {demoPending && <p className="text-center text-xs text-muted-foreground">Importing 15 sample statements… this takes a few seconds the first time.</p>}
+          {demoPending && <p className="text-center text-xs text-muted-foreground">{t("demoLoading")}</p>}
         </>
       )}
     </div>

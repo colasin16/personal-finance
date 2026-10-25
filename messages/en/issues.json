@@ -1,0 +1,41 @@
+{
+  "title": "Issues",
+  "description": "Everything that needs a human decision. Fix one, and we learn for next time.",
+  "allClear": "All clear",
+  "allClearDescription": "Every statement is imported, categorized and reconciled.",
+  "needsAccount": {
+    "title": "{count, plural, one {# statement from an unknown account} other {# statements from an unknown account}}",
+    "description": "Tell us which account they belong to — we'll remember it for next month.",
+    "cta": "Assign accounts"
+  },
+  "failed": {
+    "title": "{count, plural, one {# statement couldn't be read} other {# statements couldn't be read}}",
+    "description": "Usually a scanned PDF or a layout we don't know yet. Retry or upload the bank's digital PDF.",
+    "cta": "See details"
+  },
+  "toReview": {
+    "title": "{count, plural, one {# statement ready to review} other {# statements ready to review}}",
+    "description": "Have a quick look and confirm — it takes seconds when everything adds up."
+  },
+  "gaps": {
+    "title": "{count, plural, one {# missing monthly statement} other {# missing monthly statements}}",
+    "description": "Some months have no statement for an account, so totals for those months are incomplete.",
+    "cta": "View coverage"
+  },
+  "merchants": {
+    "title": "Uncategorized transactions",
+    "description": "{count, plural, one {# transaction we weren't sure about, grouped by merchant. One choice fixes them all.} other {# transactions we weren't sure about, grouped by merchant. One choice fixes them all.}}",
+    "lowConfidence": "Low confidence",
+    "remember": "Remember for future statements",
+    "chooseCategory": "Choose category",
+    "categorized": "{count, plural, one {# transaction categorized} other {# transactions categorized}}",
+    "categorizedWithRule": "{count, plural, one {# transaction categorized · rule saved} other {# transactions categorized · rule saved}}"
+  },
+  "transfers": {
+    "title": "Possible transfers between your accounts",
+    "description": "Linked transfers are excluded from income and spending so nothing is counted twice.",
+    "notTransfer": "Not a transfer",
+    "link": "Link as transfer",
+    "linked": "Linked as transfer"
+  }
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { asc } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 import { banks } from "@/lib/db/schema";
 import { getMembers } from "@/lib/households";
 import { getVisibleAccounts } from "@/lib/queries";
@@ -7,10 +8,14 @@ import { requireContext } from "@/lib/server/auth";
 import { PageHeader } from "@/components/page-header";
 import { AccountsView } from "./accounts-view";
 
-export const metadata: Metadata = { title: "Accounts" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("accounts");
+  return { title: t("title") };
+}
 
 export default async function AccountsPage() {
   const { db, user, household } = await requireContext();
+  const t = await getTranslations("accounts");
   const [accounts, members, bankList] = await Promise.all([
     getVisibleAccounts(db, household.id, user.id, { includeArchived: true }),
     getMembers(db, household.id),
@@ -20,7 +25,7 @@ export default async function AccountsPage() {
 
   return (
     <>
-      <PageHeader title="Accounts" description="All your bank accounts — personal and shared — in one place." />
+      <PageHeader title={t("title")} description={t("description")} />
       <AccountsView
         accounts={accounts.map((a) => ({
           id: a.id,

@@ -1,5 +1,6 @@
 "use server";
 
+import { UserError } from "@/lib/errors";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -34,7 +35,7 @@ export async function acceptInviteAction(token: string) {
 export async function inviteMemberAction(email: string): Promise<ActionResult<{ url: string }>> {
   try {
     const { db, user, household } = await requireContext();
-    const address = z.string().trim().email("Enter a valid email address").parse(email);
+    const address = z.string().trim().email("invalid_email").parse(email);
     const invite = await createInvite(db, household.id, user.id, address);
     revalidatePath("/settings");
     // Mocked email delivery: the link is shown in the UI to copy & share.
@@ -64,7 +65,7 @@ export async function saveAccountAction(input: AccountInput, accountId?: string)
     return ok({ id: account.id });
   } catch (error) {
     if (error instanceof Error && /accounts_iban_hash_idx|duplicate key/.test(error.message)) {
-      return { ok: false, error: "An account with this IBAN already exists." };
+      return fail(new UserError("iban_exists"));
     }
     return fail(error);
   }

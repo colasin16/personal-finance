@@ -1,0 +1,43 @@
+{
+  "title": "Cuentas",
+  "description": "Todas tus cuentas bancarias, personales y compartidas, en un solo sitio.",
+  "groups": { "yours": "Tuyas", "member": "De {name}", "archived": "Archivadas" },
+  "card": {
+    "actions": "Acciones de la cuenta",
+    "archive": "Archivar",
+    "restore": "Restaurar",
+    "balanceOn": "Saldo a {date}",
+    "noStatements": "Aún no hay extractos",
+    "noIban": "Sin IBAN: los extractos se asignan a mano"
+  },
+  "toasts": { "archived": "Cuenta archivada", "restored": "Cuenta restaurada", "updated": "Cuenta actualizada", "added": "Cuenta añadida" },
+  "empty": {
+    "title": "Añade tu primera cuenta",
+    "description": "Añade cada cuenta bancaria que quieras seguir. Incluye el IBAN para que los extractos que subas se asignen automáticamente."
+  },
+  "addAccount": "Añadir cuenta",
+  "dialog": {
+    "editTitle": "Editar cuenta",
+    "addTitle": "Añadir una cuenta",
+    "description": "Elige tu banco e indica quién es el titular de la cuenta.",
+    "bank": "Banco",
+    "bankPlaceholder": "Busca tu banco…",
+    "bankSearch": "ING, BBVA, Revolut…",
+    "bankEmpty": "No encontramos el banco: elige «Otro banco».",
+    "defaultName": "Cuenta {bank}",
+    "name": "Nombre",
+    "namePlaceholder": "Cuenta conjunta",
+    "type": "Tipo",
+    "iban": "IBAN",
+    "ibanHint": "(opcional: nos permite reconocer los extractos de esta cuenta)",
+    "ibanKeep": "•••• {last4} (déjalo vacío para mantenerlo)",
+    "ibanStorage": "Solo guardamos los 4 últimos dígitos y un hash con sal.",
+    "owners": "Titulares",
+    "you": "(tú)",
+    "share": "Participación de {name}",
+    "sharesTotal": "Las participaciones suman {total}%: deben sumar 100%.",
+    "inviteHint": "Invita a tu pareja desde Ajustes para compartir cuentas.",
+    "private": "Privada",
+    "privateHint": "Solo los titulares pueden ver esta cuenta y sus movimientos."
+  }
+}

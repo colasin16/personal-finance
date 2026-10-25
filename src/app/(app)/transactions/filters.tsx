@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Flag, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,8 @@ import { cn } from "@/lib/utils";
 const ALL = "all";
 
 export function TransactionFilters({ accounts, categories }: { accounts: { id: string; name: string }[]; categories: CategoryOption[] }) {
+  const t = useTranslations("transactions.filters");
+  const tc = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -43,14 +46,14 @@ export function TransactionFilters({ accounts, categories }: { accounts: { id: s
     <div className="mb-4 flex flex-wrap items-center gap-2">
       <div className="relative w-full sm:w-64">
         <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search description, merchant, notes" className="pl-8" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search")} className="pl-8" />
       </div>
       <Select value={params.get("account") ?? ALL} onValueChange={(v) => update({ account: v === ALL ? null : v })}>
         <SelectTrigger className="w-48">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>All accounts</SelectItem>
+          <SelectItem value={ALL}>{t("allAccounts")}</SelectItem>
           {accounts.map((a) => (
             <SelectItem key={a.id} value={a.id}>
               {a.name}
@@ -63,20 +66,20 @@ export function TransactionFilters({ accounts, categories }: { accounts: { id: s
           categories={categories}
           value={category && category !== "none" ? category : null}
           onChange={(id) => update({ category: id ?? "none" })}
-          placeholder={category === "none" ? "Uncategorized" : "All categories"}
+          placeholder={category === "none" ? tc("uncategorized") : t("allCategories")}
           allowNone
           className={cn("h-8", !category && "text-foreground")}
         />
         {category && (
-          <Button variant="ghost" size="icon" className="size-8" onClick={() => update({ category: null })} aria-label="Clear category">
+          <Button variant="ghost" size="icon" className="size-8" onClick={() => update({ category: null })} aria-label={t("clearCategory")}>
             <X />
           </Button>
         )}
       </div>
-      <Input type="date" className="w-36" value={params.get("from") ?? ""} onChange={(e) => update({ from: e.target.value || null })} aria-label="From" />
-      <Input type="date" className="w-36" value={params.get("to") ?? ""} onChange={(e) => update({ to: e.target.value || null })} aria-label="To" />
+      <Input type="date" className="w-36" value={params.get("from") ?? ""} onChange={(e) => update({ from: e.target.value || null })} aria-label={t("from")} />
+      <Input type="date" className="w-36" value={params.get("to") ?? ""} onChange={(e) => update({ to: e.target.value || null })} aria-label={t("to")} />
       <Button variant={flagged ? "default" : "outline"} size="sm" onClick={() => update({ flagged: flagged ? null : "1" })}>
-        <Flag /> Needs attention
+        <Flag /> {t("needsAttention")}
       </Button>
       {active && (
         <Button
@@ -87,7 +90,7 @@ export function TransactionFilters({ accounts, categories }: { accounts: { id: s
             router.replace(pathname);
           }}
         >
-          <X /> Reset
+          <X /> {t("reset")}
         </Button>
       )}
     </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { asc } from "drizzle-orm";
 import { banks } from "@/lib/db/schema";
 import { getMembers } from "@/lib/households";
@@ -10,7 +11,10 @@ import { CompletenessGrid } from "@/components/statements/completeness-grid";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImportView } from "./import-view";
 
-export const metadata: Metadata = { title: "Import" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("import");
+  return { title: t("title") };
+}
 
 export default async function ImportPage() {
   const { db, user, household } = await requireContext();
@@ -22,12 +26,13 @@ export default async function ImportPage() {
     db.select().from(banks).orderBy(asc(banks.name)),
   ]);
   const jobsRunning = pendingJobs() > 0;
+  const t = await getTranslations("import");
 
   return (
     <>
       <PageHeader
-        title="Import statements"
-        description="Drop the monthly PDF statements from all your banks. We detect the account, read every transaction and categorize it."
+        title={t("pageTitle")}
+        description={t("pageDescription")}
       />
       <div className="space-y-6">
         <ImportView
@@ -53,8 +58,8 @@ export default async function ImportPage() {
         />
         <Card>
           <CardHeader>
-            <CardTitle>Statement coverage</CardTitle>
-            <CardDescription>Every account, every month. Amber cells are months with no statement yet.</CardDescription>
+            <CardTitle>{t("coverage.title")}</CardTitle>
+            <CardDescription>{t("coverage.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <CompletenessGrid

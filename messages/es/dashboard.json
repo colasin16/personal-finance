@@ -1,0 +1,44 @@
+{
+  "title": "Panel",
+  "periods": { "3m": "Últimos 3 meses", "6m": "Últimos 6 meses", "12m": "Últimos 12 meses", "ytd": "Este año", "all": "Todo" },
+  "empty": {
+    "title": "Tu panel se irá llenando a medida que importes extractos",
+    "description": "Añade tus cuentas y sube los PDF del mes pasado de cada banco.",
+    "addAccounts": "Añadir cuentas",
+    "upload": "Subir extractos"
+  },
+  "range": {
+    "period": "{start} – {end}",
+    "memberShare": "las cuentas compartidas cuentan según la participación de esta persona",
+    "transfersExcluded": "no se incluyen los traspasos entre tus cuentas"
+  },
+  "kpis": {
+    "netWorth": "Patrimonio neto",
+    "netWorthChange": "{amount} en este periodo",
+    "income": "Ingresos",
+    "spending": "Gastos",
+    "saved": "Ahorrado",
+    "savingsRate": "{pct}% de los ingresos",
+    "delta": "{pct}% vs. periodo anterior"
+  },
+  "netWorth": {
+    "title": "Patrimonio neto",
+    "description": "Suma de los saldos de tus cuentas. Las flechas marcan tus mayores gastos.",
+    "total": "Total",
+    "byAccount": "Por cuenta"
+  },
+  "cashFlow": {
+    "title": "Flujo de caja mensual",
+    "description": "<income>Ingresos</income> vs. <spending>gastos</spending>, línea = ahorrado"
+  },
+  "ranking": {
+    "title": "En qué se va el dinero",
+    "description": "Gastos por categoría · haz clic para ver los movimientos",
+    "empty": "No hay gastos en este periodo.",
+    "count": "{count} mov."
+  },
+  "topMerchants": {
+    "title": "Comercios principales",
+    "description": "Donde más has gastado"
+  }
+}

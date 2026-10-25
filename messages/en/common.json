@@ -1,0 +1,66 @@
+{
+  "appName": "Household Finance",
+  "appDescription": "Upload your monthly bank statements, get every transaction categorized, and see your household finances together.",
+  "language": "Language",
+  "theme": { "label": "Change theme", "light": "Light", "dark": "Dark", "system": "System" },
+  "actions": {
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "back": "Back",
+    "create": "Create",
+    "add": "Add",
+    "remove": "Remove",
+    "copy": "Copy",
+    "copied": "Copied",
+    "dismiss": "Dismiss",
+    "open": "Open",
+    "review": "Review",
+    "showMore": "Show {count} more",
+    "showLess": "Show less",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "you": "{name} (you)",
+  "uncategorized": "Uncategorized",
+  "household": "Household",
+  "shared": "Shared",
+  "private": "Private",
+  "transactionsCount": "{count, plural, one {# transaction} other {# transactions}}",
+  "accountsCount": "{count, plural, one {# account} other {# accounts}}",
+  "statementsCount": "{count, plural, one {# statement} other {# statements}}",
+  "pageOf": "Page {page} of {total}",
+  "accountTypes": { "checking": "Current account", "savings": "Savings", "credit": "Credit card", "investment": "Investment" },
+  "statementStatus": {
+    "uploaded": "Queued",
+    "processing": "Processing",
+    "needs_account": "Pick account",
+    "needs_review": "Ready to review",
+    "confirmed": "Confirmed",
+    "failed": "Failed"
+  },
+  "progress": {
+    "queued": "Queued",
+    "reading_pdf": "Reading PDF",
+    "detecting": "Detecting bank and account",
+    "extracting": "Extracting transactions",
+    "deduplicating": "Removing duplicates",
+    "categorizing": "Categorizing"
+  },
+  "categorizedBy": {
+    "rule": "Your rule",
+    "merchant": "Learned from past choices",
+    "llm": "Auto-categorized",
+    "user": "Set manually",
+    "transfer": "Transfer between your accounts"
+  },
+  "flags": {
+    "low_confidence": "Low-confidence category suggestion",
+    "uncategorized": "Could not categorize automatically"
+  }
+}

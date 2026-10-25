@@ -1,0 +1,18 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "import": "Import",
+    "transactions": "Transactions",
+    "issues": "Issues",
+    "accounts": "Accounts",
+    "settings": "Settings"
+  },
+  "uploadStatements": "Upload statements",
+  "openMenu": "Open menu",
+  "closeMenu": "Close menu",
+  "signOut": "Sign out",
+  "offlineMode": "{count, plural, one {Offline mode · # service mocked} other {Offline mode · # services mocked}}",
+  "allLive": "All services live",
+  "serviceAdapters": "Service adapters",
+  "switchHint": "Set the variables in .env.example to switch to real services."
+}

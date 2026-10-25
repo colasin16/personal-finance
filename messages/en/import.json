@@ -1,0 +1,58 @@
+{
+  "title": "Import",
+  "pageTitle": "Import statements",
+  "pageDescription": "Drop the monthly PDF statements from all your banks. We detect the account, read every transaction and categorize it.",
+  "dropzone": {
+    "title": "Drag & drop your PDF statements here",
+    "hint": "Several files and banks at once are fine · up to 15 MB each",
+    "chooseFiles": "Choose files",
+    "accountLabel": "Account for these files",
+    "autoDetect": "Detect account automatically",
+    "tip": "Tip: <link>add your accounts</link> with their IBAN first so statements are matched automatically."
+  },
+  "empty": "No statements yet. Your uploads will appear here.",
+  "row": {
+    "detected": "Detected {bank}",
+    "notDetected": "Account not detected yet",
+    "iban": "IBAN •••• {last4}",
+    "stuck": "Processing was interrupted (server restarted). Retry to continue.",
+    "balanceIssues": "{count, plural, one {# balance check didn't add up} other {# balance checks didn't add up}} — please review.",
+    "whichAccount": "Which account is it?",
+    "new": "New",
+    "moreActions": "More actions",
+    "viewPdf": "View PDF",
+    "reprocess": "Reprocess",
+    "confirmDelete": "Delete {fileName} and its transactions?",
+    "newAccountName": "{bank} account",
+    "ibanHint": "We found IBAN •••• {last4} in this statement. Future statements of this account will be matched automatically."
+  },
+  "toasts": {
+    "assigned": "Account assigned — processing",
+    "retrying": "Retrying",
+    "reprocessing": "Reprocessing",
+    "deleted": "Statement deleted"
+  },
+  "coverage": {
+    "title": "Statement coverage",
+    "description": "Every account, every month. Amber cells are months with no statement yet.",
+    "empty": "Add an account to start tracking statements.",
+    "status": {
+      "confirmed": "Confirmed",
+      "needs_review": "Ready to review",
+      "processing": "Processing",
+      "failed": "Needs attention",
+      "missing": "Missing statement",
+      "none": "Not tracked yet"
+    }
+  },
+  "upload": {
+    "overlayTitle": "Drop your bank statements",
+    "overlayHint": "PDFs from any bank — we'll detect the account automatically",
+    "skipped": "{count, plural, one {# file skipped} other {# files skipped}} — only PDF statements are supported.",
+    "uploading": "Uploading {count, plural, one {# statement} other {# statements}}…",
+    "added": "{count} uploaded — processing in the background",
+    "duplicates": "{count} already imported",
+    "nothingNew": "Nothing new to import",
+    "failed": "Upload failed"
+  }
+}

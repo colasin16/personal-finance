@@ -1,0 +1,41 @@
+{
+  "title": "Pendientes",
+  "description": "Todo lo que necesita una decisión tuya. Resuelve uno y aprenderemos para la próxima vez.",
+  "allClear": "Todo en orden",
+  "allClearDescription": "Todos los extractos están importados, categorizados y cuadrados.",
+  "needsAccount": {
+    "title": "{count, plural, one {# extracto de una cuenta desconocida} other {# extractos de una cuenta desconocida}}",
+    "description": "Dinos a qué cuenta pertenecen y lo recordaremos el mes que viene.",
+    "cta": "Asignar cuentas"
+  },
+  "failed": {
+    "title": "{count, plural, one {# extracto no se ha podido leer} other {# extractos no se han podido leer}}",
+    "description": "Suele ser un PDF escaneado o un formato que aún no conocemos. Reinténtalo o sube el PDF digital del banco.",
+    "cta": "Ver detalles"
+  },
+  "toReview": {
+    "title": "{count, plural, one {# extracto listo para revisar} other {# extractos listos para revisar}}",
+    "description": "Échale un vistazo y confírmalo: son segundos si todo cuadra."
+  },
+  "gaps": {
+    "title": "{count, plural, one {# extracto mensual que falta} other {# extractos mensuales que faltan}}",
+    "description": "Hay meses sin extracto para alguna cuenta, así que los totales de esos meses están incompletos.",
+    "cta": "Ver cobertura"
+  },
+  "merchants": {
+    "title": "Movimientos sin categoría",
+    "description": "{count, plural, one {# movimiento del que no estábamos seguros, agrupado por comercio. Una sola elección lo resuelve todo.} other {# movimientos de los que no estábamos seguros, agrupados por comercio. Una sola elección los resuelve todos.}}",
+    "lowConfidence": "Confianza baja",
+    "remember": "Recordar para próximos extractos",
+    "chooseCategory": "Elegir categoría",
+    "categorized": "{count, plural, one {# movimiento categorizado} other {# movimientos categorizados}}",
+    "categorizedWithRule": "{count, plural, one {# movimiento categorizado · regla guardada} other {# movimientos categorizados · regla guardada}}"
+  },
+  "transfers": {
+    "title": "Posibles traspasos entre tus cuentas",
+    "description": "Los traspasos vinculados no cuentan como ingresos ni gastos, así nada se cuenta dos veces.",
+    "notTransfer": "No es un traspaso",
+    "link": "Vincular como traspaso",
+    "linked": "Vinculado como traspaso"
+  }
+}

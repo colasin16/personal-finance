@@ -1,0 +1,43 @@
+{
+  "title": "Accounts",
+  "description": "All your bank accounts — personal and shared — in one place.",
+  "groups": { "yours": "Yours", "member": "{name}'s", "archived": "Archived" },
+  "card": {
+    "actions": "Account actions",
+    "archive": "Archive",
+    "restore": "Restore",
+    "balanceOn": "Balance on {date}",
+    "noStatements": "No statements yet",
+    "noIban": "No IBAN — statements need manual matching"
+  },
+  "toasts": { "archived": "Account archived", "restored": "Account restored", "updated": "Account updated", "added": "Account added" },
+  "empty": {
+    "title": "Add your first account",
+    "description": "Add each bank account you want to track. Include the IBAN so uploaded statements are matched automatically."
+  },
+  "addAccount": "Add account",
+  "dialog": {
+    "editTitle": "Edit account",
+    "addTitle": "Add an account",
+    "description": "Pick your bank and tell us who owns the account.",
+    "bank": "Bank",
+    "bankPlaceholder": "Search for your bank…",
+    "bankSearch": "ING, BBVA, Revolut…",
+    "bankEmpty": "No bank found — choose “Other bank”.",
+    "defaultName": "{bank} account",
+    "name": "Name",
+    "namePlaceholder": "Joint account",
+    "type": "Type",
+    "iban": "IBAN",
+    "ibanHint": "(optional — lets us recognise this account's statements)",
+    "ibanKeep": "•••• {last4} (leave empty to keep)",
+    "ibanStorage": "Only the last 4 digits and a salted hash are stored.",
+    "owners": "Owners",
+    "you": "(you)",
+    "share": "{name} share",
+    "sharesTotal": "Shares add up to {total}% — they must total 100%.",
+    "inviteHint": "Invite your partner in Settings to share accounts.",
+    "private": "Private",
+    "privateHint": "Only the owners can see this account and its transactions."
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "title": "Settings",
+  "household": {
+    "title": "Household",
+    "description": "Everyone in the household sees shared accounts and non-private personal accounts.",
+    "name": "Name",
+    "renamed": "Household renamed",
+    "members": "Members",
+    "you": "(you)",
+    "invited": "invited",
+    "roles": { "owner": "owner", "member": "member" }
+  },
+  "invite": {
+    "label": "Invite your partner",
+    "placeholder": "partner@example.com",
+    "submit": "Invite",
+    "mockedEmail": "Email delivery is mocked in offline mode — share this link (valid 14 days):",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied"
+  },
+  "rules": {
+    "title": "Rules",
+    "description": "Applied first to every new statement. Create them from any transaction or from the Issues inbox.",
+    "empty": "No rules yet.",
+    "match": { "merchant": "Merchant is", "contains": "Contains", "regex": "Matches" },
+    "hits": "{count, plural, one {# hit} other {# hits}}",
+    "delete": "Delete rule",
+    "deleted": "Rule deleted"
+  },
+  "categories": {
+    "title": "Categories",
+    "description": "Shared by everyone in the household.",
+    "kinds": { "expense": "Expense", "income": "Income", "transfer": "Transfer" },
+    "new": "New category",
+    "placeholder": "Pets",
+    "color": "Color",
+    "added": "Category added"
+  },
+  "about": {
+    "title": "About",
+    "description": "Services and credits.",
+    "credits": "Charts by <link>TradingView</link> Lightweight Charts™ (Apache-2.0). Copyright © 2025 TradingView, Inc."
+  },
+  "services": {
+    "mock": "mock",
+    "labels": {
+      "database": "Database",
+      "storage": "File storage",
+      "llm": "Statement parser / categorizer",
+      "auth": "Authentication",
+      "jobs": "Background jobs"
+    },
+    "values": {
+      "postgres": "Postgres",
+      "pglite": "PGlite (embedded)",
+      "localDisk": "Local disk (.data/uploads)",
+      "supabase": "Supabase Storage",
+      "llmMock": "Mock heuristics",
+      "llmOpenai": "OpenAI-compatible",
+      "mockMagicLink": "Mock magic link (signed cookie)",
+      "inProcessQueue": "In-process queue"
+    }
+  }
+}

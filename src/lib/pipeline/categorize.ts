@@ -86,7 +86,7 @@ export async function categorizeTransactions(
         categoryId: confident ? categoryId : null,
         by: confident ? "llm" : null,
         confidence,
-        flag: confident ? null : categoryId ? "Low-confidence category suggestion" : "Could not categorize automatically",
+        flag: confident ? null : categoryId ? "low_confidence" : "uncategorized",
       });
     }
   }

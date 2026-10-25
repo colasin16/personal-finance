@@ -1,31 +1,35 @@
-export const ACCOUNT_TYPES = [
-  { value: "checking", label: "Current account" },
-  { value: "savings", label: "Savings" },
-  { value: "credit", label: "Credit card" },
-  { value: "investment", label: "Investment" },
-] as const;
+import { intlLocale } from "@/i18n/config";
 
-export const accountTypeLabel = (type: string) => ACCOUNT_TYPES.find((t) => t.value === type)?.label ?? type;
+/** Labels live in messages/<locale>/common.json under `accountTypes`, `statementStatus`, `categorizedBy`. */
+export const ACCOUNT_TYPES = ["checking", "savings", "credit", "investment"] as const;
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
 
-export const STATEMENT_STATUS: Record<string, { label: string; className: string }> = {
-  uploaded: { label: "Queued", className: "bg-slate-100 text-slate-700 dark:bg-slate-950 dark:text-slate-300" },
-  processing: { label: "Processing", className: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300" },
-  needs_account: { label: "Pick account", className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
-  needs_review: { label: "Ready to review", className: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300" },
-  confirmed: { label: "Confirmed", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" },
-  failed: { label: "Failed", className: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300" },
+export const STATEMENT_STATUSES = ["uploaded", "processing", "needs_account", "needs_review", "confirmed", "failed"] as const;
+export type StatementStatus = (typeof STATEMENT_STATUSES)[number];
+export const isStatementStatus = (s: string): s is StatementStatus => STATEMENT_STATUSES.includes(s as StatementStatus);
+
+export const STATEMENT_STATUS_STYLE: Record<StatementStatus, string> = {
+  uploaded: "bg-slate-100 text-slate-700 dark:bg-slate-950 dark:text-slate-300",
+  processing: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
+  needs_account: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  needs_review: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
+  confirmed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  failed: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
 };
 
-export const CATEGORIZED_BY: Record<string, string> = {
-  rule: "Your rule",
-  merchant: "Learned from past choices",
-  llm: "Auto-categorized",
-  user: "Set manually",
-  transfer: "Transfer between your accounts",
-};
+export const CATEGORIZED_BY = ["rule", "merchant", "llm", "user", "transfer"] as const;
+export type CategorizedBy = (typeof CATEGORIZED_BY)[number];
+export const isCategorizedBy = (s: string | null | undefined): s is CategorizedBy => CATEGORIZED_BY.includes(s as CategorizedBy);
 
-export const formatMonth = (month: string, style: "short" | "long" = "short") =>
-  new Date(`${month.slice(0, 7)}-01T00:00:00`).toLocaleDateString("en-GB", { month: style, year: style === "long" ? "numeric" : "2-digit" });
+/** Codes stored in statements.progress / transactions.flag_reason (older rows may hold English text). */
+export const PROGRESS_CODES = ["queued", "reading_pdf", "detecting", "extracting", "deduplicating", "categorizing"] as const;
+export const FLAG_CODES = ["low_confidence", "uncategorized"] as const;
 
-export const formatDate = (date: string) =>
-  new Date(`${date}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+export const formatMonth = (month: string, style: "short" | "long" = "short", locale = "en") =>
+  new Date(`${month.slice(0, 7)}-01T00:00:00`).toLocaleDateString(intlLocale(locale), {
+    month: style,
+    year: style === "long" ? "numeric" : "2-digit",
+  });
+
+export const formatDate = (date: string, locale = "en") =>
+  new Date(`${date}T00:00:00`).toLocaleDateString(intlLocale(locale), { day: "2-digit", month: "short", year: "numeric" });

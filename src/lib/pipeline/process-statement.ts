@@ -1,3 +1,4 @@
+import { UserError } from "@/lib/errors";
 import { and, eq, inArray } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { accounts, banks, statements, transactions, type DetectedStatementInfo } from "@/lib/db/schema";
@@ -37,14 +38,14 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
     db.update(statements).set({ status: "processing", progress, error: null }).where(eq(statements.id, statementId));
 
   try {
-    await setProgress("Reading PDF");
+    await setProgress("reading_pdf");
     const bytes = await storage.get(statement.filePath);
     const { text, pageCount, charCount } = await extractPdfText(bytes);
     if (charCount < MIN_TEXT_CHARS) {
-      throw new Error("This PDF has no readable text (probably a scan). OCR isn't enabled yet — upload the bank's digital PDF instead.");
+      throw new UserError("pdf_no_text");
     }
 
-    await setProgress("Detecting bank and account");
+    await setProgress("detecting");
     const bankId = await detectBank(db, text);
     const ibans = findIbans(text);
     const hashes = ibans.map((iban) => ibanHash(statement.householdId, iban));
@@ -71,9 +72,9 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
       return;
     }
     const [account] = await db.select().from(accounts).where(eq(accounts.id, accountId));
-    if (!account) throw new Error("Account not found");
+    if (!account) throw new UserError("account_not_found");
 
-    await setProgress("Extracting transactions");
+    await setProgress("extracting");
     const extracted = await llm.extractStatement(redactSensitive(text));
     const toCents = (n: number | null) => (n === null ? null : Math.round(n * 100));
     const opening = toCents(extracted.openingBalance);
@@ -90,7 +91,7 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
     );
     const issues = validateStatement({ openingBalanceCents: opening, closingBalanceCents: closing, transactions: rows });
 
-    await setProgress("Removing duplicates");
+    await setProgress("deduplicating");
     await db.delete(transactions).where(eq(transactions.statementId, statementId));
     const values = withOrdinals(rows).map((row, position) => ({
       householdId: statement.householdId,
@@ -112,7 +113,7 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
         : await db.insert(transactions).values(values).onConflictDoNothing().returning({ id: transactions.id });
     detected.skippedDuplicates = values.length - inserted.length;
 
-    await setProgress("Categorizing");
+    await setProgress("categorizing");
     await categorizeTransactions(db, statement.householdId, inserted.map((r) => r.id), llm);
     await autoLinkTransfers(db, statement.householdId);
 
@@ -137,7 +138,7 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
     console.error(`[pipeline] statement ${statementId} failed`, error);
     await db
       .update(statements)
-      .set({ status: "failed", progress: null, error: error instanceof Error ? error.message : String(error) })
+      .set({ status: "failed", progress: null, error: error instanceof UserError ? error.code : error instanceof Error ? error.message : String(error) })
       .where(eq(statements.id, statementId));
   }
 }

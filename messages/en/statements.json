@@ -1,0 +1,34 @@
+{
+  "title": "Review statement",
+  "backToImport": "Import",
+  "unknownDate": "?",
+  "parsedBy": "parsed by {provider}",
+  "openPdf": "Open PDF",
+  "kpi": {
+    "openingBalance": "Opening balance",
+    "moneyIn": "Money in",
+    "moneyOut": "Money out",
+    "closingBalance": "Closing balance"
+  },
+  "balanced": {
+    "title": "Balances check out",
+    "description": "Opening balance + {count, plural, one {# transaction} other {# transactions}} = closing balance. Every transaction was read correctly."
+  },
+  "unbalanced": {
+    "title": "Some numbers don't add up",
+    "hint": "Compare with the PDF — a transaction may be missing or misread. You can reprocess the file from the Import page."
+  },
+  "issues": {
+    "balance_mismatch": "Opening balance + movements = {actual}, but the statement says {expected}.",
+    "running_balance_mismatch": "Row {row}: running balance should be {actual} but the statement shows {expected}.",
+    "no_transactions": "No transactions were found in this statement.",
+    "missing_balances": "Opening or closing balance could not be read, so totals can't be verified."
+  },
+  "flagged": "{count, plural, one {# transaction needs a category — it's listed first.} other {# transactions need a category — they're listed first.}}",
+  "empty": "This statement has no transactions.",
+  "confirm": {
+    "button": "Confirm statement",
+    "prompt": "{count, plural, one {# transaction is still uncategorized. Confirm anyway?} other {# transactions are still uncategorized. Confirm anyway?}}",
+    "success": "Statement confirmed"
+  }
+}
