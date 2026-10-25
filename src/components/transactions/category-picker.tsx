@@ -43,7 +43,7 @@ export function CategoryPicker({
           variant={variant}
           size="sm"
           disabled={disabled}
-          className={cn("h-7 max-w-full justify-between gap-1.5 px-2 font-normal", !current && "text-amber-700", className)}
+          className={cn("h-7 max-w-full justify-between gap-1.5 px-2 font-normal", !current && "text-amber-700 dark:text-amber-400", className)}
         >
           <span className="flex min-w-0 items-center gap-1.5">
             <CategoryDot color={current?.color ?? "#f59e0b"} />

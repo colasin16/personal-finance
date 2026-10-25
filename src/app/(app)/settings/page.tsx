@@ -129,7 +129,7 @@ export default async function SettingsPage() {
                 <li key={m.service} className="flex justify-between gap-3">
                   <span className="text-muted-foreground">{m.service}</span>
                   <span className="text-right">
-                    {m.value} {m.mocked && <Badge variant="outline" className="ml-1 text-amber-700">mock</Badge>}
+                    {m.value} {m.mocked && <Badge variant="outline" className="ml-1 text-amber-700 dark:text-amber-400">mock</Badge>}
                   </span>
                 </li>
               ))}

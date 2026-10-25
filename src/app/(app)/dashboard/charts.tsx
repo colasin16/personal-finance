@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import { TimeChart, type ChartMarker, type ChartSeries } from "@/components/charts/time-chart";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
@@ -60,13 +61,14 @@ export function NetWorthChart({
 const PALETTE = ["#6366f1", "#f97316", "#0ea5e9", "#22c55e", "#ec4899", "#eab308", "#14b8a6", "#8b5cf6"];
 
 export function CashFlowChart({ months }: { months: { time: string; income: number; expenses: number; net: number }[] }) {
+  const netColor = useTheme().resolvedTheme === "dark" ? "#f4f4f5" : "#18181b";
   const series = useMemo<ChartSeries[]>(
     () => [
       { kind: "histogram", data: months.map((m) => ({ time: m.time, value: m.income })), color: "#10b981" },
       { kind: "histogram", data: months.map((m) => ({ time: m.time, value: -m.expenses })), color: "#f87171" },
-      { kind: "line", data: months.map((m) => ({ time: m.time, value: m.net })), color: "#18181b", lineWidth: 2 },
+      { kind: "line", data: months.map((m) => ({ time: m.time, value: m.net })), color: netColor, lineWidth: 2 },
     ],
-    [months],
+    [months, netColor],
   );
   return <TimeChart series={series} height={300} monthly />;
 }

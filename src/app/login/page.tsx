@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/server/auth";
 import { LoginForm } from "./login-form";
@@ -11,7 +12,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { next } = await searchParams;
   if (await getCurrentUser()) redirect(next?.startsWith("/") ? next : "/dashboard");
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-6">
+    <main className="relative flex min-h-screen flex-col items-center justify-center gap-8 p-6">
+      <ThemeToggle className="absolute top-4 right-4" />
       <Logo className="text-lg" />
       <Card className="w-full max-w-sm">
         <CardHeader>

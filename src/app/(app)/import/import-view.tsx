@@ -89,10 +89,10 @@ export function ImportView({
         }}
         className={cn(
           "flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed bg-background px-6 py-12 text-center transition-colors",
-          over ? "border-emerald-500 bg-emerald-50" : "border-muted-foreground/25",
+          over ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" : "border-muted-foreground/25",
         )}
       >
-        <div className="flex size-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+        <div className="flex size-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
           {uploading ? <Loader2 className="size-7 animate-spin" /> : <FileUp className="size-7" />}
         </div>
         <div>
@@ -129,7 +129,7 @@ export function ImportView({
           }}
         />
         {accounts.length === 0 && (
-          <p className="text-sm text-amber-700">
+          <p className="text-sm text-amber-700 dark:text-amber-400">
             Tip: <Link href="/accounts" className="underline">add your accounts</Link> with their IBAN first so statements are matched automatically.
           </p>
         )}
@@ -201,9 +201,9 @@ function StatementRow({
             {s.periodStart && s.periodEnd && ` · ${formatDate(s.periodStart)} – ${formatDate(s.periodEnd)}`}
           </p>
           {s.status === "failed" && s.error && <p className="mt-1 text-xs text-red-600">{s.error}</p>}
-          {stuck && <p className="mt-1 text-xs text-amber-700">Processing was interrupted (server restarted). Retry to continue.</p>}
+          {stuck && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">Processing was interrupted (server restarted). Retry to continue.</p>}
           {s.status === "needs_review" && s.issues > 0 && (
-            <p className="mt-1 text-xs text-amber-700">{s.issues} balance check{s.issues > 1 ? "s" : ""} didn&apos;t add up — please review.</p>
+            <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{s.issues} balance check{s.issues > 1 ? "s" : ""} didn&apos;t add up — please review.</p>
           )}
         </div>
       </div>

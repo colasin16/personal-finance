@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { UploadProvider } from "./upload-provider";
 
 type Props = {
@@ -102,7 +103,7 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
           {modes.map((m) => (
             <li key={m.service} className="flex justify-between gap-3">
               <span className="text-muted-foreground">{m.service}</span>
-              <span className={cn("text-right font-medium", m.mocked && "text-amber-600")}>{m.value}</span>
+              <span className={cn("text-right font-medium", m.mocked && "text-amber-600 dark:text-amber-400")}>{m.value}</span>
             </li>
           ))}
         </ul>
@@ -153,12 +154,13 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
                 ))}
               </div>
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-1">
+              <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2 px-2">
                     <Avatar className="size-7">
-                      <AvatarFallback className="bg-emerald-100 text-xs text-emerald-800">{initials(user.displayName)}</AvatarFallback>
+                      <AvatarFallback className="bg-emerald-100 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">{initials(user.displayName)}</AvatarFallback>
                     </Avatar>
                     <span className="hidden text-sm sm:inline">{user.displayName}</span>
                   </Button>

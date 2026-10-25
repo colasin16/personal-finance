@@ -88,18 +88,18 @@ export default async function StatementPage({ params }: { params: Promise<{ id: 
       </div>
 
       {statement.issues.length === 0 ? (
-        <Alert className="mb-6 border-emerald-200 bg-emerald-50 text-emerald-900">
+        <Alert className="mb-6 border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
           <CircleCheck className="text-emerald-600" />
           <AlertTitle>Balances check out</AlertTitle>
-          <AlertDescription className="text-emerald-800">
+          <AlertDescription className="text-emerald-800 dark:text-emerald-300">
             Opening balance + {all.length} transactions = closing balance. Every transaction was read correctly.
           </AlertDescription>
         </Alert>
       ) : (
-        <Alert className="mb-6 border-amber-300 bg-amber-50 text-amber-900">
+        <Alert className="mb-6 border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
           <TriangleAlert className="text-amber-600" />
           <AlertTitle>Some numbers don&apos;t add up</AlertTitle>
-          <AlertDescription className="text-amber-800">
+          <AlertDescription className="text-amber-800 dark:text-amber-300">
             <ul className="list-disc pl-4">
               {statement.issues.map((issue, i) => (
                 <li key={i}>{describeIssue(issue, fmt)}</li>
@@ -111,7 +111,7 @@ export default async function StatementPage({ params }: { params: Promise<{ id: 
       )}
 
       {flagged > 0 && (
-        <p className="mb-3 text-sm text-amber-700">
+        <p className="mb-3 text-sm text-amber-700 dark:text-amber-400">
           {flagged} transaction{flagged > 1 ? "s" : ""} need{flagged > 1 ? "" : "s"} a category — they&apos;re listed first.
         </p>
       )}

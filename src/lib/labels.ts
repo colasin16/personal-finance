@@ -8,12 +8,12 @@ export const ACCOUNT_TYPES = [
 export const accountTypeLabel = (type: string) => ACCOUNT_TYPES.find((t) => t.value === type)?.label ?? type;
 
 export const STATEMENT_STATUS: Record<string, { label: string; className: string }> = {
-  uploaded: { label: "Queued", className: "bg-slate-100 text-slate-700" },
-  processing: { label: "Processing", className: "bg-sky-100 text-sky-700" },
-  needs_account: { label: "Pick account", className: "bg-amber-100 text-amber-800" },
-  needs_review: { label: "Ready to review", className: "bg-violet-100 text-violet-700" },
-  confirmed: { label: "Confirmed", className: "bg-emerald-100 text-emerald-700" },
-  failed: { label: "Failed", className: "bg-red-100 text-red-700" },
+  uploaded: { label: "Queued", className: "bg-slate-100 text-slate-700 dark:bg-slate-950 dark:text-slate-300" },
+  processing: { label: "Processing", className: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300" },
+  needs_account: { label: "Pick account", className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
+  needs_review: { label: "Ready to review", className: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300" },
+  confirmed: { label: "Confirmed", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" },
+  failed: { label: "Failed", className: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300" },
 };
 
 export const CATEGORIZED_BY: Record<string, string> = {

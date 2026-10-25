@@ -119,7 +119,7 @@ export function TransactionTable({
               </TableRow>
             )}
             {optimistic.map((r) => (
-              <TableRow key={r.id} data-state={selected.has(r.id) ? "selected" : undefined} className={cn(r.flagged && "bg-amber-50/60")}>
+              <TableRow key={r.id} data-state={selected.has(r.id) ? "selected" : undefined} className={cn(r.flagged && "bg-amber-50/60 dark:bg-amber-950/20")}>
                 <TableCell>
                   <Checkbox checked={selected.has(r.id)} onCheckedChange={(c) => toggle(r.id, c === true)} aria-label="Select transaction" />
                 </TableCell>
@@ -246,7 +246,7 @@ function TransactionDetail({
             <p className="text-xs text-muted-foreground">Original description</p>
             <p className="font-mono text-xs break-all">{tx.descriptionRaw}</p>
           </div>
-          {tx.flagged && tx.flagReason && <p className="rounded-md bg-amber-50 p-2 text-amber-800">{tx.flagReason}</p>}
+          {tx.flagged && tx.flagReason && <p className="rounded-md bg-amber-50 p-2 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{tx.flagReason}</p>}
           <div className="space-y-1.5">
             <label htmlFor="tx-notes" className="text-xs text-muted-foreground">
               Notes (visible to your household)

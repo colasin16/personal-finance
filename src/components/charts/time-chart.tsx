@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 import {
   AreaSeries,
   BaselineSeries,
@@ -50,6 +51,7 @@ export function TimeChart({
   monthly?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const dark = useTheme().resolvedTheme === "dark";
 
   useEffect(() => {
     const el = container.current;
@@ -65,14 +67,18 @@ export function TimeChart({
       autoSize: true,
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#71717a",
+        textColor: dark ? "#a1a1aa" : "#71717a",
         fontFamily: "var(--font-sans), ui-sans-serif, system-ui",
         attributionLogo: true,
       },
-      grid: { vertLines: { visible: false }, horzLines: { color: "#f1f1f4" } },
+      grid: { vertLines: { visible: false }, horzLines: { color: dark ? "#27272a" : "#f1f1f4" } },
       rightPriceScale: { borderVisible: false, minimumWidth: 64, scaleMargins: { top: 0.15, bottom: 0.1 } },
       timeScale: { borderVisible: false, fixLeftEdge: true, fixRightEdge: true, lockVisibleTimeRangeOnResize: true },
-      crosshair: { mode: CrosshairMode.Magnet },
+      crosshair: {
+        mode: CrosshairMode.Magnet,
+        vertLine: { labelBackgroundColor: dark ? "#3f3f46" : "#18181b" },
+        horzLine: { labelBackgroundColor: dark ? "#3f3f46" : "#18181b" },
+      },
       handleScroll: false,
       handleScale: false,
       localization: {
@@ -120,7 +126,7 @@ export function TimeChart({
     }
     chart.timeScale().fitContent();
     return () => chart.remove();
-  }, [series, markers, currency, locale, monthly]);
+  }, [series, markers, currency, locale, monthly, dark]);
 
   return <div ref={container} style={{ height }} className="w-full" />;
 }

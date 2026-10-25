@@ -175,7 +175,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <ul className="divide-y">
               {data.topMerchants.map((m, i) => (
                 <li key={m.name}>
-                  <Link href={txHref({ q: m.name })} className="flex items-center gap-3 py-2 text-sm hover:text-emerald-700">
+                  <Link href={txHref({ q: m.name })} className="flex items-center gap-3 py-2 text-sm hover:text-emerald-700 dark:hover:text-emerald-400">
                     <span className="w-4 text-xs text-muted-foreground">{i + 1}</span>
                     <span className="min-w-0 flex-1 truncate">{m.name}</span>
                     <span className="text-xs text-muted-foreground">{m.count}×</span>

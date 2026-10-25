@@ -9,7 +9,7 @@ const CELL: Record<CompletenessCell["status"], { className: string; label: strin
   needs_review: { className: "bg-violet-400", label: "Ready to review" },
   processing: { className: "bg-sky-300 animate-pulse", label: "Processing" },
   failed: { className: "bg-red-400", label: "Needs attention" },
-  missing: { className: "bg-amber-100 ring-1 ring-inset ring-amber-400", label: "Missing statement" },
+  missing: { className: "bg-amber-100 ring-1 ring-inset ring-amber-400 dark:bg-amber-950/60 dark:ring-amber-700", label: "Missing statement" },
   none: { className: "bg-muted", label: "Not tracked yet" },
 };
 
