@@ -1,9 +1,6 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/server/auth";
 
-import { PATH_AFTER_LOGIN } from '@src/config-global';
-
-// ----------------------------------------------------------------------
-
-export default async function HomePage() {
-  redirect(PATH_AFTER_LOGIN);
+export default async function Home() {
+  redirect((await getCurrentUser()) ? "/dashboard" : "/login");
 }

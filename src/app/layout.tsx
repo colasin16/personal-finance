@@ -1,91 +1,23 @@
-/* eslint-disable perfectionist/sort-imports */
-import '@src/global.css';
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import "./globals.css";
 
-// ----------------------------------------------------------------------
-
-import { Viewport, type Metadata } from 'next';
-
-import { TRPCReactProvider } from '@src/trpc/react';
-
-import ThemeProvider from '@src/theme';
-import { primaryFont } from '@src/theme/typography';
-
-import ProgressBar from '@src/app/_components/progress-bar';
-import { MotionLazy } from '@src/app/_components/animate/motion-lazy';
-import {
-  SettingsDrawer,
-  SettingsProvider,
-} from '@src/app/_components/settings';
-
-import { AuthProvider } from '@src/auth/context/jwt';
-
-// ----------------------------------------------------------------------
+const geistSans = Geist({ variable: "--font-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Minimal UI Kit',
-  description:
-    'The starting point for your next project with Minimal UI Kit, built on the newest version of Material-UI ©, ready to be customized to your style',
-  keywords: 'react,material,kit,application,dashboard,admin,template',
-  manifest: '/manifest.json',
-  icons: [
-    { rel: 'icon', url: '/favicon/favicon.ico' },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '16x16',
-      url: '/favicon/favicon-16x16.png',
-    },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '32x32',
-      url: '/favicon/favicon-32x32.png',
-    },
-    {
-      rel: 'apple-touch-icon',
-      sizes: '180x180',
-      url: '/favicon/apple-touch-icon.png',
-    },
-  ],
+  title: { default: "Household Finance", template: "%s · Household Finance" },
+  description: "Upload your monthly bank statements, get every transaction categorized, and see your household finances together.",
 };
 
-export const viewport: Viewport = {
-  themeColor: '#000000',
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-};
-
-type Props = {
-  children: React.ReactNode;
-};
-
-export default function RootLayout({ children }: Props) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={primaryFont.className}>
-      <body>
-        <TRPCReactProvider>
-          <AuthProvider>
-            <SettingsProvider
-              defaultSettings={{
-                themeMode: 'light', // 'light' | 'dark'
-                themeDirection: 'ltr', //  'rtl' | 'ltr'
-                themeContrast: 'default', // 'default' | 'bold'
-                themeLayout: 'vertical', // 'vertical' | 'horizontal' | 'mini'
-                themeColorPresets: 'default', // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
-                themeStretch: false,
-              }}
-            >
-              <ThemeProvider>
-                <MotionLazy>
-                  <SettingsDrawer />
-                  <ProgressBar />
-                  {children}
-                </MotionLazy>
-              </ThemeProvider>
-            </SettingsProvider>
-          </AuthProvider>
-        </TRPCReactProvider>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full bg-muted/30">
+        <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        <Toaster richColors position="bottom-right" />
       </body>
     </html>
   );

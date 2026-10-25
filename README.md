@@ -1,29 +1,66 @@
-# Create T3 App
+# Household Finance
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A shared personal-finance app for two people. Drop the monthly PDF statements from all your banks; the app extracts every transaction, categorizes them, finds transfers between your own accounts, and shows where the money goes, for the household, the shared accounts, or each person.
 
-## What's next? How do I make an app with this?
+See [PLAN.md](./PLAN.md) for the product plan and architecture.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## Quick start
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+```bash
+pnpm install
+pnpm dev            # http://localhost:3000
+```
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+On the login screen, click **Demo as Alex** (or **Sam**). This creates the household "Alex & Sam" with three accounts (one shared) and imports May–Sep 2026 sample statements. Go to **Import** and drop the October PDFs from `samples/` to watch the pipeline run.
 
-## Learn More
+You can also sign in with any email. The "magic link" is mocked and signs you in immediately. From there you create a household and invite your partner with a copyable link.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## Runs fully offline
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Every external service sits behind an adapter. With no environment variables set, the app uses local mocks. **Settings → About** shows which mode each service is in.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+| Service | Default (mock) | Real (set in `.env.local`) |
+| --- | --- | --- |
+| Database | Embedded PGlite in `.data/pglite` | `DATABASE_URL` (Postgres / Supabase) |
+| PDF storage | Local disk `.data/uploads` | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET` |
+| Parsing + categorization | Heuristic parser for Spanish bank layouts + keyword rules | `LLM_API_KEY` (+ `LLM_MODEL`, `LLM_BASE_URL` for any OpenAI-compatible API) |
+| Auth | Signed-cookie session, instant "magic link" | Supabase Auth (planned) |
+| Background jobs | In-process queue | Inngest (planned) |
 
-## How do I deploy this?
+Copy `.env.example` to `.env.local` to configure. Migrations in `drizzle/` run automatically on startup. Delete `.data/` to start from scratch.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+In production, `AUTH_SECRET` is required and demo login is disabled unless `ENABLE_DEMO=1`.
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `pnpm dev` / `pnpm build` / `pnpm start` | Next.js |
+| `pnpm test` | Vitest: domain logic, the full PDF → transactions pipeline, Postgres RLS policies |
+| `pnpm typecheck` / `pnpm lint` | TypeScript / ESLint |
+| `pnpm samples` | Regenerate the sample bank statements in `samples/` |
+| `pnpm db:generate` | Generate a Drizzle migration after editing `src/lib/db/schema.ts` |
+
+## How sharing works
+
+- Each account has one or more **owners**, each with a share (50/50 by default for shared accounts). The per-person dashboard counts shared accounts at that person's share.
+- Both partners see each other's accounts unless an account is marked **private**.
+- Transfers between your own accounts are detected and excluded from income and spending.
+- Category changes and rules apply to the whole household. Every edit is recorded in the transaction's history.
+
+Authorization is enforced in the server layer (`src/lib/queries.ts`, `src/lib/actions/*`). `supabase/rls.sql` contains matching Row Level Security policies for when the database moves to Supabase. They are tested in `tests/rls.test.ts`.
+
+## Project layout
+
+```
+src/app/            routes: (app)/dashboard, import, transactions, statements/[id], issues, accounts, settings
+src/components/     UI (shadcn/ui), charts (TradingView Lightweight Charts™), shell, feature components
+src/lib/db/         Drizzle schema, DB adapter (PGlite/Postgres), seeds
+src/lib/pipeline/   upload → extract text → parse → dedupe → categorize → detect transfers
+src/lib/services/   storage, LLM and job-queue adapters (mock + real)
+src/lib/actions/    server actions (all mutations)
+src/lib/queries.ts  read models (dashboard, issues, transactions, completeness)
+samples/            generated sample statements for 3 accounts, May–Oct 2026
+```
+
+Charts use [TradingView Lightweight Charts™](https://www.tradingview.com/lightweight-charts/) (Apache-2.0). The attribution logo is kept on the charts as the license requires.
