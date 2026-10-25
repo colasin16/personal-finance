@@ -35,7 +35,11 @@
     "title": "Where the money goes",
     "description": "Spending by category · click to see the transactions",
     "empty": "No spending in this period.",
-    "count": "{count} tx"
+    "count": "{count} tx",
+    "viewList": "Show as list",
+    "viewPie": "Show as pie chart",
+    "pieLabel": "Spending by category pie chart",
+    "total": "Total spending"
   },
   "topMerchants": {
     "title": "Top merchants",

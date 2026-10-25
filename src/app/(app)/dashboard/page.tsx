@@ -11,6 +11,7 @@ import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { CategoryBreakdown } from "./category-breakdown";
 import { CashFlowChart, NetWorthChart } from "./charts";
 import { DashboardFilters } from "./filters";
 
@@ -161,36 +162,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>{t("ranking.title")}</CardTitle>
-            <CardDescription>{t("ranking.description")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.categoryRanking.length === 0 && <p className="text-sm text-muted-foreground">{t("ranking.empty")}</p>}
-            {data.categoryRanking.map((c) => (
-              <Link
-                key={c.categoryId ?? "none"}
-                href={txHref({ category: c.categoryId ?? "none" })}
-                className="group block space-y-1 rounded-md p-1 -m-1 hover:bg-muted/60"
-              >
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="flex items-center gap-2">
-                    <span className="size-2.5 rounded-full" style={{ background: c.color }} />
-                    {c.name ?? tc("uncategorized")}
-                    <span className="text-xs text-muted-foreground">{t("ranking.count", { count: c.count })}</span>
-                  </span>
-                  <span className="tabular-nums">
-                    <Money cents={c.cents} className="font-medium" /> <span className="text-xs text-muted-foreground">{Math.round(c.pct * 100)}%</span>
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.max(1, c.pct * 100)}%`, background: c.color }} />
-                </div>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
+        <CategoryBreakdown
+          className="lg:col-span-3"
+          items={data.categoryRanking.map((c) => ({
+            key: c.categoryId ?? "none",
+            name: c.name ?? tc("uncategorized"),
+            color: c.color,
+            cents: c.cents,
+            count: c.count,
+            pct: c.pct,
+            href: txHref({ category: c.categoryId ?? "none" }),
+          }))}
+        />
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>{t("topMerchants.title")}</CardTitle>

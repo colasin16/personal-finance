@@ -35,7 +35,11 @@
     "title": "En qué se va el dinero",
     "description": "Gastos por categoría · haz clic para ver los movimientos",
     "empty": "No hay gastos en este periodo.",
-    "count": "{count} mov."
+    "count": "{count} mov.",
+    "viewList": "Ver como lista",
+    "viewPie": "Ver como gráfico circular",
+    "pieLabel": "Gráfico circular de gastos por categoría",
+    "total": "Gasto total"
   },
   "topMerchants": {
     "title": "Comercios principales",
