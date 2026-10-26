@@ -33,6 +33,10 @@
     "kinds": { "expense": "Expense", "income": "Income", "transfer": "Transfer" },
     "new": "New category",
     "placeholder": "Pets",
+    "icon": "Icon",
+    "iconSearch": "Search icons…",
+    "iconEmpty": "No icons found",
+    "iconMore": "Showing the first {count}. Type to narrow it down.",
     "color": "Color",
     "added": "Category added"
   },

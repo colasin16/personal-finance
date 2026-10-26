@@ -89,6 +89,7 @@ const categorySchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(40),
   kind: z.enum(["expense", "income", "transfer"]),
   color: z.string().regex(/^#[0-9a-f]{6}$/i).default("#64748b"),
+  icon: z.string().regex(/^[a-z0-9-]{1,60}$/).default("tag"),
 });
 
 export async function createCategoryAction(input: z.input<typeof categorySchema>): Promise<ActionResult<{ id: string }>> {

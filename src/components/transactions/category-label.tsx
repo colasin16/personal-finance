@@ -1,42 +1,91 @@
-import { CARBON_ICONS } from "@/lib/carbon-icons";
+"use client";
+
+import {
+  Baby, Banknote, Briefcase, Car, CircleDashed, CircleEllipsis, CircleHelp, Coins, Dumbbell, Gift, GraduationCap, HeartPulse, Home,
+  Landmark, type LucideIcon, PawPrint, PiggyBank, Plane, Repeat, Shield, ShoppingBag, ShoppingBasket, Tag, TrainFront, Utensils, Zap, ArrowLeftRight,
+} from "lucide-react";
+import { DynamicIcon, type IconName } from "lucide-react/dynamic";
 import { cn } from "@/lib/utils";
 
-/** Maps icon names stored before the move to Carbon (Lucide names) to Carbon icon names. */
+/** Icons used by the default categories are bundled; any other Lucide icon is loaded on demand. */
+const BUNDLED_ICONS: Record<string, LucideIcon> = {
+  home: Home,
+  zap: Zap,
+  "shopping-basket": ShoppingBasket,
+  utensils: Utensils,
+  "train-front": TrainFront,
+  car: Car,
+  "heart-pulse": HeartPulse,
+  dumbbell: Dumbbell,
+  "graduation-cap": GraduationCap,
+  "shopping-bag": ShoppingBag,
+  plane: Plane,
+  repeat: Repeat,
+  shield: Shield,
+  landmark: Landmark,
+  baby: Baby,
+  "paw-print": PawPrint,
+  gift: Gift,
+  banknote: Banknote,
+  "circle-ellipsis": CircleEllipsis,
+  briefcase: Briefcase,
+  coins: Coins,
+  "piggy-bank": PiggyBank,
+  "arrow-left-right": ArrowLeftRight,
+  tag: Tag,
+  "circle-dashed": CircleDashed,
+  "circle-help": CircleHelp,
+};
+
+/** Names stored while the app briefly used the Carbon and Solar sets, mapped back to Lucide. */
 const LEGACY_ICONS: Record<string, string> = {
-  zap: "lightning",
-  "shopping-basket": "shopping-cart",
-  utensils: "restaurant",
-  "train-front": "train",
-  "heart-pulse": "pills",
-  dumbbell: "running",
-  "graduation-cap": "education",
-  shield: "security",
-  landmark: "receipt",
-  baby: "pedestrian-child",
-  "paw-print": "dog-walker",
-  banknote: "money",
-  "circle-ellipsis": "overflow-menu-horizontal",
-  briefcase: "portfolio",
-  coins: "currency",
-  "arrow-left-right": "arrows-horizontal",
-  circle: "circle-dash",
-  "circle-help": "help",
+  "home-2": "home",
+  bolt: "zap",
+  lightning: "zap",
+  "cart-2": "shopping-basket",
+  "cart-large-2": "shopping-basket",
+  "shopping-cart": "shopping-basket",
+  "chef-hat": "utensils",
+  restaurant: "utensils",
+  tram: "train-front",
+  train: "train-front",
+  pills: "heart-pulse",
+  running: "dumbbell",
+  "square-academic-cap": "graduation-cap",
+  education: "graduation-cap",
+  bag: "shopping-bag",
+  security: "shield",
+  bill: "landmark",
+  receipt: "landmark",
+  "smile-circle": "baby",
+  "pedestrian-child": "baby",
+  paw: "paw-print",
+  "dog-walker": "paw-print",
+  "banknote-2": "banknote",
+  money: "banknote",
+  "menu-dots": "circle-ellipsis",
+  "overflow-menu-horizontal": "circle-ellipsis",
+  case: "briefcase",
+  portfolio: "briefcase",
+  euro: "coins",
+  currency: "coins",
+  "safe-2": "piggy-bank",
+  "transfer-horizontal": "arrow-left-right",
+  "arrows-horizontal": "arrow-left-right",
+  circle: "circle-dashed",
+  "circle-dash": "circle-dashed",
+  "question-circle": "circle-help",
+  help: "circle-help",
 };
 
 export const UNCATEGORIZED_COLOR = "#f59e0b";
 
 export function CategoryIcon({ icon, className }: { icon?: string | null; className?: string }) {
   const name = icon ? (LEGACY_ICONS[icon] ?? icon) : "tag";
-  const body = CARBON_ICONS[name] ?? CARBON_ICONS["circle-dash"];
-  return (
-    <svg
-      viewBox="0 0 32 32"
-      fill="currentColor"
-      aria-hidden="true"
-      className={cn("size-3.5 shrink-0", className)}
-      dangerouslySetInnerHTML={{ __html: body }}
-    />
-  );
+  const cls = cn("size-3.5 shrink-0", className);
+  const Bundled = BUNDLED_ICONS[name];
+  if (Bundled) return <Bundled aria-hidden="true" className={cls} />;
+  return <DynamicIcon name={name as IconName} aria-hidden="true" className={cls} fallback={() => <CircleDashed aria-hidden="true" className={cls} />} />;
 }
 
 /** Translucent border/background derived from a category color. */

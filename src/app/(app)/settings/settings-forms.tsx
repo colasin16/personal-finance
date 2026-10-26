@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { createCategoryAction, inviteMemberAction, renameHouseholdAction } from "@/lib/actions/household";
 import { deleteRuleAction } from "@/lib/actions/transactions";
+import { IconPicker } from "@/components/transactions/icon-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,6 +96,7 @@ export function AddCategoryForm() {
   const [name, setName] = useState("");
   const [kind, setKind] = useState<"expense" | "income" | "transfer">("expense");
   const [color, setColor] = useState(COLORS[0]!);
+  const [icon, setIcon] = useState("tag");
   const [pending, start] = useTransition();
   return (
     <form
@@ -102,7 +104,7 @@ export function AddCategoryForm() {
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await createCategoryAction({ name, kind, color });
+          const r = await createCategoryAction({ name, kind, color, icon });
           if (!r.ok) return void toast.error(r.error);
           toast.success(t("added"));
           setName("");
@@ -111,6 +113,7 @@ export function AddCategoryForm() {
     >
       <Label htmlFor="category-name">{t("new")}</Label>
       <div className="flex flex-wrap gap-2">
+        <IconPicker value={icon} color={color} onChange={setIcon} />
         <Input id="category-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("placeholder")} className="w-40 flex-1" maxLength={40} required />
         <Select value={kind} onValueChange={(v) => setKind(v as typeof kind)}>
           <SelectTrigger className="w-32">

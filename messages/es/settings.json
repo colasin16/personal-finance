@@ -33,6 +33,10 @@
     "kinds": { "expense": "Gasto", "income": "Ingreso", "transfer": "Traspaso" },
     "new": "Nueva categoría",
     "placeholder": "Mascotas",
+    "icon": "Icono",
+    "iconSearch": "Buscar iconos…",
+    "iconEmpty": "No se encontraron iconos",
+    "iconMore": "Mostrando los primeros {count}. Escribe para afinar.",
     "color": "Color",
     "added": "Categoría añadida"
   },
