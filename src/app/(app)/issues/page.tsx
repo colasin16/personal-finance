@@ -19,7 +19,7 @@ export default async function IssuesPage() {
   const { db, user, household } = await requireContext();
   const [locale, t] = await Promise.all([getLocale(), getTranslations("issues")]);
   const [issues, cats] = await Promise.all([getIssues(db, household.id, user.id), getCategories(db, household.id, locale)]);
-  const categories = cats.map((c) => ({ id: c.id, name: c.name, color: c.color, kind: c.kind }));
+  const categories = cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }));
 
   const statementCards = [
     {

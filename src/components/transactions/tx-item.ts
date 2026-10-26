@@ -7,6 +7,8 @@ export type TxItem = {
   currency: string;
   balanceAfterCents: number | null;
   accountName: string;
+  bankId: string;
+  bankName: string;
   bankColor: string;
   categoryId: string | null;
   categorizedBy: string | null;
@@ -39,6 +41,8 @@ export function toTxItem(row: {
     isConfirmed: boolean;
   };
   accountName: string;
+  bankId: string;
+  bankName: string;
   bankColor: string;
 }): TxItem {
   const { tx } = row;
@@ -51,6 +55,8 @@ export function toTxItem(row: {
     currency: tx.currency,
     balanceAfterCents: tx.balanceAfterCents,
     accountName: row.accountName,
+    bankId: row.bankId,
+    bankName: row.bankName,
     bankColor: row.bankColor,
     categoryId: tx.categoryId,
     categorizedBy: tx.categorizedBy,

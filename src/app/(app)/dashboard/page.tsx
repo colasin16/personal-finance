@@ -167,6 +167,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           items={data.categoryRanking.map((c) => ({
             key: c.categoryId ?? "none",
             name: c.name ?? tc("uncategorized"),
+            icon: c.icon,
             color: c.color,
             cents: c.cents,
             count: c.count,

@@ -384,6 +384,8 @@ export async function listTransactions(db: Db, householdId: string, visibleIds: 
       .select({
         tx: transactions,
         accountName: accounts.name,
+        bankId: banks.id,
+        bankName: banks.name,
         bankColor: banks.color,
         categoryName: categories.name,
         categoryColor: categories.color,

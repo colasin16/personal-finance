@@ -139,7 +139,7 @@ export default async function StatementPage({ params }: { params: Promise<{ id: 
       )}
       <TransactionTable
         rows={ordered.map(toTxItem)}
-        categories={cats.map((c) => ({ id: c.id, name: c.name, color: c.color, kind: c.kind }))}
+        categories={cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }))}
         showAccount={false}
         showBalance
         emptyMessage={t("empty")}

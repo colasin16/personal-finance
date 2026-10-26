@@ -1,9 +1,10 @@
 import { getLlm } from "@/lib/services/llm";
 import { getStorage } from "@/lib/services/storage";
+import { BRANDFETCH_CLIENT_ID } from "@/lib/banks";
 
 /** Labels: messages/<locale>/settings.json `services.labels.<key>` and `services.values.<value>`. */
-export type ServiceKey = "database" | "storage" | "llm" | "auth" | "jobs";
-export type ServiceValue = "postgres" | "pglite" | "localDisk" | "supabase" | "llmMock" | "llmOpenai" | "mockMagicLink" | "inProcessQueue";
+export type ServiceKey = "database" | "storage" | "llm" | "auth" | "jobs" | "logos";
+export type ServiceValue = "postgres" | "pglite" | "localDisk" | "supabase" | "llmMock" | "llmOpenai" | "mockMagicLink" | "inProcessQueue" | "brandfetch" | "lettermarks";
 /** `detail` is untranslated technical info (e.g. the LLM model) to show next to the value. */
 export type ServiceMode = { key: ServiceKey; value: ServiceValue; mocked: boolean; detail?: string };
 
@@ -19,5 +20,6 @@ export function serviceModes(): ServiceMode[] {
     { key: "llm", value: llmMocked ? "llmMock" : "llmOpenai", mocked: llmMocked, ...(llmMocked ? {} : { detail: model }) },
     { key: "auth", value: "mockMagicLink", mocked: true },
     { key: "jobs", value: "inProcessQueue", mocked: true },
+    { key: "logos", value: BRANDFETCH_CLIENT_ID ? "brandfetch" : "lettermarks", mocked: !BRANDFETCH_CLIENT_ID },
   ];
 }

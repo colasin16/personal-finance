@@ -2,6 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { BankLogo } from "@/components/brand/bank-logo";
 import { ArrowLeftRight, FileText, Flag, History, Link2Off, Loader2, Sparkles, StickyNote, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { getTransactionHistoryAction, setCategoryAction, setNotesAction, unlinkTransferAction } from "@/lib/actions/transactions";
@@ -16,7 +17,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CategoryDot, CategoryPicker, type CategoryOption } from "./category-picker";
+import { CategoryLabel, UNCATEGORIZED_COLOR } from "./category-label";
+import { CategoryPicker, type CategoryOption } from "./category-picker";
 import { RuleDialog } from "./rule-dialog";
 import type { RuleInput } from "@/lib/actions/transactions";
 import type { TxItem } from "./tx-item";
@@ -147,8 +149,10 @@ export function TransactionTable({
                 </TableCell>
                 {showAccount && (
                   <TableCell className="hidden text-sm whitespace-nowrap lg:table-cell">
-                    <span className="mr-1.5 inline-block size-2 rounded-full" style={{ background: r.bankColor }} />
-                    {r.accountName}
+                    <div className="flex items-center gap-1.5">
+                      <BankLogo bankId={r.bankId} name={r.bankName} color={r.bankColor} size={20} className="rounded-[22%]" />
+                      {r.accountName}
+                    </div>
                   </TableCell>
                 )}
                 <TableCell>
@@ -255,8 +259,7 @@ function TransactionDetail({
         <div className="space-y-4 text-sm">
           <div className="flex items-center justify-between rounded-lg bg-muted p-3">
             <span className="flex items-center gap-2">
-              <CategoryDot color={category?.color ?? "#f59e0b"} />
-              {category?.name ?? tc("uncategorized")}
+              <CategoryLabel name={category?.name ?? tc("uncategorized")} icon={category?.icon} color={category?.color ?? UNCATEGORIZED_COLOR} />
               {isCategorizedBy(tx.categorizedBy) && <Badge variant="outline">{tc(`categorizedBy.${tx.categorizedBy}`)}</Badge>}
             </span>
             <Money cents={tx.amountCents} currency={tx.currency} colored className="text-base font-semibold" />

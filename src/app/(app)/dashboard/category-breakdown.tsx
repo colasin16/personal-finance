@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChartPie, List } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { CategoryIcon, categoryTint } from "@/components/transactions/category-label";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export type CategorySlice = { key: string; name: string; color: string; cents: number; count: number; pct: number; href: string };
+export type CategorySlice = { key: string; name: string; icon?: string | null; color: string; cents: number; count: number; pct: number; href: string };
 
 const STROKE = 36;
 const HOVER_GROW = 8;
@@ -94,10 +95,10 @@ export function CategoryBreakdown({ items, className }: { items: CategorySlice[]
         {items.length > 0 && view === "list" && (
           <div className="space-y-3">
             {items.map((c) => (
-              <Link key={c.key} href={c.href} className="group -m-1 block space-y-1 rounded-md p-1 hover:bg-muted/60">
+              <Link key={c.key} href={c.href} className="group block space-y-1.5 rounded-lg border px-3 py-2 transition-[filter] hover:brightness-95 dark:hover:brightness-125" style={categoryTint(c.color)}>
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <span className="flex items-center gap-2">
-                    <span className="size-2.5 rounded-full" style={{ background: c.color }} />
+                    <CategoryIcon icon={c.icon} className="size-4" />
                     {c.name}
                     <span className="text-xs text-muted-foreground">{t("count", { count: c.count })}</span>
                   </span>
@@ -105,7 +106,7 @@ export function CategoryBreakdown({ items, className }: { items: CategorySlice[]
                     <Money cents={c.cents} className="font-medium" /> <span className="text-xs text-muted-foreground">{Math.round(c.pct * 100)}%</span>
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div className="h-2 overflow-hidden rounded-full bg-background/50">
                   <div className="h-full rounded-full transition-all" style={{ width: `${Math.max(1, c.pct * 100)}%`, background: c.color }} />
                 </div>
               </Link>
@@ -116,7 +117,7 @@ export function CategoryBreakdown({ items, className }: { items: CategorySlice[]
         {items.length > 0 && view === "pie" && (
           <div className="flex flex-col items-center gap-4">
             <Pie items={items} active={active} onActive={setActive} />
-            <ul className="max-h-64 w-full space-y-0.5 overflow-y-auto pr-1">
+            <ul className="max-h-64 w-full space-y-1 overflow-y-auto pr-1">
               {items.map((c, i) => (
                 <li key={c.key}>
                   <Link
@@ -125,9 +126,10 @@ export function CategoryBreakdown({ items, className }: { items: CategorySlice[]
                     onMouseLeave={() => setActive(null)}
                     onFocus={() => setActive(i)}
                     onBlur={() => setActive(null)}
-                    className={cn("flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-muted/60", active === i && "bg-muted/60")}
+                    style={categoryTint(c.color)}
+                    className={cn("flex items-center gap-2 rounded-md border px-2 py-1 text-sm transition-[filter] hover:brightness-95 dark:hover:brightness-125", active === i && "brightness-95 dark:brightness-125")}
                   >
-                    <span className="size-2.5 shrink-0 rounded-full" style={{ background: c.color }} />
+                    <CategoryIcon icon={c.icon} />
                     <span className="min-w-0 flex-1 truncate">{c.name}</span>
                     <span className="text-xs text-muted-foreground tabular-nums">{Math.round(c.pct * 100)}%</span>
                     <Money cents={c.cents} className="w-24 text-right font-medium" />

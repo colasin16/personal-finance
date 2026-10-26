@@ -16,6 +16,7 @@ import { useUpload } from "@/components/shell/upload-provider";
 import { StatusBadge } from "@/components/statements/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -193,6 +194,7 @@ function StatementRow({
   const locale = useLocale();
   const [pending, start] = useTransition();
   const [creating, setCreating] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, success?: string) =>
     start(async () => {
       const result = await fn();
@@ -279,15 +281,37 @@ function StatementRow({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
-              onSelect={() => {
-                if (confirm(t("row.confirmDelete", { fileName: s.fileName }))) run(() => deleteStatementAction(s.id), t("toasts.deleted"));
-              }}
+              onSelect={() => setConfirmingDelete(true)}
             >
               <Trash2 /> {tc("actions.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <Dialog open={confirmingDelete} onOpenChange={(o) => !pending && setConfirmingDelete(o)}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t("row.deleteTitle")}</DialogTitle>
+            <DialogDescription>{t("row.confirmDelete", { fileName: s.fileName })}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" disabled={pending} onClick={() => setConfirmingDelete(false)}>
+              {tc("actions.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={pending}
+              onClick={() => {
+                run(() => deleteStatementAction(s.id), t("toasts.deleted"));
+                setConfirmingDelete(false);
+              }}
+            >
+              {pending ? <Loader2 className="animate-spin" /> : <Trash2 />} {tc("actions.delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {creating && (
         <AccountDialog

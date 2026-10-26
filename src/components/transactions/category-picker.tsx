@@ -7,12 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { CategoryLabel, UNCATEGORIZED_COLOR } from "./category-label";
 
-export type CategoryOption = { id: string; name: string; color: string; kind: "expense" | "income" | "transfer" };
-
-export function CategoryDot({ color, className }: { color: string; className?: string }) {
-  return <span className={cn("inline-block size-2.5 shrink-0 rounded-full", className)} style={{ background: color }} />;
-}
+export type CategoryOption = { id: string; name: string; icon?: string | null; color: string; kind: "expense" | "income" | "transfer" };
 
 export function CategoryPicker({
   categories,
@@ -46,10 +43,7 @@ export function CategoryPicker({
           disabled={disabled}
           className={cn("h-7 max-w-full justify-between gap-1.5 px-2 font-normal", !current && "text-amber-700 dark:text-amber-400", className)}
         >
-          <span className="flex min-w-0 items-center gap-1.5">
-            <CategoryDot color={current?.color ?? "#f59e0b"} />
-            <span className="truncate">{current?.name ?? placeholder ?? tc("uncategorized")}</span>
-          </span>
+          <CategoryLabel name={current?.name ?? placeholder ?? tc("uncategorized")} icon={current?.icon} color={current?.color ?? UNCATEGORIZED_COLOR} />
           <ChevronDown className="size-3 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -67,7 +61,7 @@ export function CategoryPicker({
                     setOpen(false);
                   }}
                 >
-                  <CategoryDot color="#f59e0b" /> {tc("uncategorized")}
+                  <CategoryLabel name={tc("uncategorized")} icon="help" color={UNCATEGORIZED_COLOR} />
                 </CommandItem>
               </CommandGroup>
             )}
@@ -84,8 +78,7 @@ export function CategoryPicker({
                         setOpen(false);
                       }}
                     >
-                      <CategoryDot color={c.color} />
-                      {c.name}
+                      <CategoryLabel name={c.name} icon={c.icon} color={c.color} />
                       {c.id === value && <Check className="ml-auto" />}
                     </CommandItem>
                   ))}

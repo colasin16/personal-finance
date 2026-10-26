@@ -3,6 +3,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { CompletenessCell } from "@/lib/queries";
 import { formatMonth } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { BankLogo } from "@/components/brand/bank-logo";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CELL: Record<CompletenessCell["status"], string> = {
@@ -20,7 +21,7 @@ export function CompletenessGrid({
   grid,
 }: {
   months: string[];
-  grid: { account: { id: string; name: string; bankColor: string }; cells: CompletenessCell[] }[];
+  grid: { account: { id: string; name: string; bankId: string; bankName: string; bankColor: string }; cells: CompletenessCell[] }[];
 }) {
   const t = useTranslations("import.coverage");
   const locale = useLocale();
@@ -42,9 +43,11 @@ export function CompletenessGrid({
           <tbody>
             {grid.map(({ account, cells }) => (
               <tr key={account.id}>
-                <td className="max-w-44 truncate pr-3 text-sm whitespace-nowrap">
-                  <span className="mr-2 inline-block size-2 rounded-full" style={{ background: account.bankColor }} />
-                  {account.name}
+                <td className="max-w-44 pr-3 text-sm whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <BankLogo bankId={account.bankId} name={account.bankName} color={account.bankColor} size={20} className="rounded-[22%]" />
+                    <span className="truncate">{account.name}</span>
+                  </div>
                 </td>
                 {cells.map((cell) => {
                   const box = <div className={cn("h-6 rounded", CELL[cell.status])} />;

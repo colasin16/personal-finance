@@ -53,7 +53,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
       <PageHeader title={t("title")} description={t("description")} />
       <TransactionFilters
         accounts={accounts.map((a) => ({ id: a.id, name: a.name }))}
-        categories={cats.map((c) => ({ id: c.id, name: c.name, color: c.color, kind: c.kind }))}
+        categories={cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }))}
       />
       <div className="mb-3 flex items-center justify-between text-sm text-muted-foreground">
         <span>
@@ -66,7 +66,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
       <TransactionTable
         key={JSON.stringify(filters)}
         rows={rows.map(toTxItem)}
-        categories={cats.map((c) => ({ id: c.id, name: c.name, color: c.color, kind: c.kind }))}
+        categories={cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }))}
       />
       {pages > 1 && (
         <div className="mt-4 flex items-center justify-end gap-2 text-sm">

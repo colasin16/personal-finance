@@ -26,6 +26,7 @@ Every external service sits behind an adapter. With no environment variables set
 | Parsing + categorization | Heuristic parser for Spanish bank layouts + keyword rules | `LLM_API_KEY` (+ `LLM_MODEL`, `LLM_BASE_URL` for any OpenAI-compatible API) |
 | Auth | Signed-cookie session, instant "magic link" | Supabase Auth (planned) |
 | Background jobs | In-process queue | Inngest (planned) |
+| Bank logos | Coloured lettermarks | `NEXT_PUBLIC_BRANDFETCH_CLIENT_ID` ([Brandfetch Logo API](https://docs.brandfetch.com/logo-api/overview), free). Logos are embedded from Brandfetch's CDN as its terms require. Bank domains are in `src/lib/banks.ts`. |
 
 Copy `.env.example` to `.env.local` to configure. Migrations in `drizzle/` run automatically on startup. Delete `.data/` to start from scratch.
 

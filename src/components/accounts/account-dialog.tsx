@@ -5,6 +5,7 @@ import { Check, ChevronsUpDown, Loader2, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { saveAccountAction } from "@/lib/actions/household";
+import { BankLogo } from "@/components/brand/bank-logo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -99,7 +100,7 @@ export function AccountDialog({
                 <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
                   {bank ? (
                     <span className="flex items-center gap-2">
-                      <span className="size-3 rounded-full" style={{ background: bank.color }} />
+                      <BankLogo bankId={bank.id} name={bank.name} color={bank.color} size={18} />
                       {bank.name}
                     </span>
                   ) : (
@@ -124,9 +125,9 @@ export function AccountDialog({
                             setBankOpen(false);
                           }}
                         >
-                          <span className="size-3 rounded-full" style={{ background: b.color }} />
-                          {b.name}
-                          <span className="ml-auto text-xs text-muted-foreground">{b.country}</span>
+                          <BankLogo bankId={b.id} name={b.name} color={b.color} size={20} />
+                          <span className="flex-1 truncate">{b.name}</span>
+                          <span className="text-xs text-muted-foreground">{b.country}</span>
                           {b.id === bankId && <Check />}
                         </CommandItem>
                       ))}

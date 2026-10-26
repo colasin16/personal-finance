@@ -10,7 +10,7 @@ import { serviceModes } from "@/lib/services/modes";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CategoryDot } from "@/components/transactions/category-picker";
+import { CategoryLabel } from "@/components/transactions/category-label";
 import { AddCategoryForm, DeleteRuleButton, HouseholdNameForm, InviteForm } from "./settings-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,7 +26,7 @@ export default async function SettingsPage() {
     getMembers(db, household.id),
     getCategories(db, household.id, locale),
     db
-      .select({ rule: categoryRules, categoryName: categories.name, categorySlug: categories.slug, categoryColor: categories.color })
+      .select({ rule: categoryRules, categoryName: categories.name, categorySlug: categories.slug, categoryColor: categories.color, categoryIcon: categories.icon })
       .from(categoryRules)
       .innerJoin(categories, eq(categories.id, categoryRules.categoryId))
       .where(eq(categoryRules.householdId, household.id))
@@ -82,14 +82,12 @@ export default async function SettingsPage() {
               <p className="text-sm text-muted-foreground">{t("rules.empty")}</p>
             ) : (
               <ul className="divide-y rounded-lg border">
-                {rules.map(({ rule, categoryName, categorySlug, categoryColor }) => (
+                {rules.map(({ rule, categoryName, categorySlug, categoryColor, categoryIcon }) => (
                   <li key={rule.id} className="flex items-center gap-3 px-3 py-2 text-sm">
                     <span className="min-w-0 flex-1 truncate">
                       <span className="text-muted-foreground">{t(`rules.match.${rule.matchType}`)}</span> <span className="font-medium">“{rule.pattern}”</span>
                     </span>
-                    <span className="flex items-center gap-1.5 whitespace-nowrap">
-                      <CategoryDot color={categoryColor} /> {localizeCategoryName({ slug: categorySlug, name: categoryName }, locale)}
-                    </span>
+                    <CategoryLabel name={localizeCategoryName({ slug: categorySlug, name: categoryName }, locale)} icon={categoryIcon} color={categoryColor} className="whitespace-nowrap" />
                     <span className="w-16 text-right text-xs text-muted-foreground">{t("rules.hits", { count: rule.hits })}</span>
                     <DeleteRuleButton ruleId={rule.id} />
                   </li>
@@ -112,9 +110,7 @@ export default async function SettingsPage() {
                   {cats
                     .filter((c) => c.kind === kind)
                     .map((c) => (
-                      <Badge key={c.id} variant="outline" className="gap-1.5 font-normal">
-                        <CategoryDot color={c.color} /> {c.name}
-                      </Badge>
+                      <CategoryLabel key={c.id} name={c.name} icon={c.icon} color={c.color} />
                     ))}
                 </div>
               </div>

@@ -64,7 +64,7 @@ export default async function ImportPage() {
           <CardContent>
             <CompletenessGrid
               months={completeness.months}
-              grid={completeness.grid.map((g) => ({ account: { id: g.account.id, name: g.account.name, bankColor: g.account.bankColor }, cells: g.cells }))}
+              grid={completeness.grid.map((g) => ({ account: { id: g.account.id, name: g.account.name, bankId: g.account.bankId, bankName: g.account.bankName, bankColor: g.account.bankColor }, cells: g.cells }))}
             />
           </CardContent>
         </Card>

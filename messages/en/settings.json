@@ -48,7 +48,8 @@
       "storage": "File storage",
       "llm": "Statement parser / categorizer",
       "auth": "Authentication",
-      "jobs": "Background jobs"
+      "jobs": "Background jobs",
+      "logos": "Bank logos"
     },
     "values": {
       "postgres": "Postgres",
@@ -58,7 +59,9 @@
       "llmMock": "Mock heuristics",
       "llmOpenai": "OpenAI-compatible",
       "mockMagicLink": "Mock magic link (signed cookie)",
-      "inProcessQueue": "In-process queue"
+      "inProcessQueue": "In-process queue",
+      "brandfetch": "Brandfetch",
+      "lettermarks": "Lettermarks (offline)"
     }
   }
 }
