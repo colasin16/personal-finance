@@ -13,7 +13,7 @@ export const BANKS = [
   { id: "kutxabank", name: "Kutxabank", country: "ES", color: "#e2001a", detectKeywords: ["KUTXABANK", "BASKES2B"] },
   { id: "abanca", name: "Abanca", country: "ES", color: "#0d4ea6", detectKeywords: ["ABANCA", "CAGLESMM"] },
   { id: "revolut", name: "Revolut", country: "LT", color: "#191c1f", detectKeywords: ["REVOLUT", "REVOLT21"] },
-  { id: "n26", name: "N26", country: "DE", color: "#36a18b", detectKeywords: ["N26", "NTSBDEB1"] },
+  { id: "n26", name: "N26", country: "DE", color: "#36a18b", detectKeywords: ["N26", "NTSBDEB1", "NTSBESM1"] },
   { id: "wise", name: "Wise", country: "BE", color: "#9fe870", detectKeywords: ["WISE EUROPE", "TRWIBEB1"] },
   { id: "myinvestor", name: "MyInvestor", country: "ES", color: "#00c2a8", detectKeywords: ["MYINVESTOR"] },
   { id: "other", name: "Other bank", country: "—", color: "#64748b", detectKeywords: [] },

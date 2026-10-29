@@ -5,7 +5,9 @@ import { normalizeMerchant, transactionFingerprint, withOrdinals } from "@/lib/d
 import { fillRunningBalances, validateStatement } from "@/lib/domain/validation";
 import { findMatchingRule, type CategoryRule } from "@/lib/domain/rules";
 import { findTransferPairs } from "@/lib/domain/transfers";
-import { keywordCategorize, parseDate } from "@/lib/services/llm/mock";
+import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
+import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
+import { keywordCategorize } from "@/lib/services/llm/mock";
 
 describe("parseAmount", () => {
   it.each([
@@ -143,5 +145,138 @@ describe("offline categorizer", () => {
 describe("findIbans", () => {
   it("does not swallow the word that follows an IBAN", () => {
     expect(findIbans("IBAN: ES76 1465 0100 9123 4567 8901 Saldo final 90,00")).toEqual(["ES7614650100912345678901"]);
+  });
+});
+
+describe("multi-product statement without years in dates", () => {
+  const text = [
+    "Saldo Inicial a 01/09/2026   Saldo final a 30/09/2026",
+    "• Detalle",
+    "Cuenta Uno - IBAN: ES7614650100912345678901   Saldo final 90,00€",
+    "Fecha operación   Fecha valor   Concepto   Importe   Saldo total",
+    "Saldo inicial   100,00 €",
+    "05/09   05/09   Compra Tienda   -10,00 €   90,00 €",
+    "Saldo final   90,00 €",
+    "• Otro",
+    "Cuenta Dos - IBAN: ES1201821234561234567890   Saldo final 500,00€",
+    "Saldo inicial   400,00 €",
+    "07/09   07/09   Nomina   100,00 €   500,00 €",
+    "Saldo final   500,00 €",
+    "• Fondos",
+    "30/09   Saldo final   9,99 €   9,99 €",
+  ].join("\n");
+
+  it("keeps only the matching section and infers the year from the period", () => {
+    const section = selectAccountText(text, (iban) => iban.endsWith("8901"));
+    expect(section).not.toContain("Nomina");
+    expect(section).not.toContain("9,99");
+    const parsed = parseStatement(section);
+    expect(parsed.openingBalance).toBe(100);
+    expect(parsed.closingBalance).toBe(90);
+    expect(parsed.transactions).toEqual([
+      { date: "2026-09-05", valueDate: "2026-09-05", description: "Compra Tienda", amount: -10, balanceAfter: 90 },
+    ]);
+  });
+
+  it("leaves text without IBAN headers untouched", () => {
+    expect(selectAccountText("01/01/2026 Cafe -1,00", () => false)).toBe("01/01/2026 Cafe -1,00");
+  });
+});
+
+describe("statement with an issue date and detail lines under each row", () => {
+  const text = [
+    "Extracto de cuenta",
+    "Datos de la cuenta 1234   Fecha de emisión: 05/10/2026",
+    "IBAN ES76 1465 0100 9123 4567 8901",
+    "F.Oper.   F.Valor   Concepto   Importe   Saldo",
+    "SALDO ANTERIOR - - - - - - - -   1.000,00",
+    "28/09   28/09   COMPRA EN COMERCIO   -25,50   974,50",
+    "A 1234567890123456 TIENDA UNO, S.A.",
+    "30/09   01/10   TRANSFERENCIA RECIBIDA   100,00   1.074,50",
+    "Alquiler octubre",
+    "Texto legal de pie de página:",
+    "TOTAL   1.074,50",
+    "",
+    "F.Oper.   F.Valor   Concepto   Importe   Saldo",
+    "SALDO ANTERIOR - - - - - - - -   1.074,50",
+    "02/10   02/10   RECIBO LUZ   -50,00   1.024,50",
+  ].join("\n");
+
+  it("reads year-less dates, joins detail lines without card numbers and ignores footers", () => {
+    const parsed = parseStatement(text);
+    expect(parsed.openingBalance).toBe(1000);
+    expect(parsed.closingBalance).toBe(1024.5);
+    expect(parsed.transactions.map((t) => [t.date, t.description, t.amount, t.balanceAfter])).toEqual([
+      ["2026-09-28", "COMPRA EN COMERCIO TIENDA UNO, S.A.", -25.5, 974.5],
+      ["2026-09-30", "TRANSFERENCIA RECIBIDA Alquiler octubre", 100, 1074.5],
+      ["2026-10-02", "RECIBO LUZ", -50, 1024.5],
+    ]);
+    expect(parsed.periodEnd).toBe("2026-10-05");
+  });
+
+  it("treats an IBAN repeated on every page as one account", () => {
+    const repeated = `${text}\nIBAN ES76 1465 0100 9123 4567 8901`;
+    expect(selectAccountText(repeated, () => true)).toBe(repeated);
+    expect(findSectionIbans(repeated)).toEqual(["ES7614650100912345678901"]);
+  });
+});
+
+describe("selectParser", () => {
+  it("routes by layout when keyword detection picked another bank", () => {
+    expect(selectParser("Saldo Inicial a 01/09/2026   Saldo final a 30/09/2026", "santander")?.bankId).toBe("ing");
+    expect(selectParser("F.Oper.   F.Valor   Concepto   Importe   Saldo", null)?.bankId).toBe("bbva");
+    expect(selectParser("01/01/2026 Cafe -1,00", "bbva")).toBeNull();
+  });
+});
+
+describe("N26 statement", () => {
+  const footer = [
+    "ANA GARCIA LOPEZ   Tipo de cuenta: Cuenta Estándar   Emitido el",
+    "Calle de la Luz 123, 28001 Madrid   IBAN: ES9115830001199876543210   05.10.2026",
+    "BIC: NTSBESM1XXX   1/2026",
+    "N26 Bank SE, Sucursal en España | texto legal",
+  ];
+  const text = [
+    "Extracto bancario Nº 1/2026",
+    "01.09.2026 hasta 30.09.2026",
+    "Descripción   Fecha de reserva   Importe",
+    "MERCADONA   02.09.2026   -25,40€",
+    "Mastercard • Alimentación",
+    "Fecha de valor 02.09.2026",
+    "Ana Garcia Lopez   05.09.2026   +1.200,00€",
+    "IBAN: ES7614650100912345678901 • BIC: INGDESMMXXX",
+    "Nomina septiembre",
+    "Fecha de valor 05.09.2026",
+    "CAFE CENTRAL   29.09.2026   -3,50€",
+    "Mastercard • Restaurantes",
+    ...footer,
+    "",
+    "Resumen Nº 1/2026",
+    "01.09.2026 hasta 30.09.2026",
+    "Saldo previo   +100,00€",
+    "Transacciones salientes   -28,90€",
+    "Transacciones entrantes   +1.200,00€",
+    "Tu nuevo saldo   1.271,10€",
+    ...footer,
+  ].join("\n");
+
+  it("reads rows, detail lines, value dates and the summary balances", () => {
+    expect(selectParser(text, "santander")?.bankId).toBe("n26");
+    const parsed = parseStatement(text, "n26");
+    expect(parsed.periodStart).toBe("2026-09-01");
+    expect(parsed.periodEnd).toBe("2026-09-30");
+    expect(parsed.openingBalance).toBe(100);
+    expect(parsed.closingBalance).toBe(1271.1);
+    expect(parsed.transactions.map((t) => [t.date, t.valueDate, t.description, t.amount])).toEqual([
+      ["2026-09-02", "2026-09-02", "MERCADONA Mastercard • Alimentación", -25.4],
+      ["2026-09-05", "2026-09-05", "Ana Garcia Lopez Nomina septiembre", 1200],
+      ["2026-09-29", null, "CAFE CENTRAL Mastercard • Restaurantes", -3.5],
+    ]);    expect(parseStatement(redactSensitive(text), "n26").transactions.map((t) => t.description)).toEqual(
+      parsed.transactions.map((t) => t.description),
+    );
+  });
+
+  it("finds the account's own IBAN but not counterparty ones", () => {
+    expect(selectParser(text, "n26")?.accountIbans?.(text)).toEqual(["ES9115830001199876543210"]);
   });
 });

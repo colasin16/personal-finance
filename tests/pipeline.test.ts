@@ -1,3 +1,4 @@
+import { PDFDocument, StandardFonts } from "pdf-lib";
 import { beforeAll, describe, expect, it } from "vitest";
 import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { createDb, type Db } from "@/lib/db";
@@ -130,6 +131,53 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     const listed = await listTransactions(db, householdId, [statement!.accountId!], { statementId: statement!.id, pageSize: 2000 });
     expect(listed.rows.some((r) => r.tx.id === victim!.id)).toBe(false);
     expect(listed.total).toBe(before.length - 1);
+  });
+
+  it("splits a PDF covering several accounts into one statement per account", async () => {
+    const [alex, shared] = [SAMPLE_ACCOUNTS.find((a) => a.key === "alex-ing")!, SAMPLE_ACCOUNTS.find((a) => a.key === "shared-ing")!];
+    const lines = [
+      "Saldo Inicial a 01/03/2025   Saldo final a 31/03/2025",
+      `Cuenta Uno - IBAN: ${alex.iban}   Saldo final 90,00 €`,
+      "Saldo inicial   100,00 €",
+      "05/03   05/03   Compra Tienda Uno   -10,00 €   90,00 €",
+      "Saldo final   90,00 €",
+      "• Otro producto",
+      `Cuenta Dos - IBAN: ${shared.iban}   Saldo final 500,00 €`,
+      "Saldo inicial   400,00 €",
+      "07/03   07/03   Ingreso Dos   100,00 €   500,00 €",
+      "08/03   08/03   Compra Tienda Dos   -5,00 €   495,00 €",
+      "Saldo final   495,00 €",
+      "• Otro producto",
+      "Cuenta Tres - IBAN: ES9121000418450200051332   Saldo final 10,00 €",
+      "Saldo inicial   10,00 €",
+      "Saldo final   10,00 €",
+    ];
+    const pdf = await PDFDocument.create();
+    const font = await pdf.embedFont(StandardFonts.Helvetica);
+    const page = pdf.addPage([595, 842]);
+    lines.forEach((line, i) => page.drawText(line, { x: 40, y: 800 - i * 14, size: 9, font }));
+    const bytes = await pdf.save();
+
+    const { statement } = await createStatementFromUpload(db, { householdId, userId: alexId, fileName: "multi.pdf", bytes }, storage);
+    await processStatement(db, statement.id, { storage, llm });
+
+    const all = await db.select().from(statements).where(eq(statements.fileSha256, statement.fileSha256));
+    expect(all).toHaveLength(3);
+    const byAccount = (id: string | undefined) => all.find((s) => s.accountId === id)!;
+    const first = byAccount(accountIds.get("alex-ing"));
+    const second = byAccount(accountIds.get("shared-ing"));
+    expect([first.status, second.status]).toEqual(["needs_review", "needs_review"]);
+    expect([first.openingBalanceCents, first.closingBalanceCents]).toEqual([10000, 9000]);
+    expect([second.openingBalanceCents, second.closingBalanceCents]).toEqual([40000, 49500]);
+    expect(first.issues).toEqual([]);
+    expect(second.issues).toEqual([]);
+    expect(all.find((s) => s.accountId === null)?.status).toBe("needs_account");
+    const txs = await db.select().from(transactions).where(eq(transactions.statementId, second.id)).orderBy(transactions.position);
+    expect(txs.map((t) => [t.bookedAt, t.amountCents])).toEqual([["2025-03-07", 10000], ["2025-03-08", -500]]);
+
+    // Processing again must not create more statements.
+    await processStatement(db, first.id, { storage, llm });
+    expect(await db.select().from(statements).where(eq(statements.fileSha256, statement.fileSha256))).toHaveLength(3);
   });
 
   it("confirms statements", async () => {

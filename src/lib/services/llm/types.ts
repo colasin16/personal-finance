@@ -37,9 +37,11 @@ export type CategorizationInput = { id: string; description: string; merchant: s
 export type CategoryOption = { slug: string; name: string; kind: "expense" | "income" | "transfer" };
 export type CategorizationResult = z.infer<typeof categorizationResultSchema>["results"][number];
 
+export type ExtractionHints = { bankId?: string | null };
+
 export interface LlmProvider {
   readonly name: string;
   /** `text` must already be redacted of personal identifiers. */
-  extractStatement(text: string): Promise<ExtractedStatement>;
+  extractStatement(text: string, hints?: ExtractionHints): Promise<ExtractedStatement>;
   categorize(items: CategorizationInput[], categories: CategoryOption[]): Promise<CategorizationResult[]>;
 }

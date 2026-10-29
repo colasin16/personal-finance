@@ -2,6 +2,8 @@ import { getDocumentProxy } from "unpdf";
 
 type TextItem = { str: string; transform: number[]; width: number; hasEOL?: boolean };
 
+const MIN_FONT_SIZE = 6.5;
+
 export type ExtractedPdfText = { text: string; pageCount: number; charCount: number };
 
 /**
@@ -15,7 +17,10 @@ export async function extractPdfText(bytes: Uint8Array): Promise<ExtractedPdfTex
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
     const page = await pdf.getPage(pageNumber);
     const content = await page.getTextContent();
-    const items = (content.items as TextItem[]).filter((item) => "str" in item && item.str.trim() !== "");
+    // Tiny text (legal footers, page markers) can share a baseline with table rows and corrupt them.
+    const items = (content.items as TextItem[]).filter(
+      (item) => "str" in item && item.str.trim() !== "" && Math.hypot(item.transform[0]!, item.transform[1]!) >= MIN_FONT_SIZE,
+    );
 
     const lines: { y: number; items: TextItem[] }[] = [];
     for (const item of items) {

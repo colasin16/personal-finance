@@ -8,6 +8,7 @@ import { normalizeDescription, normalizeMerchant, sha256, transactionFingerprint
 import { fillRunningBalances, validateStatement } from "@/lib/domain/validation";
 import { getLlm, type LlmProvider } from "@/lib/services/llm";
 import { getStorage, type FileStorage } from "@/lib/services/storage";
+import { selectParser } from "@/lib/parsers";
 import { autoLinkTransfers, categorizeTransactions } from "./categorize";
 import { extractPdfText } from "./extract-text";
 
@@ -89,8 +90,11 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
     }
 
     await setProgress("detecting");
-    const bankId = await detectBank(db, text);
-    const sectionIbans = findSectionIbans(text);
+    // A recognised layout beats keyword detection, which a transfer to another bank can fool.
+    const keywordBankId = await detectBank(db, text);
+    const parser = selectParser(text, keywordBankId);
+    const bankId = parser?.bankId ?? keywordBankId;
+    const sectionIbans = parser?.accountIbans ? parser.accountIbans(text) : findSectionIbans(text);
     const ibans = sectionIbans.length > 0 ? sectionIbans : findIbans(text);
     const hashes = ibans.map((iban) => ibanHash(statement.householdId, iban));
     const knownAccounts = hashes.length
@@ -134,10 +138,10 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
 
     await setProgress("extracting");
     const accountText =
-      account.ibanHash
+      account.ibanHash && !parser?.accountIbans
         ? selectAccountText(text, (iban) => ibanHash(statement.householdId, iban) === account.ibanHash)
-        : text;
-    const extracted = await llm.extractStatement(redactSensitive(accountText));
+      : text;
+    const extracted = await llm.extractStatement(redactSensitive(accountText), { bankId });
     const toCents = (n: number | null) => (n === null ? null : Math.round(n * 100));
     const opening = toCents(extracted.openingBalance);
     const closing = toCents(extracted.closingBalance);
