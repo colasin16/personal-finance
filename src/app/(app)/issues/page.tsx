@@ -8,7 +8,8 @@ import { formatMonth } from "@/lib/labels";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MerchantGroupCard, TransferSuggestionCard } from "./suggestion-cards";
+import { MerchantGroupCard } from "@/components/issues/merchant-group-card";
+import { TransferSuggestionCard } from "./suggestion-cards";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("issues");
