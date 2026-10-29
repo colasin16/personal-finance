@@ -6,13 +6,14 @@ import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { categorizeMerchantAction, dismissSuggestionAction } from "@/lib/actions/transactions";
 import { FLAG_CODES, formatDate } from "@/lib/labels";
+import { AccountRef, type AccountRefData } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CategoryPicker, type CategoryOption } from "@/components/transactions/category-picker";
 
-export type UncategorizedRow = { id: string; bookedAt: string; amountCents: number; accountName: string; reason: string | null; description: string };
+export type UncategorizedRow = { id: string; bookedAt: string; amountCents: number; account: AccountRefData; reason: string | null; description: string };
 const isFlagCode = (s: string): s is (typeof FLAG_CODES)[number] => FLAG_CODES.includes(s as (typeof FLAG_CODES)[number]);
 
 /** Issues inbox card: flagged transactions of one merchant, fixed with a single category choice. */
@@ -77,8 +78,10 @@ export function MerchantGroupCard({
         </div>
         {(expanded ? rows : rows.slice(0, 3)).map((r) => (
           <div key={r.id} className="flex justify-between gap-3 text-xs text-muted-foreground">
-            <span className="truncate">
-              {formatDate(r.bookedAt, locale)} · {r.accountName} · {r.description}
+            <span className="flex min-w-0 items-center gap-1">
+              <span className="shrink-0">{formatDate(r.bookedAt, locale)} ·</span>
+              <AccountRef account={r.account} className="max-w-[45%] shrink-0" />
+              <span className="truncate">· {r.description}</span>
             </span>
             <Money cents={r.amountCents} className="shrink-0" />
           </div>

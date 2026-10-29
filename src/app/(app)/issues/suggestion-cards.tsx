@@ -6,11 +6,12 @@ import { ArrowRight, Link2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { dismissSuggestionAction, linkTransferAction } from "@/lib/actions/transactions";
 import { formatDate } from "@/lib/labels";
+import { AccountRef, type AccountRefData } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-type Side = { id: string; date: string; account: string; description: string };
+type Side = { id: string; date: string; account: AccountRefData; description: string };
 
 export function TransferSuggestionCard({
   outgoing,
@@ -35,12 +36,12 @@ export function TransferSuggestionCard({
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
           <div className="min-w-0">
-            <p className="truncate font-medium">{outgoing.account}</p>
+            <AccountRef account={outgoing.account} size="md" className="font-medium" />
             <p className="truncate text-xs text-muted-foreground">{outgoing.description}</p>
           </div>
           <ArrowRight className="size-4 text-muted-foreground" />
           <div className="min-w-0">
-            <p className="truncate font-medium">{incoming.account}</p>
+            <AccountRef account={incoming.account} size="md" className="font-medium" />
             <p className="truncate text-xs text-muted-foreground">{incoming.description}</p>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { getCompleteness, getVisibleAccounts, listStatements } from "@/lib/queri
 import { requireContext } from "@/lib/server/auth";
 import { pendingJobs } from "@/lib/services/jobs";
 import { PageHeader } from "@/components/page-header";
+import { toAccountRef } from "@/components/accounts/account-ref";
 import { CompletenessGrid } from "@/components/statements/completeness-grid";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImportView } from "./import-view";
@@ -39,19 +40,18 @@ export default async function ImportPage() {
       />
       <div className="space-y-6">
         <ImportView
-          accounts={accounts.map((a) => ({ id: a.id, name: a.name, bankName: a.bankName, bankColor: a.bankColor }))}
+          accounts={accounts.map((a) => ({ id: a.id, ...toAccountRef(a) }))}
           banks={bankList.map(({ id, name, color, country }) => ({ id, name, color, country }))}
           members={members.map(({ id, displayName }) => ({ id, displayName }))}
           currentUserId={user.id}
           jobsRunning={jobsRunning}
-          statements={statementRows.map(({ statement: s, accountName, bankName }) => ({
+          statements={statementRows.map(({ statement: s, accountName, ibanLast4, bankId, bankName, bankColor }) => ({
             id: s.id,
             fileName: s.fileName,
             status: s.status,
             progress: s.progress,
             error: s.error,
-            accountName,
-            bankName,
+            account: accountName && bankId && bankName && bankColor ? { name: accountName, bankId, bankName, bankColor, ibanLast4 } : null,
             periodStart: s.periodStart,
             periodEnd: s.periodEnd,
             issues: s.issues.length,
@@ -67,7 +67,7 @@ export default async function ImportPage() {
           <CardContent>
             <CompletenessGrid
               months={completeness.months}
-              grid={completeness.grid.map((g) => ({ account: { id: g.account.id, name: g.account.name, bankId: g.account.bankId, bankName: g.account.bankName, bankColor: g.account.bankColor }, cells: g.cells }))}
+              grid={completeness.grid.map((g) => ({ account: { id: g.account.id, ...toAccountRef(g.account) }, cells: g.cells }))}
             />
           </CardContent>
         </Card>

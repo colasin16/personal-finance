@@ -1,3 +1,5 @@
+import type { AccountRefData } from "@/components/accounts/account-ref";
+
 export type AppliedRule = { matchType: "contains" | "regex" | "merchant"; pattern: string; categoryId: string };
 
 export type TxItem = {
@@ -8,10 +10,7 @@ export type TxItem = {
   amountCents: number;
   currency: string;
   balanceAfterCents: number | null;
-  accountName: string;
-  bankId: string;
-  bankName: string;
-  bankColor: string;
+  account: AccountRefData;
   categoryId: string | null;
   categorizedBy: string | null;
   categoryConfidence: number | null;
@@ -47,6 +46,7 @@ export function toTxItem(row: {
     excludedAt: Date | null;
   };
   accountName: string;
+  ibanLast4: string | null;
   bankId: string;
   bankName: string;
   bankColor: string;
@@ -61,10 +61,7 @@ export function toTxItem(row: {
     amountCents: tx.amountCents,
     currency: tx.currency,
     balanceAfterCents: tx.balanceAfterCents,
-    accountName: row.accountName,
-    bankId: row.bankId,
-    bankName: row.bankName,
-    bankColor: row.bankColor,
+    account: { name: row.accountName, bankId: row.bankId, bankName: row.bankName, bankColor: row.bankColor, ibanLast4: row.ibanLast4 },
     categoryId: tx.categoryId,
     categorizedBy: tx.categorizedBy,
     categoryConfidence: tx.categoryConfidence,

@@ -219,7 +219,8 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
         if (byDay.has(key)) carry = byDay.get(key)!;
         if (carry !== null) points.push({ time: key, value: applyShare(carry, sharePct) });
       }
-      return { accountId: account.id, name: account.name, color: account.bankColor, points };
+      const ref = { name: account.name, bankId: account.bankId, bankName: account.bankName, bankColor: account.bankColor, ibanLast4: account.ibanLast4 };
+      return { accountId: account.id, name: account.name, color: account.bankColor, account: ref, points };
     });
   const netWorthByDay = new Map<string, number>();
   for (const s of accountSeries) for (const p of s.points) netWorthByDay.set(p.time, (netWorthByDay.get(p.time) ?? 0) + p.value);
@@ -290,7 +291,14 @@ export type DashboardData = Awaited<ReturnType<typeof getDashboard>>;
 
 export async function listStatements(db: Db, householdId: string, userId: string, visibleIds: string[], limit = 200) {
   return db
-    .select({ statement: statements, accountName: accounts.name, bankName: banks.name })
+    .select({
+      statement: statements,
+      accountName: accounts.name,
+      ibanLast4: accounts.ibanLast4,
+      bankId: banks.id,
+      bankName: banks.name,
+      bankColor: banks.color,
+    })
     .from(statements)
     .leftJoin(accounts, eq(accounts.id, statements.accountId))
     .leftJoin(banks, eq(banks.id, accounts.bankId))
@@ -388,6 +396,7 @@ export async function listTransactions(db: Db, householdId: string, visibleIds: 
       .select({
         tx: transactions,
         accountName: accounts.name,
+        ibanLast4: accounts.ibanLast4,
         bankId: banks.id,
         bankName: banks.name,
         bankColor: banks.color,
@@ -423,7 +432,9 @@ export const merchantSuggestionKey = (merchant: string) => `merchant:${merchant}
 export async function getIssues(db: Db, householdId: string, userId: string) {
   const visible = await getVisibleAccounts(db, householdId, userId);
   const ids = visible.map((a) => a.id);
-  const accountName = new Map(visible.map((a) => [a.id, a.name]));
+  const accountRef = new Map(
+    visible.map((a) => [a.id, { name: a.name, bankId: a.bankId, bankName: a.bankName, bankColor: a.bankColor, ibanLast4: a.ibanLast4 }]),
+  );
 
   // Statements of archived accounts still need review, so they must not vanish from the inbox.
   const withArchived = await getVisibleAccounts(db, householdId, userId, { includeArchived: true });
@@ -440,9 +451,18 @@ export async function getIssues(db: Db, householdId: string, userId: string) {
 
   const flagged = ids.length
     ? await db
-        .select({ tx: transactions, accountName: accounts.name, categoryName: categories.name })
+        .select({
+          tx: transactions,
+          accountName: accounts.name,
+          ibanLast4: accounts.ibanLast4,
+          bankId: banks.id,
+          bankName: banks.name,
+          bankColor: banks.color,
+          categoryName: categories.name,
+        })
         .from(transactions)
         .innerJoin(accounts, eq(accounts.id, transactions.accountId))
+        .innerJoin(banks, eq(banks.id, accounts.bankId))
         .leftJoin(categories, eq(categories.id, transactions.categoryId))
         .where(and(eq(transactions.householdId, householdId), inArray(transactions.accountId, ids), eq(transactions.flagged, true), isNull(transactions.excludedAt)))
         .orderBy(desc(transactions.bookedAt))
@@ -462,11 +482,11 @@ export async function getIssues(db: Db, householdId: string, userId: string) {
   const transfers = ids.length
     ? (await findTransferSuggestions(db, householdId, ids))
         .filter((s) => !dismissed.has(transferSuggestionKey(s.outgoing.id, s.incoming.id)))
-        .map((s) => ({
-          ...s,
-          outgoingAccount: accountName.get(s.outgoing.accountId) ?? "",
-          incomingAccount: accountName.get(s.incoming.accountId) ?? "",
-        }))
+        .flatMap((s) => {
+          const outgoingAccount = accountRef.get(s.outgoing.accountId);
+          const incomingAccount = accountRef.get(s.incoming.accountId);
+          return outgoingAccount && incomingAccount ? [{ ...s, outgoingAccount, incomingAccount }] : [];
+        })
     : [];
 
   const completeness = await getCompleteness(db, householdId, visible);

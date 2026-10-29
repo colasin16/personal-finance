@@ -7,12 +7,13 @@ import { Flag, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AccountRef, type AccountRefData } from "@/components/accounts/account-ref";
 import { CategoryPicker, type CategoryOption } from "@/components/transactions/category-picker";
 import { cn } from "@/lib/utils";
 
 const ALL = "all";
 
-export function TransactionFilters({ accounts, categories }: { accounts: { id: string; name: string }[]; categories: CategoryOption[] }) {
+export function TransactionFilters({ accounts, categories }: { accounts: (AccountRefData & { id: string })[]; categories: CategoryOption[] }) {
   const t = useTranslations("transactions.filters");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -50,14 +51,14 @@ export function TransactionFilters({ accounts, categories }: { accounts: { id: s
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search")} className="pl-8" />
       </div>
       <Select value={params.get("account") ?? ALL} onValueChange={(v) => update({ account: v === ALL ? null : v })}>
-        <SelectTrigger className="w-48">
+        <SelectTrigger className="w-56 [&>span]:min-w-0">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>{t("allAccounts")}</SelectItem>
           {accounts.map((a) => (
             <SelectItem key={a.id} value={a.id}>
-              {a.name}
+              <AccountRef account={a} />
             </SelectItem>
           ))}
         </SelectContent>

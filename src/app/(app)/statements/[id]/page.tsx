@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
 import { getCategories, getVisibleAccounts, listTransactions } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
+import { AccountRef, toAccountRef } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/statements/status-badge";
@@ -77,10 +78,11 @@ export default async function StatementPage({ params }: { params: Promise<{ id: 
         </Link>
       </Button>
       <PageHeader
-        title={`${account.name} · ${date(statement.periodStart)} – ${date(statement.periodEnd)}`}
+        title={`${date(statement.periodStart)} – ${date(statement.periodEnd)}`}
         description={
           <span className="flex flex-wrap items-center gap-2">
-            {statement.fileName} <StatusBadge status={statement.status} progress={statement.progress} />
+            <AccountRef account={toAccountRef(account)} size="md" className="font-medium text-foreground" />
+            <span>· {statement.fileName}</span> <StatusBadge status={statement.status} progress={statement.progress} />
             {statement.detected?.provider && <span className="text-xs">{t("parsedBy", { provider: statement.detected.provider })}</span>}
           </span>
         }

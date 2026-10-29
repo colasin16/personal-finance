@@ -2,7 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { BankLogo } from "@/components/brand/bank-logo";
+import { AccountRef } from "@/components/accounts/account-ref";
 import { ArrowLeftRight, FileText, Flag, History, Link2Off, Loader2, RotateCcw, Sparkles, StickyNote, Trash2, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { excludeTransactionsAction, getTransactionHistoryAction, restoreTransactionsAction, setCategoryAction, setNotesAction, unlinkTransferAction } from "@/lib/actions/transactions";
@@ -161,11 +161,8 @@ export function TransactionTable({
                   </button>
                 </TableCell>
                 {showAccount && (
-                  <TableCell className="hidden text-sm whitespace-nowrap lg:table-cell">
-                    <div className="flex items-center gap-1.5">
-                      <BankLogo bankId={r.bankId} name={r.bankName} color={r.bankColor} size={20} className="rounded-[22%]" />
-                      {r.accountName}
-                    </div>
+                  <TableCell className="hidden max-w-56 whitespace-nowrap lg:table-cell">
+                    <AccountRef account={r.account} />
                   </TableCell>
                 )}
                 <TableCell>
@@ -269,8 +266,9 @@ function TransactionDetail({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="pr-6">{tx.merchant || tx.descriptionRaw}</DialogTitle>
-          <DialogDescription>
-            {formatDate(tx.bookedAt, locale)} · {tx.accountName}
+          <DialogDescription className="flex min-w-0 items-center gap-1">
+            <span className="shrink-0">{formatDate(tx.bookedAt, locale)} ·</span>
+            <AccountRef account={tx.account} size="md" className="min-w-0" />
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 text-sm">

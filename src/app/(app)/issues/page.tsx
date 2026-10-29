@@ -8,6 +8,7 @@ import { formatMonth } from "@/lib/labels";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AccountRef } from "@/components/accounts/account-ref";
 import { MerchantGroupCard } from "@/components/issues/merchant-group-card";
 import { TransferSuggestionCard } from "./suggestion-cards";
 
@@ -87,7 +88,14 @@ export default async function IssuesPage() {
                     {issues.toReview.slice(0, 6).map((s) => (
                       <Button key={s.statement.id} asChild size="sm" variant="outline">
                         <Link href={`/statements/${s.statement.id}`}>
-                          {s.accountName}
+                          {s.accountName && s.bankId && s.bankName && s.bankColor ? (
+                            <AccountRef
+                              account={{ name: s.accountName, bankId: s.bankId, bankName: s.bankName, bankColor: s.bankColor, ibanLast4: s.ibanLast4 }}
+                              className="max-w-48"
+                            />
+                          ) : (
+                            s.statement.fileName
+                          )}
                           {s.statement.periodStart && ` · ${formatMonth(s.statement.periodStart, "short", locale)}`}
                         </Link>
                       </Button>
@@ -133,7 +141,7 @@ export default async function IssuesPage() {
                       id: r.tx.id,
                       bookedAt: r.tx.bookedAt,
                       amountCents: r.tx.amountCents,
-                      accountName: r.accountName,
+                      account: { name: r.accountName, bankId: r.bankId, bankName: r.bankName, bankColor: r.bankColor, ibanLast4: r.ibanLast4 },
                       reason: r.tx.flagReason,
                       description: r.tx.descriptionRaw,
                     }))}

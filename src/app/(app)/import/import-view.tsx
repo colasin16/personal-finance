@@ -11,6 +11,7 @@ import { assignStatementAccountAction, deleteStatementAction, retryStatementActi
 import { translateError } from "@/i18n/errors";
 import { formatDate } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { AccountRef, type AccountRefData } from "@/components/accounts/account-ref";
 import { AccountDialog, type BankOption, type MemberOption } from "@/components/accounts/account-dialog";
 import { useUpload } from "@/components/shell/upload-provider";
 import { StatusBadge } from "@/components/statements/status-badge";
@@ -26,8 +27,7 @@ type StatementItem = {
   status: string;
   progress: string | null;
   error: string | null;
-  accountName: string | null;
-  bankName: string | null;
+  account: AccountRefData | null;
   periodStart: string | null;
   periodEnd: string | null;
   issues: number;
@@ -35,7 +35,7 @@ type StatementItem = {
   createdAt: string;
 };
 
-type AccountOption = { id: string; name: string; bankName: string; bankColor: string };
+type AccountOption = AccountRefData & { id: string };
 
 const AUTO = "auto";
 
@@ -108,14 +108,14 @@ export function ImportView({
             {t("dropzone.chooseFiles")}
           </Button>
           <Select value={target} onValueChange={setTarget}>
-            <SelectTrigger className="w-60" aria-label={t("dropzone.accountLabel")}>
+            <SelectTrigger className="w-64 [&>span]:min-w-0" aria-label={t("dropzone.accountLabel")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={AUTO}>{t("dropzone.autoDetect")}</SelectItem>
               {accounts.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
-                  {a.name} · {a.bankName}
+                  <AccountRef account={a} />
                 </SelectItem>
               ))}
             </SelectContent>
@@ -210,14 +210,16 @@ function StatementRow({
         <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{s.fileName}</p>
-          <p className="text-xs text-muted-foreground">
-            {s.accountName
-              ? `${s.accountName} · ${s.bankName}`
-              : detectedBank
-                ? t("row.detected", { bank: detectedBank.name })
-                : t("row.notDetected")}
-            {s.detected?.ibanLast4 && !s.accountName && ` · ${t("row.iban", { last4: s.detected.ibanLast4 })}`}
-            {s.periodStart && s.periodEnd && ` · ${formatDate(s.periodStart, locale)} – ${formatDate(s.periodEnd, locale)}`}
+          <p className="flex min-w-0 flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
+            {s.account ? (
+              <AccountRef account={s.account} />
+            ) : (
+              <span>
+                {detectedBank ? t("row.detected", { bank: detectedBank.name }) : t("row.notDetected")}
+                {s.detected?.ibanLast4 && ` · ${t("row.iban", { last4: s.detected.ibanLast4 })}`}
+              </span>
+            )}
+            {s.periodStart && s.periodEnd && <span>· {formatDate(s.periodStart, locale)} – {formatDate(s.periodEnd, locale)}</span>}
           </p>
           {s.status === "failed" && s.error && <p className="mt-1 text-xs text-red-600">{translateError(te, s.error)}</p>}
           {stuck && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t("row.stuck")}</p>}
@@ -231,13 +233,13 @@ function StatementRow({
         {s.status === "needs_account" ? (
           <>
             <Select onValueChange={assign} disabled={pending}>
-              <SelectTrigger className="w-48" size="sm">
+              <SelectTrigger className="w-56 [&>span]:min-w-0" size="sm">
                 <SelectValue placeholder={t("row.whichAccount")} />
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
-                    {a.name}
+                    <AccountRef account={a} />
                   </SelectItem>
                 ))}
               </SelectContent>

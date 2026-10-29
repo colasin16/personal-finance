@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getCategories, getVisibleAccounts, listTransactions, PAGE_SIZE } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
+import { toAccountRef } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
     <>
       <PageHeader title={t("title")} description={t("description")} />
       <TransactionFilters
-        accounts={accounts.map((a) => ({ id: a.id, name: a.name }))}
+        accounts={accounts.map((a) => ({ id: a.id, ...toAccountRef(a) }))}
         categories={cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }))}
       />
       <div className="mb-3 flex items-center justify-between text-sm text-muted-foreground">

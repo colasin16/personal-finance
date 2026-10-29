@@ -2,12 +2,15 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { categories } from "@/stories/fixtures";
 import { MerchantGroupCard, type UncategorizedRow } from "./merchant-group-card";
 
+const salaryAccount = { name: "Cuenta Nómina", bankId: "ing", bankName: "ING", bankColor: "#ff6200", ibanLast4: "1952" };
+const sharedAccount = { name: "Cuenta Común", bankId: "bbva", bankName: "BBVA", bankColor: "#004481", ibanLast4: "4321" };
+
 const rows = (merchant: string, amounts: number[], reason: string | null = "low_confidence"): UncategorizedRow[] =>
   amounts.map((amountCents, i) => ({
     id: `${merchant}-${i}`,
     bookedAt: `2026-09-${String(28 - i * 3).padStart(2, "0")}`,
     amountCents,
-    accountName: i % 2 ? "Cuenta Común" : "Cuenta Nómina",
+    account: i % 2 ? sharedAccount : salaryAccount,
     reason,
     description: `COMPRA TARJETA ${merchant.toUpperCase()} MADRID`,
   }));
