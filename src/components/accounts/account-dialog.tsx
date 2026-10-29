@@ -157,7 +157,7 @@ export function AccountDialog({
                 <Button
                   variant="outline"
                   role="combobox"
-                  className="w-full justify-between font-normal"
+                  className="h-11 w-full justify-between font-normal"
                 >
                   {bank ? (
                     <span className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export function AccountDialog({
                         bankId={bank.id}
                         name={bank.name}
                         color={bank.color}
-                        size={18}
+                        size={24}
                       />
                       {bank.name}
                     </span>
@@ -189,6 +189,7 @@ export function AccountDialog({
                       {banks.map((b) => (
                         <CommandItem
                           key={b.id}
+                          className="gap-3 py-2"
                           value={`${b.name} ${b.id}`}
                           onSelect={() => {
                             setBankId(b.id);
@@ -205,7 +206,7 @@ export function AccountDialog({
                             bankId={b.id}
                             name={b.name}
                             color={b.color}
-                            size={20}
+                            size={32}
                           />
                           <span className="flex-1 truncate">{b.name}</span>
                           <span className="text-xs text-muted-foreground">
