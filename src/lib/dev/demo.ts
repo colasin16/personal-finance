@@ -4,7 +4,6 @@ import { householdMembers, statements } from "@/lib/db/schema";
 import { createAccount, createHousehold, findOrCreateUser, getMembership } from "@/lib/households";
 import { confirmStatement, processStatement } from "@/lib/pipeline/process-statement";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
-import type { LlmProvider } from "@/lib/services/llm/types";
 import type { FileStorage } from "@/lib/services/storage";
 import { SAMPLE_ACCOUNTS, SAMPLE_MONTHS, buildSampleStatements, renderSampleStatementPdf, sampleFileName } from "./sample-statements";
 
@@ -17,7 +16,7 @@ export const DEMO_USERS = {
  * Creates the "Alex & Sam" demo household with three accounts and imports the sample statements
  * (all but the latest month, so the upload flow can be tried with `samples/*-2026-10.pdf`).
  */
-export async function ensureDemoHousehold(db: Db, deps: { storage?: FileStorage; llm?: LlmProvider } = {}) {
+export async function ensureDemoHousehold(db: Db, deps: { storage?: FileStorage } = {}) {
   const alex = await findOrCreateUser(db, DEMO_USERS.alex.email, DEMO_USERS.alex.name);
   const sam = await findOrCreateUser(db, DEMO_USERS.sam.email, DEMO_USERS.sam.name);
   const existing = await getMembership(db, alex.id);

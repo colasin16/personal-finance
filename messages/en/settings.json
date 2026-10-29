@@ -104,7 +104,6 @@
     "labels": {
       "database": "Database",
       "storage": "File storage",
-      "llm": "Statement parser / categorizer",
       "auth": "Authentication",
       "jobs": "Background jobs",
       "logos": "Bank logos"
@@ -114,8 +113,6 @@
       "pglite": "PGlite (embedded)",
       "localDisk": "Local disk (.data/uploads)",
       "supabase": "Supabase Storage",
-      "llmMock": "Mock heuristics",
-      "llmOpenai": "OpenAI-compatible",
       "mockMagicLink": "Mock magic link (signed cookie)",
       "inProcessQueue": "In-process queue",
       "brandfetch": "Brandfetch",

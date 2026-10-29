@@ -7,7 +7,7 @@ import { findMatchingRule, type CategoryRule } from "@/lib/domain/rules";
 import { findMentionedAccount, findTransferPairs } from "@/lib/domain/transfers";
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
-import { keywordCategorize } from "@/lib/services/llm/mock";
+import { keywordCategorize } from "@/lib/domain/keywords";
 
 describe("parseAmount", () => {
   it.each([

@@ -1,4 +1,4 @@
-import type { ExtractedStatement } from "@/lib/services/llm/types";
+import type { ExtractedStatement } from "./types";
 import { bbvaParser } from "./bbva";
 import type { StatementParser } from "./common";
 import { parseGenericStatement } from "./generic";
@@ -7,6 +7,7 @@ import { n26Parser } from "./n26";
 
 export { parseDate } from "./common";
 export type { StatementParser } from "./common";
+export type { ExtractedStatement, ExtractedTransaction } from "./types";
 
 /** Bank-specific parsers. Add a new bank by writing a parser module and listing it here. */
 const PARSERS: StatementParser[] = [ingParser, bbvaParser, n26Parser];
@@ -21,8 +22,12 @@ export function selectParser(text: string, bankId?: string | null): StatementPar
   return PARSERS.find((p) => p.matches(text)) ?? null;
 }
 
-export function parseStatement(text: string, bankId?: string | null): ExtractedStatement {
+export type ParsedStatement = ExtractedStatement & { /** The parser that read it: a bank id or "generic". */ parser: string };
+
+export function parseStatement(text: string, bankId?: string | null): ParsedStatement {
   const parser = selectParser(text, bankId);
   const parsed = parser?.parse(text);
-  return parsed && parsed.transactions.length > 0 ? parsed : parseGenericStatement(text);
+  return parsed && parsed.transactions.length > 0
+    ? { ...parsed, parser: parser!.bankId }
+    : { ...parseGenericStatement(text), parser: "generic" };
 }

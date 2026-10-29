@@ -47,7 +47,7 @@ A collaborative web app where my partner and I can:
 | File storage | **Supabase Storage** (private bucket) | Stores original PDFs. |
 | PDF text extraction | **unpdf / pdfjs-dist** | Text-based PDFs (most bank statements). |
 | OCR fallback | **AWS Textract** or **Google Document AI** | Only for scanned PDFs (phase 2+). |
-| Transaction extraction | **LLM with structured output** (OpenAI or Anthropic) + Zod schema | One generic parser instead of one per bank. |
+| Transaction extraction | **Bank-specific parsers** (`src/lib/parsers/`) + a generic fallback | Fast, free, and no bank data leaves the app. An earlier LLM-based extractor was removed. |
 | Background jobs | **Inngest** | Reliable async parsing pipeline with retries. |
 | Money | Integer minor units (cents) + **Dinero.js** | No floating point errors. |
 | Testing | **Vitest** (unit), **Playwright** (e2e) | |
@@ -142,16 +142,15 @@ transaction_changes(id, transaction_id, user_id, field, old_value, new_value, cr
 
 1. **Upload**: user selects account (or auto-detect from PDF later) and drops one or many PDFs.
 2. **Extract text** with `unpdf`. If almost no text, mark as scanned → OCR (phase 2+).
-3. **Redact**: mask full IBANs / card numbers / personal ID numbers before sending to the LLM.
-4. **LLM extraction**: prompt + Zod schema →
+3. **Redact**: mask full IBANs / card numbers / personal ID numbers.
+4. **Parse** with the bank's parser (generic fallback) →
    `{ period, openingBalance, closingBalance, currency, transactions[] }`.
-   Large statements are chunked by page.
 5. **Validation**: `opening + Σ amounts == closing` (and running balances if present). If mismatch → flag for review.
 6. **Dedupe** via fingerprints.
 7. **Categorize** (see below).
 8. **Review screen**: user sees parsed rows, fixes anything, confirms → `confirmed`.
 
-Optional optimisation later: bank-specific deterministic parsers (regex/table) for the most common banks, with LLM as fallback. Also accept CSV/XLS exports.
+Possible later: accept CSV/XLS exports.
 
 ## 7. Categorization
 
@@ -159,7 +158,7 @@ Order of precedence:
 
 1. **User rules** (household `category_rules`, by priority).
 2. **Merchant memory**: same normalized merchant previously categorized by the user.
-3. **LLM fallback**: batch unknown descriptions with the category list; returns category + confidence.
+3. **Category keywords**: default keywords per category (`src/lib/db/seed.ts`); returns category + confidence.
 4. Low confidence → `Uncategorized`, highlighted in review.
 
 When a user re-categorizes a transaction, offer "Apply to all similar & create rule".
@@ -167,6 +166,7 @@ When a user re-categorizes a transaction, offer "Apply to all similar & create r
 **Transfers** between own accounts: match opposite amounts within ±3 days across household accounts → link with `transfer_group_id` and categorize as Transfer.
 
 Seed categories (editable): Housing, Utilities, Groceries, Restaurants, Transport, Car, Health, Sports, Education, Shopping, Leisure & Travel, Subscriptions, Insurance, Taxes, Kids, Pets, Gifts, Salary, Other income, Savings/Investments, Transfers, Uncategorized.
+
 
 ## 8. UX principles (inspired by Summ)
 

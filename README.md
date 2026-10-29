@@ -17,13 +17,14 @@ You can also sign in with any email. The "magic link" is mocked and signs you in
 
 ## Runs fully offline
 
-Every external service sits behind an adapter. With no environment variables set, the app uses local mocks. **Settings → About** shows which mode each service is in.
+Every external service sits behind an adapter.
+
+Statements are read and categorized entirely in code, with no LLM or external API. Each supported bank has a parser in `src/lib/parsers/` (others fall back to a generic parser). Categories come from your rules, merchant memory and the default category keywords. With no environment variables set, the app uses local mocks. **Settings → About** shows which mode each service is in.
 
 | Service | Default (mock) | Real (set in `.env.local`) |
 | --- | --- | --- |
 | Database | Embedded PGlite in `.data/pglite` | `DATABASE_URL` (Postgres / Supabase) |
 | PDF storage | Local disk `.data/uploads` | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET` |
-| Parsing + categorization | Heuristic parser for Spanish bank layouts + keyword rules | `LLM_API_KEY` (+ `LLM_MODEL`, `LLM_BASE_URL` for any OpenAI-compatible API) |
 | Auth | Signed-cookie session, instant "magic link" | Supabase Auth (planned) |
 | Background jobs | In-process queue | Inngest (planned) |
 | Bank logos | Coloured lettermarks | `NEXT_PUBLIC_BRANDFETCH_CLIENT_ID` ([Brandfetch Logo API](https://docs.brandfetch.com/logo-api/overview), free). Logos are embedded from Brandfetch's CDN as its terms require. Bank domains are in `src/lib/banks.ts`. |
@@ -68,7 +69,7 @@ src/app/            routes: (app)/dashboard, import, transactions, statements/[i
 src/components/     UI (shadcn/ui), charts (TradingView Lightweight Charts™), shell, feature components
 src/lib/db/         Drizzle schema, DB adapter (PGlite/Postgres), seeds
 src/lib/pipeline/   upload → extract text → parse → dedupe → categorize → detect transfers
-src/lib/services/   storage, LLM and job-queue adapters (mock + real)
+src/lib/services/   storage and job-queue adapters (mock + real)
 src/lib/actions/    server actions (all mutations)
 src/lib/queries.ts  read models (dashboard, issues, transactions, completeness)
 src/i18n/, messages/ locale config and en/es translations

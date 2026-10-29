@@ -1,5 +1,5 @@
 import { parseAmount } from "@/lib/money";
-import type { ExtractedStatement, ExtractedTransaction } from "@/lib/services/llm/types";
+import type { ExtractedStatement, ExtractedTransaction } from "./types";
 
 /** A rule-based reader for one bank's statement layout. */
 export type StatementParser = {

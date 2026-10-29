@@ -129,7 +129,8 @@ export type DetectedStatementInfo = {
   ibanLast4: string | null;
   ibanHash: string | null;
   pageCount: number;
-  provider: string;
+  /** The parser that read the statement: a bank id or "generic". */
+  provider?: string;
   skippedDuplicates?: number;
 };
 

@@ -9,7 +9,6 @@ import { processStatement, confirmStatement } from "@/lib/pipeline/process-state
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
 import { listTransactions } from "@/lib/queries";
 import { applyAllRules, applyRuleRetroactively, autoLinkTransfers, categorizeTransactions, previewRule } from "@/lib/pipeline/categorize";
-import { MockLlmProvider } from "@/lib/services/llm/mock";
 import type { FileStorage } from "@/lib/services/storage";
 import { categoryRules, transactionChanges } from "@/lib/db/schema";
 import { deleteCategory } from "@/lib/categories";
@@ -33,7 +32,6 @@ class MemoryStorage implements FileStorage {
 describe("statement pipeline (PGlite + offline parser)", () => {
   let db: Db;
   const storage = new MemoryStorage();
-  const llm = new MockLlmProvider();
   let householdId: string;
   let alexId: string;
   const samples = buildSampleStatements(SAMPLE_MONTHS);
@@ -64,7 +62,7 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     for (const sample of samples) {
       const bytes = await renderSampleStatementPdf(sample);
       const { statement } = await createStatementFromUpload(db, { householdId, userId: alexId, fileName: sampleFileName(sample), bytes }, storage);
-      await processStatement(db, statement.id, { storage, llm });
+      await processStatement(db, statement.id, { storage });
       const [processed] = await db.select().from(statements).where(eq(statements.id, statement.id));
       expect(processed!.error).toBeNull();
       expect(processed!.status).toBe("needs_review");
@@ -118,7 +116,7 @@ describe("statement pipeline (PGlite + offline parser)", () => {
       .returning();
     const ids = inserted.map((t) => t.id);
 
-    const result = await categorizeTransactions(db, householdId, ids, llm);
+    const result = await categorizeTransactions(db, householdId, ids);
     expect(result.byAccountName).toBe(2);
     await autoLinkTransfers(db, householdId);
 
@@ -214,7 +212,7 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     await db.update(transactions).set({ excludedAt: new Date() }).where(eq(transactions.id, victim!.id));
     const before = await db.select().from(transactions).where(eq(transactions.statementId, statement!.id));
 
-    await processStatement(db, statement!.id, { storage, llm });
+    await processStatement(db, statement!.id, { storage });
 
     const after = await db.select().from(transactions).where(eq(transactions.statementId, statement!.id));
     expect(after).toHaveLength(before.length);
@@ -250,7 +248,7 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     const bytes = await pdf.save();
 
     const { statement } = await createStatementFromUpload(db, { householdId, userId: alexId, fileName: "multi.pdf", bytes }, storage);
-    await processStatement(db, statement.id, { storage, llm });
+    await processStatement(db, statement.id, { storage });
 
     const all = await db.select().from(statements).where(eq(statements.fileSha256, statement.fileSha256));
     expect(all).toHaveLength(3);
@@ -267,7 +265,7 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     expect(txs.map((t) => [t.bookedAt, t.amountCents])).toEqual([["2025-03-07", 10000], ["2025-03-08", -500]]);
 
     // Processing again must not create more statements.
-    await processStatement(db, first.id, { storage, llm });
+    await processStatement(db, first.id, { storage });
     expect(await db.select().from(statements).where(eq(statements.fileSha256, statement.fileSha256))).toHaveLength(3);
   });
 

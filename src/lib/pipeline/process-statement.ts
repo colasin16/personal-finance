@@ -6,9 +6,8 @@ import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { compactIban, findIbans, redactSensitive } from "@/lib/domain/redact";
 import { normalizeDescription, normalizeMerchant, sha256, transactionFingerprint, withOrdinals } from "@/lib/domain/text";
 import { fillRunningBalances, validateStatement } from "@/lib/domain/validation";
-import { getLlm, type LlmProvider } from "@/lib/services/llm";
 import { getStorage, type FileStorage } from "@/lib/services/storage";
-import { selectParser } from "@/lib/parsers";
+import { parseStatement, selectParser } from "@/lib/parsers";
 import { autoLinkTransfers, categorizeTransactions } from "./categorize";
 import { extractPdfText } from "./extract-text";
 
@@ -24,7 +23,7 @@ async function detectBank(db: Db, text: string): Promise<string | null> {
   return all.find((b) => b.keywords.some((k) => upper.includes(normalizeDescription(k))))?.id ?? null;
 }
 
-type Deps = { storage?: FileStorage; llm?: LlmProvider };
+type Deps = { storage?: FileStorage };
 
 /** One PDF can cover several accounts: each gets its own statement row sharing the same file. */
 async function createSiblingStatements(
@@ -33,7 +32,7 @@ async function createSiblingStatements(
   sections: { iban: string; hash: string }[],
   primaryHash: string | null,
   accountByHash: Map<string, string>,
-  info: Pick<DetectedStatementInfo, "bankId" | "pageCount" | "provider">,
+  info: Pick<DetectedStatementInfo, "bankId" | "pageCount">,
 ): Promise<string[]> {
   const existing = await db
     .select({ accountId: statements.accountId, detected: statements.detected })
@@ -63,7 +62,7 @@ async function createSiblingStatements(
 }
 
 /**
- * The statement pipeline: read PDF → detect bank/account → redact → extract (LLM or offline parser)
+ * The statement pipeline: read PDF → detect bank/account → redact → extract (bank parser)
  * → validate balances → dedupe → categorize → link transfers → ready for review.
  */
 export async function processStatement(db: Db, statementId: string, deps: Deps = {}) {
@@ -74,7 +73,6 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
 /** Processes one statement row and returns the ids of new sibling statements (other accounts in the same PDF). */
 async function processSingleStatement(db: Db, statementId: string, deps: Deps): Promise<string[]> {
   const storage = deps.storage ?? getStorage();
-  const llm = deps.llm ?? getLlm();
   const [statement] = await db.select().from(statements).where(eq(statements.id, statementId));
   if (!statement || statement.status === "confirmed") return [];
 
@@ -113,7 +111,6 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
       ibanLast4: ibans[primaryIndex]?.slice(-4) ?? null,
       ibanHash: hashes[primaryIndex] ?? null,
       pageCount,
-      provider: llm.name,
     };
     const siblings =
       sectionIbans.length > 1
@@ -123,7 +120,7 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
             sectionIbans.map((iban, i) => ({ iban, hash: hashes[i]! })),
             hashes[primaryIndex] ?? null,
             accountByHash,
-            { bankId, pageCount, provider: llm.name },
+            { bankId, pageCount },
           )
         : [];
     if (!accountId) {
@@ -141,7 +138,8 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
       account.ibanHash && !parser?.accountIbans
         ? selectAccountText(text, (iban) => ibanHash(statement.householdId, iban) === account.ibanHash)
       : text;
-    const extracted = await llm.extractStatement(redactSensitive(accountText), { bankId });
+    const extracted = parseStatement(redactSensitive(accountText), bankId);
+    detected.provider = extracted.parser;
     const toCents = (n: number | null) => (n === null ? null : Math.round(n * 100));
     const opening = toCents(extracted.openingBalance);
     const closing = toCents(extracted.closingBalance);
@@ -181,7 +179,7 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
     detected.skippedDuplicates = values.length - inserted.length;
 
     await setProgress("categorizing");
-    await categorizeTransactions(db, statement.householdId, inserted.map((r) => r.id), llm);
+    await categorizeTransactions(db, statement.householdId, inserted.map((r) => r.id));
     await autoLinkTransfers(db, statement.householdId);
 
     await db
@@ -198,7 +196,7 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
         currency: extracted.currency ?? account.currency,
         issues,
         detected,
-        parserVersion: llm.name,
+        parserVersion: extracted.parser,
       })
       .where(eq(statements.id, statementId));
     return siblings;

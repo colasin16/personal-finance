@@ -1,4 +1,4 @@
-import type { ExtractedStatement } from "@/lib/services/llm/types";
+import type { ExtractedStatement } from "./types";
 import { CLOSING_RE, OPENING_RE, parseDate, parseTable, toLines, type Period } from "./common";
 
 const PERIOD_RE =

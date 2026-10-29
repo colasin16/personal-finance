@@ -1,13 +1,9 @@
 import { DEFAULT_CATEGORIES } from "@/lib/db/seed";
 import { normalizeDescription } from "@/lib/domain/text";
-import { parseStatement } from "@/lib/parsers";
-import type {
-  CategorizationInput,
-  CategorizationResult,
-  CategoryOption,
-  ExtractionHints,
-  LlmProvider,
-} from "./types";
+
+export type CategorizationInput = { id: string; description: string; merchant: string | null; amountCents: number };
+export type CategoryOption = { slug: string; name: string; kind: "expense" | "income" | "transfer" };
+export type CategorizationResult = { id: string; categorySlug: string | null; confidence: number };
 
 const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -33,17 +29,4 @@ export function keywordCategorize(item: CategorizationInput, categories: Categor
     return { id: item.id, categorySlug: "other-income", confidence: 0.5 };
   }
   return { id: item.id, categorySlug: null, confidence: 0 };
-}
-
-export class MockLlmProvider implements LlmProvider {
-  readonly name = "mock-heuristic";
-
-  /** Offline, rule-based: routes to the bank's parser (see `@/lib/parsers`). */
-  async extractStatement(text: string, hints?: ExtractionHints) {
-    return parseStatement(text, hints?.bankId);
-  }
-
-  async categorize(items: CategorizationInput[], categories: CategoryOption[]) {
-    return items.map((item) => keywordCategorize(item, categories));
-  }
 }

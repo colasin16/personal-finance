@@ -104,7 +104,6 @@
     "labels": {
       "database": "Base de datos",
       "storage": "Almacenamiento de archivos",
-      "llm": "Lector de extractos / categorizador",
       "auth": "Autenticación",
       "jobs": "Tareas en segundo plano",
       "logos": "Logos de bancos"
@@ -114,8 +113,6 @@
       "pglite": "PGlite (integrado)",
       "localDisk": "Disco local (.data/uploads)",
       "supabase": "Supabase Storage",
-      "llmMock": "Heurística simulada",
-      "llmOpenai": "Compatible con OpenAI",
       "mockMagicLink": "Enlace mágico simulado (cookie firmada)",
       "inProcessQueue": "Cola en el mismo proceso",
       "brandfetch": "Brandfetch",

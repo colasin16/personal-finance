@@ -4,9 +4,9 @@ import { accounts, categories, categoryRules, transactions } from "@/lib/db/sche
 import { findMatchingRule, ruleMatches, type MatchType } from "@/lib/domain/rules";
 import { findMentionedAccount, findTransferPairs } from "@/lib/domain/transfers";
 import { normalizeDescription } from "@/lib/domain/text";
-import { getLlm, type LlmProvider } from "@/lib/services/llm";
+import { keywordCategorize } from "@/lib/domain/keywords";
 
-export const LLM_CONFIDENCE_THRESHOLD = 0.6;
+export const KEYWORD_CONFIDENCE_THRESHOLD = 0.6;
 
 /** Latest user-chosen category per merchant ("merchant memory"). */
 async function merchantMemory(db: Db, householdId: string): Promise<Map<string, string>> {
@@ -25,16 +25,15 @@ const householdAccounts = (db: Db, householdId: string) =>
 
 /**
  * Categorizes transactions in order of precedence: household rules → another of our accounts named in the
- * description (a transfer, even before its other side is imported) → merchant memory → LLM.
+ * description (a transfer, even before its other side is imported) → merchant memory → category keywords.
  * Never overrides choices made by a user or transfer links. Low-confidence results are flagged for review.
  */
 export async function categorizeTransactions(
   db: Db,
   householdId: string,
   transactionIds: string[],
-  llm: LlmProvider = getLlm(),
 ) {
-  if (transactionIds.length === 0) return { byRule: 0, byAccountName: 0, byMerchant: 0, byLlm: 0, flagged: 0 };
+  if (transactionIds.length === 0) return { byRule: 0, byAccountName: 0, byMerchant: 0, byKeyword: 0, flagged: 0 };
 
   const [householdCategories, rules, memory, ownAccounts, pending] = await Promise.all([
     db.select().from(categories).where(eq(categories.householdId, householdId)),
@@ -66,7 +65,7 @@ export async function categorizeTransactions(
     confidence: number;
     flag: string | null;
   }[] = [];
-  const forLlm: typeof pending = [];
+  const options = householdCategories.map((c) => ({ slug: c.slug, name: c.name, kind: c.kind }));
 
   for (const tx of pending) {
     const rule = findMatchingRule(rules, { description: tx.descriptionRaw, merchant: tx.merchant });
@@ -85,30 +84,21 @@ export async function categorizeTransactions(
       updates.push({ id: tx.id, categoryId: remembered, by: "merchant", confidence: 0.95, flag: null });
       continue;
     }
-    forLlm.push(tx);
-  }
-
-  const options = householdCategories.map((c) => ({ slug: c.slug, name: c.name, kind: c.kind }));
-  for (let i = 0; i < forLlm.length; i += 50) {
-    const batch = forLlm.slice(i, i + 50);
-    const results = await llm.categorize(
-      batch.map((t) => ({ id: t.id, description: t.descriptionRaw, merchant: t.merchant, amountCents: t.amountCents })),
+    const result = keywordCategorize(
+      { id: tx.id, description: tx.descriptionRaw, merchant: tx.merchant, amountCents: tx.amountCents },
       options,
     );
-    const byId = new Map(results.map((r) => [r.id, r]));
-    for (const tx of batch) {
-      const result = byId.get(tx.id);
-      const categoryId = result?.categorySlug ? (slugToId.get(result.categorySlug) ?? null) : null;
-      const confidence = categoryId ? (result?.confidence ?? 0) : 0;
-      const confident = confidence >= LLM_CONFIDENCE_THRESHOLD;
-      updates.push({
-        id: tx.id,
-        categoryId: confident ? categoryId : null,
-        by: confident ? "llm" : null,
-        confidence,
-        flag: confident ? null : categoryId ? "low_confidence" : "uncategorized",
-      });
-    }
+    const categoryId = result.categorySlug ? (slugToId.get(result.categorySlug) ?? null) : null;
+    const confidence = categoryId ? result.confidence : 0;
+    const confident = confidence >= KEYWORD_CONFIDENCE_THRESHOLD;
+    updates.push({
+      id: tx.id,
+      categoryId: confident ? categoryId : null,
+      // Stored as "llm" (the enum predates the keyword categorizer); shown as "Auto-categorized".
+      by: confident ? "llm" : null,
+      confidence,
+      flag: confident ? null : categoryId ? "low_confidence" : "uncategorized",
+    });
   }
 
   for (const u of updates) {
@@ -130,7 +120,7 @@ export async function categorizeTransactions(
     byRule: updates.filter((u) => u.by === "rule").length,
     byAccountName: updates.filter((u) => u.by === "transfer").length,
     byMerchant: updates.filter((u) => u.by === "merchant").length,
-    byLlm: updates.filter((u) => u.by === "llm").length,
+    byKeyword: updates.filter((u) => u.by === "llm").length,
     flagged: updates.filter((u) => u.flag).length,
   };
 }
