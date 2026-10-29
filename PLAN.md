@@ -167,6 +167,17 @@ When a user re-categorizes a transaction, offer "Apply to all similar & create r
 
 Seed categories (editable): Housing, Utilities, Groceries, Restaurants, Transport, Car, Health, Sports, Education, Shopping, Leisure & Travel, Subscriptions, Insurance, Taxes, Kids, Pets, Gifts, Salary, Other income, Savings/Investments, Transfers, Uncategorized.
 
+### Possible enrichment APIs (not implemented)
+
+External services that identify the merchant (and often the category) from a raw transaction description. One could slot in after merchant memory and before category keywords. They receive only descriptions, not whole statements.
+
+| Service | What it does | Notes |
+| --- | --- | --- |
+| **[Brandfetch Transaction API](https://docs.brandfetch.com/reference/transaction-api)** | Raw description (e.g. "COMPRA MERCADONA 1234") → brand name, logo, domain, category | Already used for bank logos; pass `countryCode: "ES"`. Best fit: also gives merchant logos for the transaction list. |
+| **Ntropy** | Merchant identification + categorization | Built for fintechs; pricing on request. |
+| **Tink (Visa)** | Transaction enrichment, strong Spain/EU coverage | Usually tied to its open-banking connection. |
+| **Plaid Enrich** | Enrichment of transactions from any source | Mostly US/Canada. |
+| Salt Edge, Snowdrop | Similar enrichment services | Not yet evaluated. |
 
 ## 8. UX principles (inspired by Summ)
 
