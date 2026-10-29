@@ -447,8 +447,14 @@ function TransactionDetail({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 text-sm">
-          <div className="flex items-center justify-between rounded-lg bg-muted p-3">
-            <span className="flex items-center gap-2">
+          <div className="space-y-2 rounded-lg bg-muted p-3">
+            <Money
+              cents={tx.amountCents}
+              currency={tx.currency}
+              colored
+              className="block text-2xl font-semibold tabular-nums"
+            />
+            <span className="flex min-w-0 flex-wrap items-center gap-2">
               <CategoryLabel
                 name={category?.name ?? tc("uncategorized")}
                 icon={category?.icon}
@@ -460,12 +466,6 @@ function TransactionDetail({
                 </Badge>
               )}
             </span>
-            <Money
-              cents={tx.amountCents}
-              currency={tx.currency}
-              colored
-              className="text-base font-semibold"
-            />
           </div>
           {tx.linked.length > 0 && (
             <div>
