@@ -45,6 +45,8 @@ export const bbvaParser: StatementParser = {
     }
 
     const closing = rows.at(-1)?.amounts[1] ?? opening;
-    return buildStatement(text, rows, { opening, closing, period: { start: null, end: issueDate } });
+    // The issue date is when the document was produced (a September statement is issued on 1 October),
+    // not the end of the period, which BBVA doesn't print: the transactions span it instead.
+    return buildStatement(text, rows, { opening, closing, period: { start: null, end: null } });
   },
 };

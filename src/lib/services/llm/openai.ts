@@ -99,6 +99,7 @@ export class OpenAiCompatibleProvider implements LlmProvider {
         "Return every transaction exactly once, in the order printed.",
         "Amounts are signed: money leaving the account is negative, money coming in is positive.",
         "Dates must be YYYY-MM-DD. Use null when a value is not printed. Never invent transactions.",
+        "periodStart/periodEnd are the dates the statement covers. The date the document was issued or generated (e.g. 'Fecha de emisión') is not the period end: a September statement is often issued in October.",
       ].join(" "),
       text,
       "bank_statement",

@@ -211,7 +211,14 @@ describe("statement with an issue date and detail lines under each row", () => {
       ["2026-09-30", "TRANSFERENCIA RECIBIDA Alquiler octubre", 100, 1074.5],
       ["2026-10-02", "RECIBO LUZ", -50, 1024.5],
     ]);
-    expect(parsed.periodEnd).toBe("2026-10-05");
+    // The issue date (05/10) is when the document was produced, not the end of the period.
+    expect([parsed.periodStart, parsed.periodEnd]).toEqual(["2026-09-28", "2026-10-02"]);
+  });
+
+  it("doesn't extend a monthly statement into the month it was issued", () => {
+    const monthly = text.replace("05/10/2026", "01/10/2026").split("\n").slice(0, 9).join("\n");
+    const parsed = parseStatement(monthly);
+    expect([parsed.periodStart, parsed.periodEnd]).toEqual(["2026-09-28", "2026-09-30"]);
   });
 
   it("treats an IBAN repeated on every page as one account", () => {
