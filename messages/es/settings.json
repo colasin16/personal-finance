@@ -20,17 +20,48 @@
   },
   "rules": {
     "title": "Reglas",
-    "description": "Se aplican primero a cada extracto nuevo. Créalas desde cualquier movimiento o desde Pendientes.",
-    "empty": "Aún no hay reglas.",
-    "match": { "merchant": "El comercio es", "contains": "Contiene", "regex": "Coincide con" },
-    "hits": "{count, plural, one {# uso} other {# usos}}",
-    "delete": "Eliminar regla",
-    "deleted": "Regla eliminada"
+    "description": "Se aplican primero a cada extracto nuevo, de arriba abajo. Créalas aquí, desde cualquier movimiento o desde Pendientes.",
+    "empty": "Aún no hay reglas. Crea una aquí o desde cualquier movimiento.",
+    "noMatches": "Ninguna regla coincide con estos filtros.",
+    "search": "Buscar reglas…",
+    "allCategories": "Todas las categorías",
+    "clearCategory": "Quitar filtro de categoría",
+    "new": "Nueva regla",
+    "orderHint": "Las reglas se comprueban en este orden y gana la primera que coincide. Arrastra para cambiar la prioridad.",
+    "reorderDisabled": "Quita los filtros para reordenar las reglas.",
+    "reorder": "Reordenar la regla «{pattern}»",
+    "enabled": "Regla «{pattern}» activada",
+    "actions": "Acciones de la regla",
+    "match": {
+      "merchant": "El comercio es",
+      "contains": "Contiene",
+      "regex": "Coincide con"
+    },
+    "hits": "{count, plural, one {# coincidencia} other {# coincidencias}}",
+    "lastMatched": "última vez {when}",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "deleted": "Regla eliminada",
+    "deleteConfirm": {
+      "title": "¿Eliminar esta regla?",
+      "description": "Los movimientos ya categorizados por «{pattern}» mantienen su categoría."
+    },
+    "applyAll": {
+      "button": "Aplicar todas las reglas",
+      "title": "¿Aplicar todas las reglas a los movimientos existentes?",
+      "description": "Las reglas activas se aplican por orden de prioridad a todos los movimientos que no categorizaste a mano ni están enlazados como transferencia.",
+      "confirm": "Aplicar reglas",
+      "done": "{count, plural, =0 {Todos los movimientos ya cumplen tus reglas} one {# movimiento actualizado} other {# movimientos actualizados}}"
+    }
   },
   "categories": {
     "title": "Categorías",
     "description": "Compartidas por todo el hogar.",
-    "kinds": { "expense": "Gasto", "income": "Ingreso", "transfer": "Traspaso" },
+    "kinds": {
+      "expense": "Gasto",
+      "income": "Ingreso",
+      "transfer": "Traspaso"
+    },
     "new": "Nueva categoría",
     "placeholder": "Mascotas",
     "icon": "Icono",

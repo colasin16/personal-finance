@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { categories, categoryRules, dismissedSuggestions, transactionChanges, transactions } from "@/lib/db/schema";
 import { isValidRegex } from "@/lib/domain/rules";
-import { applyRuleRetroactively, linkTransfer, previewRule, unlinkTransfer } from "@/lib/pipeline/categorize";
+import { applyAllRules, applyRuleRetroactively, linkTransfer, previewRule, unlinkTransfer } from "@/lib/pipeline/categorize";
 import { getVisibleAccounts } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
 import { fail, ok, type ActionResult } from "./result";
@@ -160,6 +160,72 @@ export async function deleteRuleAction(ruleId: string): Promise<ActionResult> {
     await db.delete(categoryRules).where(and(eq(categoryRules.id, uuid.parse(ruleId)), eq(categoryRules.householdId, household.id)));
     revalidatePath("/settings", "layout");
     return ok();
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function updateRuleAction(ruleId: string, input: RuleInput, applyToExisting: boolean): Promise<ActionResult<{ applied: number }>> {
+  try {
+    const { db, household } = await requireContext();
+    const rule = ruleSchema.parse(input);
+    await assertCategory(db, household.id, rule.categoryId);
+    const [row] = await db
+      .update(categoryRules)
+      .set(rule)
+      .where(and(eq(categoryRules.id, uuid.parse(ruleId)), eq(categoryRules.householdId, household.id)))
+      .returning({ id: categoryRules.id });
+    if (!row) throw new UserError("rule_not_found");
+    const applied = applyToExisting ? await applyRuleRetroactively(db, household.id, row.id) : 0;
+    revalidatePath("/", "layout");
+    return ok({ applied });
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function setRuleEnabledAction(ruleId: string, enabled: boolean): Promise<ActionResult> {
+  try {
+    const { db, household } = await requireContext();
+    const [row] = await db
+      .update(categoryRules)
+      .set({ enabled: z.boolean().parse(enabled) })
+      .where(and(eq(categoryRules.id, uuid.parse(ruleId)), eq(categoryRules.householdId, household.id)))
+      .returning({ id: categoryRules.id });
+    if (!row) throw new UserError("rule_not_found");
+    revalidatePath("/settings", "layout");
+    return ok();
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/** Persists a manual evaluation order: the first id gets the highest priority. */
+export async function reorderRulesAction(orderedIds: string[]): Promise<ActionResult> {
+  try {
+    const { db, household } = await requireContext();
+    const ids = z.array(uuid).min(1).max(1000).parse(orderedIds);
+    const owned = await db
+      .select({ id: categoryRules.id })
+      .from(categoryRules)
+      .where(and(eq(categoryRules.householdId, household.id), inArray(categoryRules.id, ids)));
+    if (owned.length !== new Set(ids).size) throw new UserError("rule_not_found");
+    await db.transaction(async (tx) => {
+      for (const [index, id] of ids.entries()) await tx.update(categoryRules).set({ priority: (index + 1) * 10 }).where(eq(categoryRules.id, id));
+    });
+    revalidatePath("/settings", "layout");
+    return ok();
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function applyAllRulesAction(): Promise<ActionResult<{ applied: number }>> {
+  try {
+    const { db, household } = await requireContext();
+    const applied = await applyAllRules(db, household.id);
+    revalidatePath("/", "layout");
+    return ok({ applied });
   } catch (error) {
     return fail(error);
   }

@@ -22,6 +22,13 @@ export const createRuleAction = fn<typeof real.createRuleAction>(async (_input, 
   ok: true,
   data: { applied: applyToExisting ? 3 : 0 },
 })).mockName("createRuleAction");
+export const updateRuleAction = fn<typeof real.updateRuleAction>(async (_id, _input, applyToExisting) => ({
+  ok: true,
+  data: { applied: applyToExisting ? 3 : 0 },
+})).mockName("updateRuleAction");
+export const setRuleEnabledAction = fn<typeof real.setRuleEnabledAction>(async () => done).mockName("setRuleEnabledAction");
+export const reorderRulesAction = fn<typeof real.reorderRulesAction>(async () => done).mockName("reorderRulesAction");
+export const applyAllRulesAction = fn<typeof real.applyAllRulesAction>(async () => ({ ok: true, data: { applied: 12 } })).mockName("applyAllRulesAction");
 export const deleteRuleAction = fn<typeof real.deleteRuleAction>(async () => done).mockName("deleteRuleAction");
 export const categorizeMerchantAction = fn<typeof real.categorizeMerchantAction>(async (ids) => ({ ok: true, data: { updated: ids.length } })).mockName("categorizeMerchantAction");
 export const linkTransferAction = fn<typeof real.linkTransferAction>(async () => done).mockName("linkTransferAction");

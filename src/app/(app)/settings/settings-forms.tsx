@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Copy, Loader2, Plus, Trash2, UserPlus } from "lucide-react";
+import { Copy, Loader2, Plus, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { createCategoryAction, inviteMemberAction, renameHouseholdAction } from "@/lib/actions/household";
-import { deleteRuleAction } from "@/lib/actions/transactions";
 import { IconPicker } from "@/components/transactions/icon-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,28 +145,5 @@ export function AddCategoryForm() {
         ))}
       </div>
     </form>
-  );
-}
-
-export function DeleteRuleButton({ ruleId }: { ruleId: string }) {
-  const t = useTranslations("settings.rules");
-  const [pending, start] = useTransition();
-  return (
-    <Button
-      size="icon"
-      variant="ghost"
-      className="size-7"
-      aria-label={t("delete")}
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          const r = await deleteRuleAction(ruleId);
-          if (r.ok) toast.success(t("deleted"));
-          else toast.error(r.error);
-        })
-      }
-    >
-      <Trash2 />
-    </Button>
   );
 }

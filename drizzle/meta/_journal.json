@@ -29,6 +29,13 @@
       "when": 1793173170854,
       "tag": "0003_empty_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793289926708,
+      "tag": "0004_lonely_chimera",
+      "breakpoints": true
     }
   ]
 }

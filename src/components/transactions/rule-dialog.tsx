@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
-import { createRuleAction, previewRuleAction, type RuleInput } from "@/lib/actions/transactions";
+import { createRuleAction, previewRuleAction, updateRuleAction, type RuleInput } from "@/lib/actions/transactions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,17 +15,22 @@ import { CategoryPicker, type CategoryOption } from "./category-picker";
 
 const MATCH_TYPES = ["merchant", "contains", "regex"] as const;
 
-/** "Always categorize X as Y" — with a live preview of how many past transactions it would change. */
+/**
+ * "Always categorize X as Y" — with a live preview of how many past transactions it would change.
+ * Pass `ruleId` to edit an existing rule instead of creating one.
+ */
 export function RuleDialog({
   open,
   onOpenChange,
   categories,
   initial,
+  ruleId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: CategoryOption[];
   initial: Partial<RuleInput>;
+  ruleId?: string;
 }) {
   const t = useTranslations("transactions.rule");
   const tc = useTranslations("common");
@@ -52,7 +57,8 @@ export function RuleDialog({
   const save = () =>
     start(async () => {
       if (!categoryId) return;
-      const result = await createRuleAction({ matchType, pattern, categoryId }, apply);
+      const input = { matchType, pattern, categoryId };
+      const result = ruleId ? await updateRuleAction(ruleId, input, apply) : await createRuleAction(input, apply);
       if (!result.ok) return void toast.error(result.error);
       toast.success(result.data.applied ? t("savedApplied", { count: result.data.applied }) : t("saved"));
       onOpenChange(false);
@@ -63,7 +69,7 @@ export function RuleDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Wand2 className="size-4" /> {t("title")}
+            <Wand2 className="size-4" /> {ruleId ? t("editTitle") : t("title")}
           </DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>

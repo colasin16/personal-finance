@@ -80,6 +80,7 @@
     "restore": "Restore"
   },
   "rule": {
+    "editTitle": "Edit rule",
     "title": "Create a rule",
     "description": "Rules run first on every new statement, before automatic categorization.",
     "matchTypes": {

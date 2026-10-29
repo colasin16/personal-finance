@@ -8,7 +8,7 @@ import { acceptInvite, createAccount, createHousehold, createInvite, findOrCreat
 import { processStatement, confirmStatement } from "@/lib/pipeline/process-statement";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
 import { listTransactions } from "@/lib/queries";
-import { applyRuleRetroactively, autoLinkTransfers, categorizeTransactions, previewRule } from "@/lib/pipeline/categorize";
+import { applyAllRules, applyRuleRetroactively, autoLinkTransfers, categorizeTransactions, previewRule } from "@/lib/pipeline/categorize";
 import { MockLlmProvider } from "@/lib/services/llm/mock";
 import type { FileStorage } from "@/lib/services/storage";
 import { categoryRules } from "@/lib/db/schema";
@@ -146,6 +146,30 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     const { rows } = await listTransactions(db, householdId, accountIds, { q: "Bodega El Rincon" });
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.every((r) => r.tx.ruleId === created!.id && r.rule?.pattern === "BODEGA EL RINCON")).toBe(true);
+  });
+
+  it("re-applies enabled rules in priority order", async () => {
+    const [groceries] = await db
+      .select()
+      .from(categories)
+      .where(and(eq(categories.householdId, householdId), eq(categories.slug, "groceries")));
+    const [broad] = await db
+      .insert(categoryRules)
+      .values({ householdId, matchType: "contains", pattern: "BODEGA", categoryId: groceries!.id, priority: 5, enabled: false })
+      .returning();
+    expect(await applyAllRules(db, householdId)).toBe(0);
+    expect(await applyRuleRetroactively(db, householdId, broad!.id)).toBe(0);
+
+    await db.update(categoryRules).set({ enabled: true }).where(eq(categoryRules.id, broad!.id));
+    expect(await applyAllRules(db, householdId)).toBeGreaterThanOrEqual(12);
+    const bodega = await db
+      .select()
+      .from(transactions)
+      .where(and(eq(transactions.householdId, householdId), eq(transactions.merchant, "Bodega El Rincon")));
+    expect(bodega.every((t) => t.ruleId === broad!.id && t.categoryId === groceries!.id)).toBe(true);
+    const [after] = await db.select().from(categoryRules).where(eq(categoryRules.id, broad!.id));
+    expect(after!.lastMatchedAt).not.toBeNull();
+    await db.delete(categoryRules).where(eq(categoryRules.id, broad!.id));
   });
 
   it("keeps removed transactions hidden when the statement is processed again", async () => {

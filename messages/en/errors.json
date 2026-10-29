@@ -13,6 +13,7 @@
   "confirmed_cannot_reprocess": "Confirmed statements can't be reprocessed.",
   "only_review_can_confirm": "Only statements waiting for review can be confirmed.",
   "transactions_not_found": "Some transactions were not found.",
+  "rule_not_found": "Rule not found.",
   "category_not_found": "Category not found.",
   "invalid_regex": "Invalid regular expression.",
   "not_mirror_transfer": "These movements don't mirror each other, so they can't be a transfer.",

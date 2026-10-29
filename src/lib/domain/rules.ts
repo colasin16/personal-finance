@@ -27,10 +27,14 @@ export function ruleMatches(rule: Pick<CategoryRule, "matchType" | "pattern">, s
   }
 }
 
-/** Highest priority matching rule (lower number wins; ties go to the longest, most specific pattern). */
+/** Evaluation order: lower priority number first; ties go to the longest, most specific pattern. */
+export function sortRules<R extends Pick<CategoryRule, "priority" | "pattern">>(rules: R[]): R[] {
+  return [...rules].sort((a, b) => a.priority - b.priority || b.pattern.length - a.pattern.length);
+}
+
+/** First matching rule in evaluation order. */
 export function findMatchingRule<R extends CategoryRule>(rules: R[], subject: RuleSubject): R | null {
-  const sorted = [...rules].sort((a, b) => a.priority - b.priority || b.pattern.length - a.pattern.length);
-  return sorted.find((rule) => ruleMatches(rule, subject)) ?? null;
+  return sortRules(rules).find((rule) => ruleMatches(rule, subject)) ?? null;
 }
 
 export function isValidRegex(pattern: string): boolean {

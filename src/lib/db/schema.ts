@@ -231,8 +231,10 @@ export const categoryRules = pgTable("category_rules", {
     .notNull()
     .references(() => categories.id, { onDelete: "cascade" }),
   priority: integer("priority").notNull().default(100),
+  enabled: boolean("enabled").notNull().default(true),
   createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
   hits: integer("hits").notNull().default(0),
+  lastMatchedAt: timestamp("last_matched_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
 

@@ -38,7 +38,10 @@ export async function categorizeTransactions(
 
   const [householdCategories, rules, memory, ownAccounts, pending] = await Promise.all([
     db.select().from(categories).where(eq(categories.householdId, householdId)),
-    db.select().from(categoryRules).where(eq(categoryRules.householdId, householdId)),
+    db
+      .select()
+      .from(categoryRules)
+      .where(and(eq(categoryRules.householdId, householdId), eq(categoryRules.enabled, true))),
     merchantMemory(db, householdId),
     householdAccounts(db, householdId),
     db
@@ -121,9 +124,7 @@ export async function categorizeTransactions(
       })
       .where(eq(transactions.id, u.id));
   }
-  for (const [ruleId, hits] of ruleHits) {
-    await db.update(categoryRules).set({ hits: sql`${categoryRules.hits} + ${hits}` }).where(eq(categoryRules.id, ruleId));
-  }
+  for (const [ruleId, hits] of ruleHits) await recordRuleHits(db, ruleId, hits);
 
   return {
     byRule: updates.filter((u) => u.by === "rule").length,
@@ -134,13 +135,15 @@ export async function categorizeTransactions(
   };
 }
 
-/** Transactions (not set by a user) that a rule would recategorize. */
-export async function previewRule(
-  db: Db,
-  householdId: string,
-  rule: { matchType: MatchType; pattern: string; categoryId: string },
-) {
-  const rows = await db
+const recordRuleHits = (db: Db, ruleId: string, hits: number) =>
+  db
+    .update(categoryRules)
+    .set({ hits: sql`${categoryRules.hits} + ${hits}`, lastMatchedAt: new Date() })
+    .where(eq(categoryRules.id, ruleId));
+
+/** Transactions a rule may categorize: not linked as a transfer, not excluded and not categorized by hand. */
+const ruleCandidates = (db: Db, householdId: string) =>
+  db
     .select({
       id: transactions.id,
       descriptionRaw: transactions.descriptionRaw,
@@ -149,10 +152,17 @@ export async function previewRule(
       categorizedBy: transactions.categorizedBy,
     })
     .from(transactions)
-    .where(and(eq(transactions.householdId, householdId), isNull(transactions.transferGroupId), isNull(transactions.excludedAt)));
-  return rows.filter(
-    (t) => t.categorizedBy !== "user" && t.categoryId !== rule.categoryId && ruleMatches(rule, { description: t.descriptionRaw, merchant: t.merchant }),
-  );
+    .where(and(eq(transactions.householdId, householdId), isNull(transactions.transferGroupId), isNull(transactions.excludedAt)))
+    .then((rows) => rows.filter((t) => t.categorizedBy !== "user"));
+
+/** Transactions (not set by a user) that a rule would recategorize. */
+export async function previewRule(
+  db: Db,
+  householdId: string,
+  rule: { matchType: MatchType; pattern: string; categoryId: string },
+) {
+  const rows = await ruleCandidates(db, householdId);
+  return rows.filter((t) => t.categoryId !== rule.categoryId && ruleMatches(rule, { description: t.descriptionRaw, merchant: t.merchant }));
 }
 
 export async function applyRuleRetroactively(db: Db, householdId: string, ruleId: string) {
@@ -160,15 +170,43 @@ export async function applyRuleRetroactively(db: Db, householdId: string, ruleId
     .select()
     .from(categoryRules)
     .where(and(eq(categoryRules.id, ruleId), eq(categoryRules.householdId, householdId)));
-  if (!rule) return 0;
+  if (!rule?.enabled) return 0;
   const matches = await previewRule(db, householdId, rule);
   if (matches.length === 0) return 0;
   await db
     .update(transactions)
     .set({ categoryId: rule.categoryId, categorizedBy: "rule", ruleId: rule.id, categoryConfidence: 1, flagged: false, flagReason: null })
     .where(inArray(transactions.id, matches.map((m) => m.id)));
-  await db.update(categoryRules).set({ hits: sql`${categoryRules.hits} + ${matches.length}` }).where(eq(categoryRules.id, rule.id));
+  await recordRuleHits(db, rule.id, matches.length);
   return matches.length;
+}
+
+/** Re-runs every enabled rule, in priority order, over existing transactions not categorized by hand. */
+export async function applyAllRules(db: Db, householdId: string) {
+  const [rules, rows] = await Promise.all([
+    db
+      .select()
+      .from(categoryRules)
+      .where(and(eq(categoryRules.householdId, householdId), eq(categoryRules.enabled, true))),
+    ruleCandidates(db, householdId),
+  ]);
+  const byRule = new Map<string, string[]>();
+  for (const tx of rows) {
+    const rule = findMatchingRule(rules, { description: tx.descriptionRaw, merchant: tx.merchant });
+    if (!rule || rule.categoryId === tx.categoryId) continue;
+    byRule.set(rule.id, [...(byRule.get(rule.id) ?? []), tx.id]);
+  }
+  let applied = 0;
+  for (const [ruleId, ids] of byRule) {
+    const rule = rules.find((r) => r.id === ruleId)!;
+    await db
+      .update(transactions)
+      .set({ categoryId: rule.categoryId, categorizedBy: "rule", ruleId, categoryConfidence: 1, flagged: false, flagReason: null })
+      .where(inArray(transactions.id, ids));
+    await recordRuleHits(db, ruleId, ids.length);
+    applied += ids.length;
+  }
+  return applied;
 }
 
 const TRANSFER_HINT = /(TRANSFERENCIA|TRANSF\.?|TRASPASO|TRANSFER)/;

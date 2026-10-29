@@ -80,6 +80,7 @@
     "restore": "Restaurar"
   },
   "rule": {
+    "editTitle": "Editar regla",
     "title": "Crear una regla",
     "description": "Las reglas se aplican primero en cada extracto nuevo, antes de la categorización automática.",
     "matchTypes": {
