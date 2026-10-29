@@ -15,7 +15,6 @@ const ALL = "all";
 
 export function TransactionFilters({ accounts, categories }: { accounts: (AccountRefData & { id: string })[]; categories: CategoryOption[] }) {
   const t = useTranslations("transactions.filters");
-  const tc = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -68,7 +67,7 @@ export function TransactionFilters({ accounts, categories }: { accounts: (Accoun
           categories={categories}
           value={category && category !== "none" ? category : null}
           onChange={(id) => update({ category: id ?? "none" })}
-          placeholder={category === "none" ? tc("uncategorized") : t("allCategories")}
+          placeholder={category === "none" ? undefined : t("allCategories")}
           allowNone
           className={cn("h-8", !category && "text-foreground")}
         />

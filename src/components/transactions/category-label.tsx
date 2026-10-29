@@ -79,9 +79,10 @@ const LEGACY_ICONS: Record<string, string> = {
 };
 
 export const UNCATEGORIZED_COLOR = "#f59e0b";
+export const UNCATEGORIZED_ICON = "tag";
 
 export function CategoryIcon({ icon, className }: { icon?: string | null; className?: string }) {
-  const name = icon ? (LEGACY_ICONS[icon] ?? icon) : "tag";
+  const name = icon ? (LEGACY_ICONS[icon] ?? icon) : UNCATEGORIZED_ICON;
   const cls = cn("size-3.5 shrink-0", className);
   const Bundled = BUNDLED_ICONS[name];
   if (Bundled) return <Bundled aria-hidden="true" className={cls} />;

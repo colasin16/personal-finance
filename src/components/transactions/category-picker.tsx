@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CategoryLabel, UNCATEGORIZED_COLOR } from "./category-label";
+import { CategoryLabel, UNCATEGORIZED_COLOR, UNCATEGORIZED_ICON } from "./category-label";
 
 export type CategoryOption = { id: string; name: string; icon?: string | null; color: string; kind: "expense" | "income" | "transfer" };
 
@@ -43,7 +43,13 @@ export function CategoryPicker({
           disabled={disabled}
           className={cn("h-7 max-w-full justify-between gap-1.5 px-2 font-normal", className)}
         >
-          <CategoryLabel name={current?.name ?? placeholder ?? tc("uncategorized")} icon={current?.icon} color={current?.color ?? UNCATEGORIZED_COLOR} />
+          {current ? (
+            <CategoryLabel name={current.name} icon={current.icon} color={current.color} />
+          ) : placeholder ? (
+            <span className="truncate">{placeholder}</span>
+          ) : (
+            <CategoryLabel name={tc("uncategorized")} icon={UNCATEGORIZED_ICON} color={UNCATEGORIZED_COLOR} />
+          )}
           <ChevronDown className="size-3 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -61,7 +67,7 @@ export function CategoryPicker({
                     setOpen(false);
                   }}
                 >
-                  <CategoryLabel name={tc("uncategorized")} icon="help" color={UNCATEGORIZED_COLOR} />
+                  <CategoryLabel name={tc("uncategorized")} icon={UNCATEGORIZED_ICON} color={UNCATEGORIZED_COLOR} />
                 </CommandItem>
               </CommandGroup>
             )}
