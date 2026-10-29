@@ -4,7 +4,7 @@ import { findIbans, redactSensitive } from "@/lib/domain/redact";
 import { normalizeMerchant, transactionFingerprint, withOrdinals } from "@/lib/domain/text";
 import { fillRunningBalances, validateStatement } from "@/lib/domain/validation";
 import { findMatchingRule, type CategoryRule } from "@/lib/domain/rules";
-import { findTransferPairs } from "@/lib/domain/transfers";
+import { findMentionedAccount, findTransferPairs } from "@/lib/domain/transfers";
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
 import { keywordCategorize } from "@/lib/services/llm/mock";
@@ -278,5 +278,24 @@ describe("N26 statement", () => {
 
   it("finds the account's own IBAN but not counterparty ones", () => {
     expect(selectParser(text, "n26")?.accountIbans?.(text)).toEqual(["ES9115830001199876543210"]);
+  });
+});
+
+describe("findMentionedAccount", () => {
+  const accounts = [
+    { id: "main", name: "Cuenta Principal" },
+    { id: "trip", name: "Ahorro Vacaciones" },
+    { id: "short", name: "Big" },
+  ];
+
+  it("finds another account named as whole words, accents and case aside", () => {
+    expect(findMentionedAccount("Hacia ahorro vacaciones Espacios", accounts, "main")?.id).toBe("trip");
+    expect(findMentionedAccount("Desde CUENTA PRINCIPAL", accounts, "trip")?.id).toBe("main");
+  });
+
+  it("ignores the own account, partial words and very short names", () => {
+    expect(findMentionedAccount("Desde Cuenta Principal", accounts, "main")).toBeNull();
+    expect(findMentionedAccount("AHORRO VACACIONESX", accounts, "main")).toBeNull();
+    expect(findMentionedAccount("BIG BURGER", accounts, "main")).toBeNull();
   });
 });

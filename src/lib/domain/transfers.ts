@@ -47,3 +47,27 @@ export function findTransferPairs(candidates: TransferCandidate[], maxDays = 3):
   }
   return pairs;
 }
+
+export type NamedAccount = { id: string; name: string };
+
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const normalize = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+/**
+ * Another of our accounts named, as whole words, in a description (e.g. an N26 "Hacia Ahorro Vacaciones"
+ * row when an account is called "Ahorro Vacaciones"). Longest name wins; names under 4 characters are ignored.
+ */
+export function findMentionedAccount<A extends NamedAccount>(description: string, accounts: A[], ownAccountId: string): A | null {
+  const text = normalize(description);
+  const matches = accounts.filter((account) => {
+    const name = normalize(account.name);
+    return account.id !== ownAccountId && name.length >= 4 && new RegExp(`(^|[^A-Z0-9])${escapeRegex(name)}($|[^A-Z0-9])`).test(text);
+  });
+  return matches.sort((a, b) => b.name.length - a.name.length)[0] ?? null;
+}

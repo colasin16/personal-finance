@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { beforeAll, describe, expect, it } from "vitest";
-import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { createDb, type Db } from "@/lib/db";
 import { categories, statements, transactions } from "@/lib/db/schema";
 import { SAMPLE_ACCOUNTS, SAMPLE_MONTHS, buildSampleStatements, renderSampleStatementPdf, sampleFileName } from "@/lib/dev/sample-statements";
@@ -8,7 +8,7 @@ import { acceptInvite, createAccount, createHousehold, createInvite, findOrCreat
 import { processStatement, confirmStatement } from "@/lib/pipeline/process-statement";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
 import { listTransactions } from "@/lib/queries";
-import { applyRuleRetroactively, previewRule } from "@/lib/pipeline/categorize";
+import { applyRuleRetroactively, autoLinkTransfers, categorizeTransactions, previewRule } from "@/lib/pipeline/categorize";
 import { MockLlmProvider } from "@/lib/services/llm/mock";
 import type { FileStorage } from "@/lib/services/storage";
 import { categoryRules } from "@/lib/db/schema";
@@ -94,6 +94,28 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     const uncategorized = all.filter((t) => t.categoryId === null);
     expect(uncategorized.length / all.length).toBeLessThan(0.25);
     expect(uncategorized.every((t) => t.flagged)).toBe(true);
+  });
+
+  it("treats a description naming another of our accounts as a transfer and links both sides", async () => {
+    const alexAccount = accountIds.get("alex-ing")!;
+    const sharedAccount = accountIds.get("shared-ing")!;
+    const inserted = await db
+      .insert(transactions)
+      .values([
+        { householdId, accountId: alexAccount, bookedAt: "2031-03-03", descriptionRaw: "Hacia Cuenta Comun", amountCents: -12_345, fingerprint: "name-out" },
+        { householdId, accountId: sharedAccount, bookedAt: "2031-03-04", descriptionRaw: "Desde Cuenta Nómina Alex", amountCents: 12_345, fingerprint: "name-in" },
+      ])
+      .returning();
+    const ids = inserted.map((t) => t.id);
+
+    const result = await categorizeTransactions(db, householdId, ids, llm);
+    expect(result.byAccountName).toBe(2);
+    await autoLinkTransfers(db, householdId);
+
+    const rows = await db.select().from(transactions).where(inArray(transactions.id, ids));
+    expect(rows.every((r) => r.categorizedBy === "transfer" && !r.flagged)).toBe(true);
+    expect(rows[0]!.transferGroupId).not.toBeNull();
+    expect(rows[0]!.transferGroupId).toBe(rows[1]!.transferGroupId);
   });
 
   it("applies a new rule retroactively", async () => {

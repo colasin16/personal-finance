@@ -1,8 +1,8 @@
 import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db";
-import { categories, categoryRules, transactions } from "@/lib/db/schema";
+import { accounts, categories, categoryRules, transactions } from "@/lib/db/schema";
 import { findMatchingRule, ruleMatches, type MatchType } from "@/lib/domain/rules";
-import { findTransferPairs } from "@/lib/domain/transfers";
+import { findMentionedAccount, findTransferPairs } from "@/lib/domain/transfers";
 import { normalizeDescription } from "@/lib/domain/text";
 import { getLlm, type LlmProvider } from "@/lib/services/llm";
 
@@ -20,8 +20,12 @@ async function merchantMemory(db: Db, householdId: string): Promise<Map<string, 
   return memory;
 }
 
+const householdAccounts = (db: Db, householdId: string) =>
+  db.select({ id: accounts.id, name: accounts.name }).from(accounts).where(eq(accounts.householdId, householdId));
+
 /**
- * Categorizes transactions in order of precedence: household rules → merchant memory → LLM.
+ * Categorizes transactions in order of precedence: household rules → another of our accounts named in the
+ * description (a transfer, even before its other side is imported) → merchant memory → LLM.
  * Never overrides choices made by a user or transfer links. Low-confidence results are flagged for review.
  */
 export async function categorizeTransactions(
@@ -30,12 +34,13 @@ export async function categorizeTransactions(
   transactionIds: string[],
   llm: LlmProvider = getLlm(),
 ) {
-  if (transactionIds.length === 0) return { byRule: 0, byMerchant: 0, byLlm: 0, flagged: 0 };
+  if (transactionIds.length === 0) return { byRule: 0, byAccountName: 0, byMerchant: 0, byLlm: 0, flagged: 0 };
 
-  const [householdCategories, rules, memory, pending] = await Promise.all([
+  const [householdCategories, rules, memory, ownAccounts, pending] = await Promise.all([
     db.select().from(categories).where(eq(categories.householdId, householdId)),
     db.select().from(categoryRules).where(eq(categoryRules.householdId, householdId)),
     merchantMemory(db, householdId),
+    householdAccounts(db, householdId),
     db
       .select()
       .from(transactions)
@@ -53,7 +58,7 @@ export async function categorizeTransactions(
   const updates: {
     id: string;
     categoryId: string | null;
-    by: "rule" | "merchant" | "llm" | null;
+    by: "rule" | "transfer" | "merchant" | "llm" | null;
     ruleId?: string;
     confidence: number;
     flag: string | null;
@@ -65,6 +70,11 @@ export async function categorizeTransactions(
     if (rule) {
       updates.push({ id: tx.id, categoryId: rule.categoryId, by: "rule", ruleId: rule.id, confidence: 1, flag: null });
       ruleHits.set(rule.id, (ruleHits.get(rule.id) ?? 0) + 1);
+      continue;
+    }
+    const transfersId = slugToId.get("transfers");
+    if (transfersId && findMentionedAccount(`${tx.descriptionRaw} ${tx.merchant ?? ""}`, ownAccounts, tx.accountId)) {
+      updates.push({ id: tx.id, categoryId: transfersId, by: "transfer", confidence: 0.9, flag: null });
       continue;
     }
     const remembered = tx.merchant ? memory.get(normalizeDescription(tx.merchant)) : undefined;
@@ -117,6 +127,7 @@ export async function categorizeTransactions(
 
   return {
     byRule: updates.filter((u) => u.by === "rule").length,
+    byAccountName: updates.filter((u) => u.by === "transfer").length,
     byMerchant: updates.filter((u) => u.by === "merchant").length,
     byLlm: updates.filter((u) => u.by === "llm").length,
     flagged: updates.filter((u) => u.flag).length,
@@ -193,6 +204,7 @@ export async function unlinkTransfer(db: Db, householdId: string, transferGroupI
 
 /** Unlinked opposite movements between our own accounts. */
 export async function findTransferSuggestions(db: Db, householdId: string, accountIds?: string[]) {
+  const ownAccounts = await householdAccounts(db, householdId);
   const rows = await db
     .select({
       id: transactions.id,
@@ -213,14 +225,23 @@ export async function findTransferSuggestions(db: Db, householdId: string, accou
     );
   const candidates = rows.filter((r) => r.categorizedBy !== "user");
   const byId = new Map(candidates.map((r) => [r.id, r]));
-  return findTransferPairs(candidates).map((pair) => ({
-    ...pair,
-    outgoingDescription: byId.get(pair.outgoing.id)!.descriptionRaw,
-    incomingDescription: byId.get(pair.incoming.id)!.descriptionRaw,
-    likely:
-      TRANSFER_HINT.test(normalizeDescription(byId.get(pair.outgoing.id)!.descriptionRaw)) ||
-      TRANSFER_HINT.test(normalizeDescription(byId.get(pair.incoming.id)!.descriptionRaw)),
-  }));
+  // Does one side's description name the account on the other side?
+  const namesOther = (tx: { descriptionRaw: string; accountId: string }, otherAccountId: string) =>
+    findMentionedAccount(tx.descriptionRaw, ownAccounts.filter((a) => a.id === otherAccountId), tx.accountId) !== null;
+  return findTransferPairs(candidates).map((pair) => {
+    const outgoing = byId.get(pair.outgoing.id)!;
+    const incoming = byId.get(pair.incoming.id)!;
+    return {
+      ...pair,
+      outgoingDescription: outgoing.descriptionRaw,
+      incomingDescription: incoming.descriptionRaw,
+      likely:
+        TRANSFER_HINT.test(normalizeDescription(outgoing.descriptionRaw)) ||
+        TRANSFER_HINT.test(normalizeDescription(incoming.descriptionRaw)) ||
+        namesOther(outgoing, incoming.accountId) ||
+        namesOther(incoming, outgoing.accountId),
+    };
+  });
 }
 
 /** Links pairs that are obviously transfers (both sides found and described as a transfer); others become suggestions. */
