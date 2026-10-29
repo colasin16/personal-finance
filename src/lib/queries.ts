@@ -422,7 +422,9 @@ export async function getIssues(db: Db, householdId: string, userId: string) {
   const ids = visible.map((a) => a.id);
   const accountName = new Map(visible.map((a) => [a.id, a.name]));
 
-  const statementRows = await listStatements(db, householdId, userId, ids);
+  // Statements of archived accounts still need review, so they must not vanish from the inbox.
+  const withArchived = await getVisibleAccounts(db, householdId, userId, { includeArchived: true });
+  const statementRows = await listStatements(db, householdId, userId, withArchived.map((a) => a.id));
   const needsAccount = statementRows.filter((s) => s.statement.status === "needs_account");
   const failed = statementRows.filter((s) => s.statement.status === "failed");
   const toReview = statementRows.filter((s) => s.statement.status === "needs_review");

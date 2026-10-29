@@ -19,7 +19,7 @@ async function loadStatement(statementId: string) {
     .where(and(eq(statements.id, statementId), eq(statements.householdId, ctx.household.id)));
   if (!statement) throw new UserError("statement_not_found");
   if (statement.accountId) {
-    const visible = await getVisibleAccounts(ctx.db, ctx.household.id, ctx.user.id);
+    const visible = await getVisibleAccounts(ctx.db, ctx.household.id, ctx.user.id, { includeArchived: true });
     if (!visible.some((a) => a.id === statement.accountId)) throw new UserError("statement_not_found");
   }
   return { ...ctx, statement };

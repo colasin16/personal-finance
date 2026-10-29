@@ -23,7 +23,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     .where(and(eq(statements.id, id), eq(statements.householdId, membership.household.id)));
   if (!statement) return new Response("Not found", { status: 404 });
   if (statement.accountId) {
-    const visible = await getVisibleAccounts(db, membership.household.id, user.id);
+    const visible = await getVisibleAccounts(db, membership.household.id, user.id, { includeArchived: true });
     if (!visible.some((a) => a.id === statement.accountId)) return new Response("Not found", { status: 404 });
   } else if (statement.uploadedBy !== user.id) {
     return new Response("Not found", { status: 404 });

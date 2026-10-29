@@ -18,9 +18,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ImportPage() {
   const { db, user, household } = await requireContext();
-  const accounts = await getVisibleAccounts(db, household.id, user.id);
+  const [accounts, allAccounts] = await Promise.all([
+    getVisibleAccounts(db, household.id, user.id),
+    getVisibleAccounts(db, household.id, user.id, { includeArchived: true }),
+  ]);
   const [statementRows, completeness, members, bankList] = await Promise.all([
-    listStatements(db, household.id, user.id, accounts.map((a) => a.id)),
+    listStatements(db, household.id, user.id, allAccounts.map((a) => a.id)),
     getCompleteness(db, household.id, accounts),
     getMembers(db, household.id),
     db.select().from(banks).orderBy(asc(banks.name)),
