@@ -158,7 +158,7 @@ export async function deleteRuleAction(ruleId: string): Promise<ActionResult> {
   try {
     const { db, household } = await requireContext();
     await db.delete(categoryRules).where(and(eq(categoryRules.id, uuid.parse(ruleId)), eq(categoryRules.householdId, household.id)));
-    revalidatePath("/settings");
+    revalidatePath("/settings", "layout");
     return ok();
   } catch (error) {
     return fail(error);

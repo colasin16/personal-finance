@@ -181,7 +181,7 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/settings">
+                    <Link href="/settings/household">
                       <Settings /> {t("nav.settings")}
                     </Link>
                   </DropdownMenuItem>

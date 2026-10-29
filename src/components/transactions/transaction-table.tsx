@@ -528,7 +528,7 @@ function TransactionDetail({
             <div>
               <p className="text-xs text-muted-foreground">{t("appliedRule")}</p>
               {tx.rule ? (
-                <a href="/settings#rules" className="hover:underline">
+                <a href="/settings/rules" className="hover:underline">
                   {tr(`matchTypes.${tx.rule.matchType}`)}{" "}
                   <span className="font-mono text-xs">“{tx.rule.pattern}”</span> →{" "}
                   {catName(tx.rule.categoryId)}

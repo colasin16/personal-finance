@@ -37,7 +37,7 @@ export async function inviteMemberAction(email: string): Promise<ActionResult<{ 
     const { db, user, household } = await requireContext();
     const address = z.string().trim().email("invalid_email").parse(email);
     const invite = await createInvite(db, household.id, user.id, address);
-    revalidatePath("/settings");
+    revalidatePath("/settings", "layout");
     // Mocked email delivery: the link is shown in the UI to copy & share.
     return ok({ url: `/invite/${invite.token}` });
   } catch (error) {
