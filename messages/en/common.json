@@ -3,6 +3,7 @@
   "appDescription": "Upload your monthly bank statements, get every transaction categorized, and see your household finances together.",
   "language": "Language",
   "theme": { "label": "Change theme", "light": "Light", "dark": "Dark", "system": "System" },
+  "ibanEndingIn": "Account ending in {last4}",
   "actions": {
     "save": "Save",
     "saveChanges": "Save changes",
