@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "samples": "tsx scripts/generate-samples.ts",
+    "pdf:shape": "tsx scripts/pdf-shape.ts",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
