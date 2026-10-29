@@ -139,3 +139,9 @@ describe("offline categorizer", () => {
     expect(parseDate("31/13/2026")).toBeNull();
   });
 });
+
+describe("findIbans", () => {
+  it("does not swallow the word that follows an IBAN", () => {
+    expect(findIbans("IBAN: ES76 1465 0100 9123 4567 8901 Saldo final 90,00")).toEqual(["ES7614650100912345678901"]);
+  });
+});

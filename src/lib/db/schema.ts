@@ -158,7 +158,7 @@ export const statements = pgTable(
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("statements_file_idx").on(t.householdId, t.fileSha256), index("statements_account_idx").on(t.accountId)],
+  (t) => [index("statements_file_idx").on(t.householdId, t.fileSha256), index("statements_account_idx").on(t.accountId)],
 );
 
 export const categories = pgTable(

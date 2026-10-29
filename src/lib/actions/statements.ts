@@ -79,9 +79,13 @@ export async function deleteStatementAction(statementId: string): Promise<Action
   try {
     const { db, statement } = await loadStatement(statementId);
     await db.delete(statements).where(eq(statements.id, statement.id)); // cascades to its transactions
-    await getStorage()
-      .remove(statement.filePath)
-      .catch(() => undefined);
+    // Statements for other accounts in the same PDF share the file.
+    const [stillUsed] = await db.select({ id: statements.id }).from(statements).where(eq(statements.filePath, statement.filePath)).limit(1);
+    if (!stillUsed) {
+      await getStorage()
+        .remove(statement.filePath)
+        .catch(() => undefined);
+    }
     revalidatePath("/", "layout");
     return ok();
   } catch (error) {

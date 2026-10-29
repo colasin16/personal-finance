@@ -11,7 +11,11 @@ export function compactIban(iban: string): string {
 export function findIbans(text: string): string[] {
   const found = new Set<string>();
   for (const match of text.toUpperCase().matchAll(IBAN_RE)) {
-    const iban = compactIban(match[0]);
+    // The pattern can swallow a following word ("… 8901 SALDO"): drop trailing all-letter groups.
+    const groups = match[0].split(/\s+/);
+    while (groups.length > 1 && !/\d/.test(groups.at(-1)!)) groups.pop();
+    let iban = compactIban(groups.join(""));
+    if (iban.startsWith("ES")) iban = iban.slice(0, 24);
     if (iban.length >= 15 && iban.length <= 34 && /\d{8,}/.test(iban.slice(4))) found.add(iban);
   }
   return [...found];

@@ -15,6 +15,13 @@
       "when": 1793135077311,
       "tag": "0001_magenta_nuke",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793169873050,
+      "tag": "0002_lowly_mandrill",
+      "breakpoints": true
     }
   ]
 }

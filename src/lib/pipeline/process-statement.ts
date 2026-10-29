@@ -2,6 +2,7 @@ import { UserError } from "@/lib/errors";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { accounts, banks, statements, transactions, type DetectedStatementInfo } from "@/lib/db/schema";
+import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { compactIban, findIbans, redactSensitive } from "@/lib/domain/redact";
 import { normalizeDescription, normalizeMerchant, sha256, transactionFingerprint, withOrdinals } from "@/lib/domain/text";
 import { fillRunningBalances, validateStatement } from "@/lib/domain/validation";
@@ -24,15 +25,57 @@ async function detectBank(db: Db, text: string): Promise<string | null> {
 
 type Deps = { storage?: FileStorage; llm?: LlmProvider };
 
+/** One PDF can cover several accounts: each gets its own statement row sharing the same file. */
+async function createSiblingStatements(
+  db: Db,
+  statement: typeof statements.$inferSelect,
+  sections: { iban: string; hash: string }[],
+  primaryHash: string | null,
+  accountByHash: Map<string, string>,
+  info: Pick<DetectedStatementInfo, "bankId" | "pageCount" | "provider">,
+): Promise<string[]> {
+  const existing = await db
+    .select({ accountId: statements.accountId, detected: statements.detected })
+    .from(statements)
+    .where(and(eq(statements.householdId, statement.householdId), eq(statements.fileSha256, statement.fileSha256)));
+  const created: string[] = [];
+  for (const { iban, hash } of sections) {
+    if (hash === primaryHash) continue;
+    const accountId = accountByHash.get(hash) ?? null;
+    if (existing.some((s) => (accountId ? s.accountId === accountId : s.accountId === null && s.detected?.ibanHash === hash))) continue;
+    const [sibling] = await db
+      .insert(statements)
+      .values({
+        householdId: statement.householdId,
+        accountId,
+        uploadedBy: statement.uploadedBy,
+        fileName: statement.fileName,
+        filePath: statement.filePath,
+        fileSha256: statement.fileSha256,
+        status: accountId ? "uploaded" : "needs_account",
+        detected: { ...info, ibanLast4: iban.slice(-4), ibanHash: hash },
+      })
+      .returning({ id: statements.id });
+    if (accountId) created.push(sibling!.id);
+  }
+  return created;
+}
+
 /**
  * The statement pipeline: read PDF → detect bank/account → redact → extract (LLM or offline parser)
  * → validate balances → dedupe → categorize → link transfers → ready for review.
  */
 export async function processStatement(db: Db, statementId: string, deps: Deps = {}) {
+  const siblingIds = await processSingleStatement(db, statementId, deps);
+  for (const id of siblingIds) await processStatement(db, id, deps);
+}
+
+/** Processes one statement row and returns the ids of new sibling statements (other accounts in the same PDF). */
+async function processSingleStatement(db: Db, statementId: string, deps: Deps): Promise<string[]> {
   const storage = deps.storage ?? getStorage();
   const llm = deps.llm ?? getLlm();
   const [statement] = await db.select().from(statements).where(eq(statements.id, statementId));
-  if (!statement || statement.status === "confirmed") return;
+  if (!statement || statement.status === "confirmed") return [];
 
   const setProgress = (progress: string) =>
     db.update(statements).set({ status: "processing", progress, error: null }).where(eq(statements.id, statementId));
@@ -47,35 +90,54 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
 
     await setProgress("detecting");
     const bankId = await detectBank(db, text);
-    const ibans = findIbans(text);
+    const sectionIbans = findSectionIbans(text);
+    const ibans = sectionIbans.length > 0 ? sectionIbans : findIbans(text);
     const hashes = ibans.map((iban) => ibanHash(statement.householdId, iban));
-    let accountId = statement.accountId;
-    if (!accountId && hashes.length > 0) {
-      const [match] = await db
-        .select({ id: accounts.id })
-        .from(accounts)
-        .where(and(eq(accounts.householdId, statement.householdId), inArray(accounts.ibanHash, hashes)));
-      accountId = match?.id ?? null;
-    }
+    const knownAccounts = hashes.length
+      ? await db
+          .select({ id: accounts.id, ibanHash: accounts.ibanHash })
+          .from(accounts)
+          .where(and(eq(accounts.householdId, statement.householdId), inArray(accounts.ibanHash, hashes)))
+      : [];
+    const accountByHash = new Map(knownAccounts.map((a) => [a.ibanHash!, a.id]));
+    const [assigned] = statement.accountId ? await db.select().from(accounts).where(eq(accounts.id, statement.accountId)) : [];
+    // The section this statement covers: its account's own IBAN, else the first one found.
+    const primaryIndex = Math.max(0, hashes.findIndex((h) => (assigned ? h === assigned.ibanHash : accountByHash.has(h))));
+    const accountId = statement.accountId ?? accountByHash.get(hashes[primaryIndex] ?? "") ?? null;
     const detected: DetectedStatementInfo = {
       bankId,
-      ibanLast4: ibans[0]?.slice(-4) ?? null,
-      ibanHash: hashes[0] ?? null,
+      ibanLast4: ibans[primaryIndex]?.slice(-4) ?? null,
+      ibanHash: hashes[primaryIndex] ?? null,
       pageCount,
       provider: llm.name,
     };
+    const siblings =
+      sectionIbans.length > 1
+        ? await createSiblingStatements(
+            db,
+            statement,
+            sectionIbans.map((iban, i) => ({ iban, hash: hashes[i]! })),
+            hashes[primaryIndex] ?? null,
+            accountByHash,
+            { bankId, pageCount, provider: llm.name },
+          )
+        : [];
     if (!accountId) {
       await db
         .update(statements)
         .set({ status: "needs_account", progress: null, detected })
         .where(eq(statements.id, statementId));
-      return;
+      return siblings;
     }
     const [account] = await db.select().from(accounts).where(eq(accounts.id, accountId));
     if (!account) throw new UserError("account_not_found");
 
     await setProgress("extracting");
-    const extracted = await llm.extractStatement(redactSensitive(text));
+    const accountText =
+      account.ibanHash
+        ? selectAccountText(text, (iban) => ibanHash(statement.householdId, iban) === account.ibanHash)
+        : text;
+    const extracted = await llm.extractStatement(redactSensitive(accountText));
     const toCents = (n: number | null) => (n === null ? null : Math.round(n * 100));
     const opening = toCents(extracted.openingBalance);
     const closing = toCents(extracted.closingBalance);
@@ -135,12 +197,14 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
         parserVersion: llm.name,
       })
       .where(eq(statements.id, statementId));
+    return siblings;
   } catch (error) {
     console.error(`[pipeline] statement ${statementId} failed`, error);
     await db
       .update(statements)
       .set({ status: "failed", progress: null, error: error instanceof UserError ? error.code : error instanceof Error ? error.message : String(error) })
       .where(eq(statements.id, statementId));
+    return [];
   }
 }
 
