@@ -59,7 +59,6 @@
     "showHistory": "Show change history",
     "noHistory": "No manual changes yet.",
     "appliedRule": "Rule",
-    "noRule": "No rule applied",
     "ruleUnknown": "Categorized by a rule (details unavailable for older imports)",
     "linkedTo": "Linked transfer",
     "linkedHidden": "An account you don't have access to",

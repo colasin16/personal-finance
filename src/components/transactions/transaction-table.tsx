@@ -524,20 +524,20 @@ function TransactionDetail({
             </p>
             <p className="font-mono text-xs break-all">{tx.descriptionRaw}</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t("appliedRule")}</p>
-            {tx.rule ? (
-              <a href="/settings#rules" className="hover:underline">
-                {tr(`matchTypes.${tx.rule.matchType}`)}{" "}
-                <span className="font-mono text-xs">“{tx.rule.pattern}”</span> →{" "}
-                {catName(tx.rule.categoryId)}
-              </a>
-            ) : (
-              <p className="text-muted-foreground">
-                {tx.categorizedBy === "rule" ? t("ruleUnknown") : t("noRule")}
-              </p>
-            )}
-          </div>
+          {(tx.rule || tx.categorizedBy === "rule") && (
+            <div>
+              <p className="text-xs text-muted-foreground">{t("appliedRule")}</p>
+              {tx.rule ? (
+                <a href="/settings#rules" className="hover:underline">
+                  {tr(`matchTypes.${tx.rule.matchType}`)}{" "}
+                  <span className="font-mono text-xs">“{tx.rule.pattern}”</span> →{" "}
+                  {catName(tx.rule.categoryId)}
+                </a>
+              ) : (
+                <p className="text-muted-foreground">{t("ruleUnknown")}</p>
+              )}
+            </div>
+          )}
           {tx.flagged && tx.flagReason && (
             <p className="rounded-md bg-amber-50 p-2 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
               {flagReason(tx.flagReason)}
