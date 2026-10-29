@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "samples": "tsx scripts/generate-samples.ts",
     "pdf:shape": "tsx scripts/pdf-shape.ts",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.11",
@@ -38,7 +40,10 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@storybook/addon-themes": "^10.6.5",
+    "@storybook/nextjs-vite": "^10.6.5",
     "@tailwindcss/turbopack": "^4",
+    "@tailwindcss/vite": "4.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -48,9 +53,11 @@
     "pdf-lib": "^1.17.1",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "storybook": "^10.6.5",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
+    "vite": "^8.3.5",
     "vitest": "^5.0.5"
   },
   "packageManager": "pnpm@11.7.0",

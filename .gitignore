@@ -45,3 +45,7 @@ next-env.d.ts
 
 # real bank statements (private)
 /private/
+
+# storybook
+/storybook-static/
+*storybook.log
