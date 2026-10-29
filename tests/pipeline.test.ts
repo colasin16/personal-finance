@@ -87,6 +87,15 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     const linked = await db.select().from(transactions).where(and(eq(transactions.householdId, householdId), isNotNull(transactions.transferGroupId)));
     // 6 months × (Alex → shared, Sam → shared) × 2 sides
     expect(linked).toHaveLength(24);
+
+    const outgoing = linked.find((t) => t.amountCents < 0)!;
+    const incoming = linked.find((t) => t.transferGroupId === outgoing.transferGroupId && t.id !== outgoing.id)!;
+    const list = (visible: string[]) => listTransactions(db, householdId, visible, { accountId: outgoing.accountId, from: outgoing.bookedAt, to: outgoing.bookedAt });
+    const row = (await list([...accountIds.values()])).rows.find((r) => r.tx.id === outgoing.id)!;
+    expect(row.linked).toEqual([expect.objectContaining({ hidden: false, id: incoming.id, accountId: incoming.accountId, amountCents: -outgoing.amountCents })]);
+    // The other side's details stay private when its account isn't visible.
+    const hidden = (await list([outgoing.accountId])).rows.find((r) => r.tx.id === outgoing.id)!;
+    expect(hidden.linked).toEqual([{ hidden: true, id: incoming.id }]);
   });
 
   it("categorizes most transactions and flags the rest", async () => {

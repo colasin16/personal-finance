@@ -41,7 +41,7 @@ export default async function StatementPage({ params }: { params: Promise<{ id: 
 
   const [cats, { rows }] = await Promise.all([
     getCategories(db, household.id, locale),
-    listTransactions(db, household.id, [account.id], { statementId: statement.id, pageSize: 2000 }),
+    listTransactions(db, household.id, accounts.map((a) => a.id), { accountId: account.id, statementId: statement.id, pageSize: 2000 }),
   ]);
   const all = rows;
   // Flagged rows first (Summ-style "needs your attention"), then chronological.

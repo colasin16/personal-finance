@@ -61,6 +61,10 @@
     "appliedRule": "Rule",
     "noRule": "No rule applied",
     "ruleUnknown": "Categorized by a rule (details unavailable for older imports)",
+    "linkedTo": "Linked transfer",
+    "linkedHidden": "An account you don't have access to",
+    "linkedRemoved": "Removed",
+    "viewLinked": "View transaction",
     "deletedCategory": "Deleted category",
     "fields": {
       "category": "category",

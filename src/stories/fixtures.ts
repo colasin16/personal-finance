@@ -26,6 +26,7 @@ const base: TxItem = {
   flagged: false,
   flagReason: null,
   transferGroupId: null,
+  linked: [],
   notes: null,
   statementId: "statement-1",
   isConfirmed: false,
@@ -73,6 +74,19 @@ export const transactions: TxItem[] = [
     categorizedBy: "transfer",
     categoryConfidence: 1,
     transferGroupId: "transfer-1",
+    linked: [
+      {
+        hidden: false,
+        id: "tx-shared-1",
+        accountId: "account-shared",
+        account: { name: "Cuenta Común", bankId: "bbva", bankName: "BBVA", bankColor: "#004481", ibanLast4: "7890" },
+        bookedAt: "2026-09-02",
+        description: "TRANSFERENCIA DE ALEX",
+        amountCents: 50_000,
+        currency: "EUR",
+        removed: false,
+      },
+    ],
   }),
   tx({
     id: "tx-5",

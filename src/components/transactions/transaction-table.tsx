@@ -1,10 +1,12 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { AccountRef } from "@/components/accounts/account-ref";
 import {
   ArrowLeftRight,
+  ArrowRight,
   FileText,
   Flag,
   History,
@@ -465,6 +467,57 @@ function TransactionDetail({
               className="text-base font-semibold"
             />
           </div>
+          {tx.linked.length > 0 && (
+            <div>
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <ArrowLeftRight className="size-3 text-sky-600" />{" "}
+                {t("linkedTo")}
+              </p>
+              <ul className="mt-1 space-y-1.5">
+                {tx.linked.map((l) =>
+                  l.hidden ? (
+                    <li key={l.id} className="text-muted-foreground">
+                      {t("linkedHidden")}
+                    </li>
+                  ) : (
+                    <li
+                      key={l.id}
+                      className="flex items-center gap-3 rounded-lg border p-2.5"
+                    >
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <AccountRef account={l.account} className="max-w-full" />
+                        <p className="truncate text-xs text-muted-foreground">
+                          {formatDate(l.bookedAt, locale)} · {l.description}
+                          {l.removed && ` · ${t("linkedRemoved")}`}
+                        </p>
+                      </div>
+                      <Money
+                        cents={l.amountCents}
+                        currency={l.currency}
+                        colored
+                        className="shrink-0 font-medium"
+                      />
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        className="size-7 shrink-0"
+                      >
+                        <Link
+                          href={`/transactions?${new URLSearchParams({ account: l.accountId, from: l.bookedAt, to: l.bookedAt, ...(l.removed ? { removed: "1" } : {}) })}`}
+                          aria-label={t("viewLinked")}
+                          title={t("viewLinked")}
+                          onClick={onClose}
+                        >
+                          <ArrowRight />
+                        </Link>
+                      </Button>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          )}
           <div>
             <p className="text-xs text-muted-foreground">
               {t("originalDescription")}

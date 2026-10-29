@@ -61,6 +61,10 @@
     "appliedRule": "Regla",
     "noRule": "No se ha aplicado ninguna regla",
     "ruleUnknown": "Categorizado por una regla (sin detalles en importaciones antiguas)",
+    "linkedTo": "Transferencia vinculada",
+    "linkedHidden": "Una cuenta a la que no tienes acceso",
+    "linkedRemoved": "Eliminado",
+    "viewLinked": "Ver movimiento",
     "deletedCategory": "Categoría eliminada",
     "fields": {
       "category": "categoría",

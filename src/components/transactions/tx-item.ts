@@ -1,4 +1,5 @@
 import type { AccountRefData } from "@/components/accounts/account-ref";
+import type { LinkedTransaction } from "@/lib/queries";
 
 export type AppliedRule = { matchType: "contains" | "regex" | "merchant"; pattern: string; categoryId: string };
 
@@ -17,6 +18,8 @@ export type TxItem = {
   flagged: boolean;
   flagReason: string | null;
   transferGroupId: string | null;
+  /** The other side(s) of a linked transfer. */
+  linked: LinkedTransaction[];
   notes: string | null;
   statementId: string | null;
   isConfirmed: boolean;
@@ -51,6 +54,7 @@ export function toTxItem(row: {
   bankName: string;
   bankColor: string;
   rule?: AppliedRule | null;
+  linked?: LinkedTransaction[];
 }): TxItem {
   const { tx } = row;
   return {
@@ -68,6 +72,7 @@ export function toTxItem(row: {
     flagged: tx.flagged,
     flagReason: tx.flagReason,
     transferGroupId: tx.transferGroupId,
+    linked: row.linked ?? [],
     notes: tx.notes,
     statementId: tx.statementId,
     isConfirmed: tx.isConfirmed,
