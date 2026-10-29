@@ -41,7 +41,7 @@ export function CategoryPicker({
           variant={variant}
           size="sm"
           disabled={disabled}
-          className={cn("h-7 max-w-full justify-between gap-1.5 px-2 font-normal", !current && "text-amber-700 dark:text-amber-400", className)}
+          className={cn("h-7 max-w-full justify-between gap-1.5 px-2 font-normal", className)}
         >
           <CategoryLabel name={current?.name ?? placeholder ?? tc("uncategorized")} icon={current?.icon} color={current?.color ?? UNCATEGORIZED_COLOR} />
           <ChevronDown className="size-3 opacity-50" />

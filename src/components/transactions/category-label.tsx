@@ -88,15 +88,19 @@ export function CategoryIcon({ icon, className }: { icon?: string | null; classN
   return <DynamicIcon name={name as IconName} aria-hidden="true" className={cls} fallback={() => <CircleDashed aria-hidden="true" className={cls} />} />;
 }
 
-/** Translucent border/background derived from a category color. */
+/** Translucent border/background derived from a category color; also exposes it as `--category` for the text tone. */
 export function categoryTint(color: string) {
   return {
+    "--category": color,
     borderColor: `color-mix(in srgb, ${color} 55%, transparent)`,
     backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
-  };
+  } as React.CSSProperties;
 }
 
-/** Icon + name pill; the category color drives the border and a translucent background (darker in dark mode, softer in light mode). */
+/** Category color darkened in light mode and lightened in dark mode so text stays readable on the tint. */
+const CATEGORY_TEXT = "text-[color-mix(in_srgb,var(--category)_65%,black)] dark:text-[color-mix(in_srgb,var(--category)_70%,white)]";
+
+/** Icon + name pill; the category color drives the text, border and a translucent background. */
 export function CategoryLabel({
   name,
   icon,
@@ -110,7 +114,7 @@ export function CategoryLabel({
 }) {
   return (
     <span
-      className={cn("inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border px-1.5 py-0.5 text-xs font-medium", className)}
+      className={cn("inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border px-1.5 py-0.5 text-xs font-medium", CATEGORY_TEXT, className)}
       style={categoryTint(color)}
     >
       <CategoryIcon icon={icon} />
