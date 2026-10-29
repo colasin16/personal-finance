@@ -56,7 +56,7 @@
   },
   "categories": {
     "title": "Categorías",
-    "description": "Compartidas por todo el hogar.",
+    "description": "Compartidas por todo el hogar. Pulsa una categoría para editarla.",
     "kinds": {
       "expense": "Gasto",
       "income": "Ingreso",
@@ -69,7 +69,30 @@
     "iconEmpty": "No se encontraron iconos",
     "iconMore": "Mostrando los primeros {count}. Escribe para afinar.",
     "color": "Color",
-    "added": "Categoría añadida"
+    "added": "Categoría añadida",
+    "name": "Nombre",
+    "kind": "Tipo",
+    "transactions": "{count, plural, =0 {sin uso} one {# movimiento} other {# movimientos}}",
+    "actions": "Acciones de {name}",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "system": "Categoría del sistema",
+    "systemHint": "Los traspasos enlazados se guardan en esta categoría, así que no puede cambiar de tipo ni eliminarse.",
+    "editTitle": "Editar categoría",
+    "editDescription": "Los cambios se aplican en todos los sitios donde aparece la categoría.",
+    "save": "Guardar",
+    "saved": "Categoría guardada",
+    "deleteDialog": {
+      "title": "Eliminar",
+      "usage": "La usan {transactions, plural, =0 {ningún movimiento} one {# movimiento} other {# movimientos}} y {rules, plural, =0 {ninguna regla} one {# regla} other {# reglas}}.",
+      "unused": "Ningún movimiento ni regla usa esta categoría.",
+      "moveTo": "Moverlos a",
+      "moveHint": "Los movimientos y las reglas pasarán a {name}.",
+      "uncategorizeHint": "Los movimientos quedarán sin categoría y aparecerán en Pendientes para revisarlos. Sus reglas se eliminarán.",
+      "confirmMove": "Eliminar y mover",
+      "deleted": "Categoría eliminada",
+      "movedTo": "Categoría eliminada. {count, plural, =0 {Reglas movidas} one {# movimiento movido} other {# movimientos movidos}} a {name}"
+    }
   },
   "about": {
     "title": "Acerca de",

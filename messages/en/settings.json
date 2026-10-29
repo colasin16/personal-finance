@@ -32,11 +32,15 @@
     "reorder": "Reorder rule “{pattern}”",
     "enabled": "Rule “{pattern}” enabled",
     "actions": "Rule actions",
-    "match": { "merchant": "Merchant is", "contains": "Contains", "regex": "Matches" },
+    "match": {
+      "merchant": "Merchant is",
+      "contains": "Contains",
+      "regex": "Matches"
+    },
     "hits": "{count, plural, one {# match} other {# matches}}",
     "lastMatched": "last matched {when}",
-    "edit": "Edit rule",
-    "delete": "Delete rule",
+    "edit": "Edit",
+    "delete": "Delete",
     "deleted": "Rule deleted",
     "deleteConfirm": {
       "title": "Delete this rule?",
@@ -52,8 +56,12 @@
   },
   "categories": {
     "title": "Categories",
-    "description": "Shared by everyone in the household.",
-    "kinds": { "expense": "Expense", "income": "Income", "transfer": "Transfer" },
+    "description": "Shared by everyone in the household. Click a category to edit it.",
+    "kinds": {
+      "expense": "Expense",
+      "income": "Income",
+      "transfer": "Transfer"
+    },
     "new": "New category",
     "placeholder": "Pets",
     "icon": "Icon",
@@ -61,7 +69,30 @@
     "iconEmpty": "No icons found",
     "iconMore": "Showing the first {count}. Type to narrow it down.",
     "color": "Color",
-    "added": "Category added"
+    "added": "Category added",
+    "name": "Name",
+    "kind": "Type",
+    "transactions": "{count, plural, =0 {not used} one {# transaction} other {# transactions}}",
+    "actions": "Actions for {name}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "system": "System category",
+    "systemHint": "Linked transfers are filed under this category, so its type can't change and it can't be deleted.",
+    "editTitle": "Edit category",
+    "editDescription": "Changes apply everywhere this category is shown.",
+    "save": "Save",
+    "saved": "Category saved",
+    "deleteDialog": {
+      "title": "Delete",
+      "usage": "Used by {transactions, plural, =0 {no transactions} one {# transaction} other {# transactions}} and {rules, plural, =0 {no rules} one {# rule} other {# rules}}.",
+      "unused": "No transactions or rules use this category.",
+      "moveTo": "Move them to",
+      "moveHint": "Transactions and rules will move to {name}.",
+      "uncategorizeHint": "Transactions will become uncategorized and show up in Issues for review. Its rules will be deleted.",
+      "confirmMove": "Delete and move",
+      "deleted": "Category deleted",
+      "movedTo": "Category deleted. {count, plural, =0 {Rules moved} one {# transaction moved} other {# transactions moved}} to {name}"
+    }
   },
   "about": {
     "title": "About",

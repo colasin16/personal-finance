@@ -5,6 +5,7 @@ import { Copy, Loader2, Plus, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { createCategoryAction, inviteMemberAction, renameHouseholdAction } from "@/lib/actions/household";
+import { CATEGORY_COLORS, ColorSwatches } from "@/components/categories/color-swatches";
 import { IconPicker } from "@/components/transactions/icon-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,14 +88,12 @@ export function InviteForm() {
   );
 }
 
-const COLORS = ["#6366f1", "#22c55e", "#f97316", "#ec4899", "#14b8a6", "#eab308", "#8b5cf6", "#ef4444", "#0ea5e9", "#64748b"];
-
 export function AddCategoryForm() {
   const t = useTranslations("settings.categories");
   const tc = useTranslations("common");
   const [name, setName] = useState("");
   const [kind, setKind] = useState<"expense" | "income" | "transfer">("expense");
-  const [color, setColor] = useState(COLORS[0]!);
+  const [color, setColor] = useState(CATEGORY_COLORS[0]!);
   const [icon, setIcon] = useState("tag");
   const [pending, start] = useTransition();
   return (
@@ -130,20 +129,7 @@ export function AddCategoryForm() {
           <Plus /> {tc("actions.add")}
         </Button>
       </div>
-      <div className="flex gap-1.5" role="radiogroup" aria-label={t("color")}>
-        {COLORS.map((c) => (
-          <button
-            key={c}
-            type="button"
-            role="radio"
-            aria-checked={c === color}
-            aria-label={c}
-            onClick={() => setColor(c)}
-            className="size-6 rounded-full ring-offset-2 aria-checked:ring-2 aria-checked:ring-foreground"
-            style={{ background: c }}
-          />
-        ))}
-      </div>
+      <ColorSwatches value={color} onChange={setColor} label={t("color")} />
     </form>
   );
 }

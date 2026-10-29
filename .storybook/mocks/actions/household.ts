@@ -12,5 +12,7 @@ export const inviteMemberAction = fn<typeof real.inviteMemberAction>(async () =>
 );
 export const renameHouseholdAction = fn<typeof real.renameHouseholdAction>(async () => done).mockName("renameHouseholdAction");
 export const createCategoryAction = fn<typeof real.createCategoryAction>(async () => ({ ok: true, data: { id: "new-category" } })).mockName("createCategoryAction");
+export const updateCategoryAction = fn<typeof real.updateCategoryAction>(async () => done).mockName("updateCategoryAction");
+export const deleteCategoryAction = fn<typeof real.deleteCategoryAction>(async () => ({ ok: true, data: { moved: 12 } })).mockName("deleteCategoryAction");
 export const createHouseholdAction = fn<typeof real.createHouseholdAction>().mockName("createHouseholdAction");
 export const acceptInviteAction = fn<typeof real.acceptInviteAction>().mockName("acceptInviteAction");

@@ -14,6 +14,8 @@
   "only_review_can_confirm": "Solo se pueden confirmar los extractos pendientes de revisión.",
   "transactions_not_found": "No se han encontrado algunos movimientos.",
   "rule_not_found": "Regla no encontrada.",
+  "category_protected": "Esta categoría se usa para los traspasos enlazados y no se puede eliminar ni cambiar de tipo.",
+  "category_same_target": "Elige otra categoría a la que mover los movimientos.",
   "category_not_found": "No se ha encontrado la categoría.",
   "invalid_regex": "Expresión regular no válida.",
   "not_mirror_transfer": "Estos movimientos no se corresponden entre sí, así que no pueden ser un traspaso.",

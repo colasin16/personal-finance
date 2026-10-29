@@ -3,11 +3,14 @@
 import { UserError } from "@/lib/errors";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { accounts, categories, households } from "@/lib/db/schema";
 import { acceptInvite, createAccount, createHousehold, createInvite, updateAccount, type AccountInput } from "@/lib/households";
+import { deleteCategory, updateCategory } from "@/lib/categories";
+import { localizeCategoryName } from "@/lib/i18n/categories";
 import { requireContext, requireUser } from "@/lib/server/auth";
 import { fail, ok, type ActionResult } from "./result";
 
@@ -100,6 +103,37 @@ export async function createCategoryAction(input: z.input<typeof categorySchema>
     const [row] = await db.insert(categories).values({ householdId: household.id, slug, ...data }).returning({ id: categories.id });
     revalidatePath("/", "layout");
     return ok({ id: row!.id });
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function updateCategoryAction(categoryId: string, input: z.input<typeof categorySchema>): Promise<ActionResult> {
+  try {
+    const { db, household } = await requireContext();
+    const id = z.string().uuid().parse(categoryId);
+    const data = categorySchema.parse(input);
+    const [current] = await db
+      .select({ slug: categories.slug, name: categories.name })
+      .from(categories)
+      .where(and(eq(categories.id, id), eq(categories.householdId, household.id)));
+    // Saving a built-in category with its translated name must not freeze that translation as a rename.
+    const name = current && data.name === localizeCategoryName(current, await getLocale()) ? current.name : data.name;
+    await updateCategory(db, household.id, id, { ...data, name });
+    revalidatePath("/", "layout");
+    return ok();
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function deleteCategoryAction(categoryId: string, targetId: string | null): Promise<ActionResult<{ moved: number }>> {
+  try {
+    const { db, household, user } = await requireContext();
+    const uuid = z.string().uuid();
+    const result = await deleteCategory(db, household.id, user.id, uuid.parse(categoryId), targetId ? uuid.parse(targetId) : null);
+    revalidatePath("/", "layout");
+    return ok(result);
   } catch (error) {
     return fail(error);
   }

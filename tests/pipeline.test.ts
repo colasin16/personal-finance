@@ -11,7 +11,8 @@ import { listTransactions } from "@/lib/queries";
 import { applyAllRules, applyRuleRetroactively, autoLinkTransfers, categorizeTransactions, previewRule } from "@/lib/pipeline/categorize";
 import { MockLlmProvider } from "@/lib/services/llm/mock";
 import type { FileStorage } from "@/lib/services/storage";
-import { categoryRules } from "@/lib/db/schema";
+import { categoryRules, transactionChanges } from "@/lib/db/schema";
+import { deleteCategory } from "@/lib/categories";
 
 class MemoryStorage implements FileStorage {
   readonly kind = "memory";
@@ -170,6 +171,37 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     const [after] = await db.select().from(categoryRules).where(eq(categoryRules.id, broad!.id));
     expect(after!.lastMatchedAt).not.toBeNull();
     await db.delete(categoryRules).where(eq(categoryRules.id, broad!.id));
+  });
+
+  it("deletes a category, moving its transactions and rules or leaving them uncategorized", async () => {
+    const bySlug = async (slug: string) =>
+      (await db.select().from(categories).where(and(eq(categories.householdId, householdId), eq(categories.slug, slug))))[0]!;
+    const [restaurants, transfers] = await Promise.all([bySlug("restaurants"), bySlug("transfers")]);
+    const [temp, other] = await db
+      .insert(categories)
+      .values([
+        { householdId, slug: "temp", name: "Temp", kind: "expense" },
+        { householdId, slug: "other-temp", name: "Other temp", kind: "expense" },
+      ])
+      .returning();
+    const bodega = await db.select().from(transactions).where(and(eq(transactions.householdId, householdId), eq(transactions.merchant, "Bodega El Rincon")));
+    const [first, ...rest] = bodega.map((t) => t.id);
+    await db.update(transactions).set({ categoryId: temp!.id, categorizedBy: "user" }).where(inArray(transactions.id, rest));
+    await db.update(transactions).set({ categoryId: other!.id, categorizedBy: "user" }).where(eq(transactions.id, first!));
+    const [rule] = await db.insert(categoryRules).values({ householdId, matchType: "contains", pattern: "BODEGA", categoryId: temp!.id }).returning();
+
+    await expect(deleteCategory(db, householdId, alexId, transfers.id, null)).rejects.toThrow();
+    expect(await deleteCategory(db, householdId, alexId, temp!.id, restaurants.id)).toEqual({ moved: rest.length });
+    const moved = await db.select().from(transactions).where(inArray(transactions.id, rest));
+    expect(moved.every((t) => t.categoryId === restaurants.id && t.categorizedBy === "user")).toBe(true);
+    expect((await db.select().from(categoryRules).where(eq(categoryRules.id, rule!.id)))[0]!.categoryId).toBe(restaurants.id);
+    expect(await db.select().from(transactionChanges).where(and(eq(transactionChanges.field, "category"), eq(transactionChanges.oldValue, temp!.id)))).toHaveLength(rest.length);
+
+    expect(await deleteCategory(db, householdId, alexId, other!.id, null)).toEqual({ moved: 1 });
+    const [orphan] = await db.select().from(transactions).where(eq(transactions.id, first!));
+    expect(orphan).toMatchObject({ categoryId: null, categorizedBy: null, flagged: true, flagReason: "uncategorized" });
+    expect(await db.select().from(categories).where(inArray(categories.id, [temp!.id, other!.id]))).toHaveLength(0);
+    await db.delete(categoryRules).where(eq(categoryRules.id, rule!.id));
   });
 
   it("keeps removed transactions hidden when the statement is processed again", async () => {
