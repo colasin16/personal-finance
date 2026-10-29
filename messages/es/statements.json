@@ -28,7 +28,9 @@
   "empty": "Este extracto no tiene movimientos.",
   "confirm": {
     "button": "Confirmar extracto",
-    "prompt": "{count, plural, one {# movimiento sigue sin categoría. ¿Confirmar de todos modos?} other {# movimientos siguen sin categoría. ¿Confirmar de todos modos?}}",
+    "promptTitle": "Hay movimientos sin categoría",
+    "prompt": "{count, plural, one {# movimiento aún no tiene categoría. Puedes confirmar el extracto ahora y categorizarlo más tarde.} other {# movimientos aún no tienen categoría. Puedes confirmar el extracto ahora y categorizarlos más tarde.}}",
+    "confirmAnyway": "Confirmar igualmente",
     "success": "Extracto confirmado"
   }
 }

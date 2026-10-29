@@ -28,7 +28,9 @@
   "empty": "This statement has no transactions.",
   "confirm": {
     "button": "Confirm statement",
-    "prompt": "{count, plural, one {# transaction is still uncategorized. Confirm anyway?} other {# transactions are still uncategorized. Confirm anyway?}}",
+    "promptTitle": "Some transactions are uncategorized",
+    "prompt": "{count, plural, one {# transaction still has no category. You can confirm the statement now and categorize it later.} other {# transactions still have no category. You can confirm the statement now and categorize them later.}}",
+    "confirmAnyway": "Confirm anyway",
     "success": "Statement confirmed"
   }
 }
