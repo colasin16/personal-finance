@@ -1,0 +1,2 @@
+ALTER TABLE "transactions" ADD COLUMN "rule_id" uuid;--> statement-breakpoint
+ALTER TABLE "transactions" ADD CONSTRAINT "transactions_rule_id_category_rules_id_fk" FOREIGN KEY ("rule_id") REFERENCES "public"."category_rules"("id") ON DELETE set null ON UPDATE no action;

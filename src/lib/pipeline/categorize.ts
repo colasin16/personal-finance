@@ -50,13 +50,20 @@ export async function categorizeTransactions(
 
   const slugToId = new Map(householdCategories.map((c) => [c.slug, c.id]));
   const ruleHits = new Map<string, number>();
-  const updates: { id: string; categoryId: string | null; by: "rule" | "merchant" | "llm" | null; confidence: number; flag: string | null }[] = [];
+  const updates: {
+    id: string;
+    categoryId: string | null;
+    by: "rule" | "merchant" | "llm" | null;
+    ruleId?: string;
+    confidence: number;
+    flag: string | null;
+  }[] = [];
   const forLlm: typeof pending = [];
 
   for (const tx of pending) {
     const rule = findMatchingRule(rules, { description: tx.descriptionRaw, merchant: tx.merchant });
     if (rule) {
-      updates.push({ id: tx.id, categoryId: rule.categoryId, by: "rule", confidence: 1, flag: null });
+      updates.push({ id: tx.id, categoryId: rule.categoryId, by: "rule", ruleId: rule.id, confidence: 1, flag: null });
       ruleHits.set(rule.id, (ruleHits.get(rule.id) ?? 0) + 1);
       continue;
     }
@@ -94,7 +101,14 @@ export async function categorizeTransactions(
   for (const u of updates) {
     await db
       .update(transactions)
-      .set({ categoryId: u.categoryId, categorizedBy: u.by, categoryConfidence: u.confidence, flagged: u.flag !== null, flagReason: u.flag })
+      .set({
+        categoryId: u.categoryId,
+        categorizedBy: u.by,
+        ruleId: u.ruleId ?? null,
+        categoryConfidence: u.confidence,
+        flagged: u.flag !== null,
+        flagReason: u.flag,
+      })
       .where(eq(transactions.id, u.id));
   }
   for (const [ruleId, hits] of ruleHits) {
@@ -140,7 +154,7 @@ export async function applyRuleRetroactively(db: Db, householdId: string, ruleId
   if (matches.length === 0) return 0;
   await db
     .update(transactions)
-    .set({ categoryId: rule.categoryId, categorizedBy: "rule", categoryConfidence: 1, flagged: false, flagReason: null })
+    .set({ categoryId: rule.categoryId, categorizedBy: "rule", ruleId: rule.id, categoryConfidence: 1, flagged: false, flagReason: null })
     .where(inArray(transactions.id, matches.map((m) => m.id)));
   await db.update(categoryRules).set({ hits: sql`${categoryRules.hits} + ${matches.length}` }).where(eq(categoryRules.id, rule.id));
   return matches.length;

@@ -14,6 +14,7 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import type { StatementIssue } from "@/lib/domain/validation";
 
@@ -200,6 +201,8 @@ export const transactions = pgTable(
     categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
     categorizedBy: categorizedBy("categorized_by"),
     categoryConfidence: real("category_confidence"),
+    // The rule that set the category; only meaningful while categorizedBy is "rule".
+    ruleId: uuid("rule_id").references((): AnyPgColumn => categoryRules.id, { onDelete: "set null" }),
     isConfirmed: boolean("is_confirmed").notNull().default(false),
     flagged: boolean("flagged").notNull().default(false),
     flagReason: text("flag_reason"),

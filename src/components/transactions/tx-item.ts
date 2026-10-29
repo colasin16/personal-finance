@@ -1,3 +1,5 @@
+export type AppliedRule = { matchType: "contains" | "regex" | "merchant"; pattern: string; categoryId: string };
+
 export type TxItem = {
   id: string;
   bookedAt: string;
@@ -20,6 +22,8 @@ export type TxItem = {
   statementId: string | null;
   isConfirmed: boolean;
   excluded: boolean;
+  /** The rule that set the category, when it still exists. */
+  rule: AppliedRule | null;
 };
 
 export function toTxItem(row: {
@@ -46,6 +50,7 @@ export function toTxItem(row: {
   bankId: string;
   bankName: string;
   bankColor: string;
+  rule?: AppliedRule | null;
 }): TxItem {
   const { tx } = row;
   return {
@@ -70,5 +75,6 @@ export function toTxItem(row: {
     statementId: tx.statementId,
     isConfirmed: tx.isConfirmed,
     excluded: tx.excludedAt !== null,
+    rule: tx.categorizedBy === "rule" ? (row.rule ?? null) : null,
   };
 }

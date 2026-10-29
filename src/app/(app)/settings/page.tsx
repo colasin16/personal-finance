@@ -72,7 +72,7 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="rules" className="scroll-mt-20">
           <CardHeader>
             <CardTitle>{t("rules.title")}</CardTitle>
             <CardDescription>{t("rules.description")}</CardDescription>

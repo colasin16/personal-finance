@@ -58,6 +58,9 @@
     "notesPlaceholder": "e.g. Dinner with friends — they paid back half",
     "showHistory": "Show change history",
     "noHistory": "No manual changes yet.",
+    "appliedRule": "Rule",
+    "noRule": "No rule applied",
+    "ruleUnknown": "Categorized by a rule (details unavailable for older imports)",
     "deletedCategory": "Deleted category",
     "fields": {
       "category": "category",

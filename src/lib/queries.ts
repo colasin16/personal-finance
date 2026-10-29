@@ -7,6 +7,7 @@ import {
   accounts,
   banks,
   categories,
+  categoryRules,
   dismissedSuggestions,
   statements,
   transactions,
@@ -392,11 +393,13 @@ export async function listTransactions(db: Db, householdId: string, visibleIds: 
         bankColor: banks.color,
         categoryName: categories.name,
         categoryColor: categories.color,
+        rule: { matchType: categoryRules.matchType, pattern: categoryRules.pattern, categoryId: categoryRules.categoryId },
       })
       .from(transactions)
       .innerJoin(accounts, eq(accounts.id, transactions.accountId))
       .innerJoin(banks, eq(banks.id, accounts.bankId))
       .leftJoin(categories, eq(categories.id, transactions.categoryId))
+      .leftJoin(categoryRules, eq(categoryRules.id, transactions.ruleId))
       .where(where)
       .orderBy(desc(transactions.bookedAt), desc(transactions.position))
       .limit(size)

@@ -111,6 +111,10 @@ describe("statement pipeline (PGlite + offline parser)", () => {
       .from(transactions)
       .where(and(eq(transactions.householdId, householdId), eq(transactions.merchant, "Bodega El Rincon"), isNull(transactions.categoryId)));
     expect(stillFlagged).toHaveLength(0);
+    const accountIds = [...new Set((await db.select({ id: transactions.accountId }).from(transactions)).map((r) => r.id))];
+    const { rows } = await listTransactions(db, householdId, accountIds, { q: "Bodega El Rincon" });
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.tx.ruleId === created!.id && r.rule?.pattern === "BODEGA EL RINCON")).toBe(true);
   });
 
   it("keeps removed transactions hidden when the statement is processed again", async () => {

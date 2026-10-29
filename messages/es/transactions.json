@@ -58,6 +58,9 @@
     "notesPlaceholder": "p. ej. Cena con amigos — me devolvieron la mitad",
     "showHistory": "Ver historial de cambios",
     "noHistory": "Todavía no hay cambios manuales.",
+    "appliedRule": "Regla",
+    "noRule": "No se ha aplicado ninguna regla",
+    "ruleUnknown": "Categorizado por una regla (sin detalles en importaciones antiguas)",
     "deletedCategory": "Categoría eliminada",
     "fields": {
       "category": "categoría",
