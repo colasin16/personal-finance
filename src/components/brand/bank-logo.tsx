@@ -13,8 +13,25 @@ function textOn(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.4 ? "#18181b" : "#ffffff";
 }
 
-/** Bank symbol from Brandfetch, falling back to a coloured lettermark offline or when the logo is missing. */
-export function BankLogo({ bankId, name, color, size = 20, className }: { bankId: string; name: string; color: string; size?: number; className?: string }) {
+/**
+ * Bank symbol from Brandfetch, falling back to a coloured lettermark offline or when the logo is missing.
+ * `bare` drops the white tile and ring so the logo keeps its own shape (for small, tightly-rounded inline uses).
+ */
+export function BankLogo({
+  bankId,
+  name,
+  color,
+  size = 20,
+  bare = false,
+  className,
+}: {
+  bankId: string;
+  name: string;
+  color: string;
+  size?: number;
+  bare?: boolean;
+  className?: string;
+}) {
   const [failed, setFailed] = useState(false);
   const src = bankLogoUrl(bankId, size);
   const box = cn("inline-flex shrink-0 items-center justify-center overflow-hidden rounded-md", className);
@@ -22,7 +39,11 @@ export function BankLogo({ bankId, name, color, size = 20, className }: { bankId
   if (src && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- Brandfetch requires hotlinking; next/image would proxy the file.
-      <img src={src} alt={name} width={size} height={size} loading="lazy" className={cn(box, "bg-white ring-1 ring-border")} onError={() => setFailed(true)} />
+      <img src={src} alt={name} width={size} height={size} loading="lazy"
+        // Inline size beats Tailwind preflight's `height: auto; max-width: 100%`, which let non-square logos keep their own aspect ratio.
+        style={{ width: size, height: size }}
+        className={cn(box, "object-contain", !bare && "bg-white ring-1 ring-border")}
+        onError={() => setFailed(true)} />
     );
   }
   return (
