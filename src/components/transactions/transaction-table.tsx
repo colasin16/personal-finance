@@ -3,9 +3,9 @@
 import { useOptimistic, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { BankLogo } from "@/components/brand/bank-logo";
-import { ArrowLeftRight, FileText, Flag, History, Link2Off, Loader2, Sparkles, StickyNote, Wand2, X } from "lucide-react";
+import { ArrowLeftRight, FileText, Flag, History, Link2Off, Loader2, RotateCcw, Sparkles, StickyNote, Trash2, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
-import { getTransactionHistoryAction, setCategoryAction, setNotesAction, unlinkTransferAction } from "@/lib/actions/transactions";
+import { excludeTransactionsAction, getTransactionHistoryAction, restoreTransactionsAction, setCategoryAction, setNotesAction, unlinkTransferAction } from "@/lib/actions/transactions";
 import { FLAG_CODES, formatDate, isCategorizedBy } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { intlLocale } from "@/i18n/config";
@@ -75,7 +75,17 @@ export function TransactionTable({
       }
     });
 
+  const setExcluded = (ids: string[], excluded: boolean) =>
+    start(async () => {
+      const result = await (excluded ? excludeTransactionsAction(ids) : restoreTransactionsAction(ids));
+      if (!result.ok) return void toast.error(result.error);
+      setSelected(new Set());
+      setDetail(null);
+      toast.success(t(excluded ? "removed" : "restored", { count: result.data.updated }));
+    });
+
   const allSelected = optimistic.length > 0 && optimistic.every((r) => selected.has(r.id));
+  const allExcluded = selected.size > 0 && optimistic.filter((r) => selected.has(r.id)).every((r) => r.excluded);
   const toggle = (id: string, on: boolean) => {
     const next = new Set(selected);
     if (on) next.add(id);
@@ -97,6 +107,9 @@ export function TransactionTable({
             allowNone
             disabled={pending}
           />
+          <Button variant="outline" size="sm" disabled={pending} onClick={() => setExcluded([...selected], !allExcluded)}>
+            {allExcluded ? <RotateCcw /> : <Trash2 />} {allExcluded ? t("restore") : t("remove")}
+          </Button>
           {pending && <Loader2 className="size-4 animate-spin" />}
           <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setSelected(new Set())}>
             <X /> {t("clear")}
@@ -132,7 +145,7 @@ export function TransactionTable({
               </TableRow>
             )}
             {optimistic.map((r) => (
-              <TableRow key={r.id} data-state={selected.has(r.id) ? "selected" : undefined} className={cn(r.flagged && "bg-amber-50/60 dark:bg-amber-950/20")}>
+              <TableRow key={r.id} data-state={selected.has(r.id) ? "selected" : undefined} className={cn(r.flagged && "bg-amber-50/60 dark:bg-amber-950/20", r.excluded && "opacity-60 line-through")}>
                 <TableCell>
                   <Checkbox checked={selected.has(r.id)} onCheckedChange={(c) => toggle(r.id, c === true)} aria-label={t("selectRow")} />
                 </TableCell>
@@ -182,6 +195,7 @@ export function TransactionTable({
           category={detail.categoryId ? catBy.get(detail.categoryId) : undefined}
           categories={categories}
           onClose={() => setDetail(null)}
+          onToggleExcluded={() => setExcluded([detail.id], !detail.excluded)}
           onCreateRule={() => {
             setRule({ matchType: "merchant", pattern: detail.merchant ?? detail.descriptionRaw, categoryId: detail.categoryId ?? undefined });
             setDetail(null);
@@ -229,12 +243,14 @@ function TransactionDetail({
   category,
   categories,
   onClose,
+  onToggleExcluded,
   onCreateRule,
 }: {
   tx: TxItem;
   category?: CategoryOption;
   categories: CategoryOption[];
   onClose: () => void;
+  onToggleExcluded: () => void;
   onCreateRule: () => void;
 }) {
   const t = useTranslations("transactions.detail");
@@ -245,7 +261,7 @@ function TransactionDetail({
   const [history, setHistory] = useState<Change[] | null>(null);
   const [pending, start] = useTransition();
   const catName = (id: string | null) => (id ? (categories.find((c) => c.id === id)?.name ?? t("deletedCategory")) : tc("uncategorized"));
-  const fieldLabel = (field: string) => (field === "category" || field === "notes" ? t(`fields.${field}`) : field);
+  const fieldLabel = (field: string) => (field === "category" || field === "notes" || field === "excluded" ? t(`fields.${field}`) : field);
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -301,6 +317,9 @@ function TransactionDetail({
                 </a>
               </Button>
             )}
+            <Button variant="outline" size="sm" disabled={pending} onClick={onToggleExcluded}>
+              {tx.excluded ? <RotateCcw /> : <Trash2 />} {tx.excluded ? t("restore") : t("remove")}
+            </Button>
             <Button variant="outline" size="sm" onClick={onCreateRule}>
               <Wand2 /> {t("rule")}
             </Button>

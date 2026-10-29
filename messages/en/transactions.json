@@ -12,7 +12,8 @@
     "from": "From",
     "to": "To",
     "needsAttention": "Needs attention",
-    "reset": "Reset"
+    "reset": "Reset",
+    "removed": "Removed"
   },
   "picker": {
     "search": "Search categories…",
@@ -45,7 +46,11 @@
     "categorizedAs": "Categorized as {category}",
     "suggestRule": "Always categorize “{merchant}” as {category}?",
     "createRule": "Create rule",
-    "updated": "{count, plural, one {# transaction updated} other {# transactions updated}}"
+    "updated": "{count, plural, one {# transaction updated} other {# transactions updated}}",
+    "remove": "Remove",
+    "restore": "Restore",
+    "removed": "{count, plural, one {# transaction removed} other {# transactions removed}}",
+    "restored": "{count, plural, one {# transaction restored} other {# transactions restored}}"
   },
   "detail": {
     "originalDescription": "Original description",
@@ -56,14 +61,17 @@
     "deletedCategory": "Deleted category",
     "fields": {
       "category": "category",
-      "notes": "notes"
+      "notes": "notes",
+      "excluded": "removed"
     },
     "sourcePdf": "Source PDF",
     "rule": "Rule",
     "unlinkTransfer": "Unlink transfer",
     "transferUnlinked": "Transfer unlinked",
     "saveNotes": "Save notes",
-    "notesSaved": "Notes saved"
+    "notesSaved": "Notes saved",
+    "remove": "Remove",
+    "restore": "Restore"
   },
   "rule": {
     "title": "Create a rule",

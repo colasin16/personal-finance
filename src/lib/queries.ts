@@ -1,6 +1,6 @@
 import { localizeCategoryName } from "@/lib/i18n/categories";
 import { addDays, differenceInCalendarDays, format, parseISO, startOfMonth, subMonths } from "date-fns";
-import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, isNotNull, isNull, lte, or, sql, type SQL } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import {
   accountOwners,
@@ -154,7 +154,7 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
           descriptionRaw: transactions.descriptionRaw,
         })
         .from(transactions)
-        .where(inArray(transactions.accountId, [...shareBy.keys()]))
+        .where(and(inArray(transactions.accountId, [...shareBy.keys()]), isNull(transactions.excludedAt)))
         .orderBy(asc(transactions.bookedAt), asc(transactions.position))
     : [];
 
@@ -355,6 +355,8 @@ export type TransactionFilters = {
   to?: string;
   flagged?: boolean;
   statementId?: string;
+  /** Show only removed transactions instead of hiding them. */
+  excluded?: boolean;
   page?: number;
   pageSize?: number;
 };
@@ -371,6 +373,7 @@ export async function listTransactions(db: Db, householdId: string, visibleIds: 
   if (filters.to) conditions.push(lte(transactions.bookedAt, filters.to));
   if (filters.flagged) conditions.push(eq(transactions.flagged, true));
   if (filters.statementId) conditions.push(eq(transactions.statementId, filters.statementId));
+  conditions.push(filters.excluded ? isNotNull(transactions.excludedAt) : isNull(transactions.excludedAt));
   if (filters.q) {
     const like = `%${filters.q.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
     conditions.push(or(ilike(transactions.descriptionRaw, like), ilike(transactions.merchant, like), ilike(transactions.notes, like)));
@@ -436,7 +439,7 @@ export async function getIssues(db: Db, householdId: string, userId: string) {
         .from(transactions)
         .innerJoin(accounts, eq(accounts.id, transactions.accountId))
         .leftJoin(categories, eq(categories.id, transactions.categoryId))
-        .where(and(eq(transactions.householdId, householdId), inArray(transactions.accountId, ids), eq(transactions.flagged, true)))
+        .where(and(eq(transactions.householdId, householdId), inArray(transactions.accountId, ids), eq(transactions.flagged, true), isNull(transactions.excludedAt)))
         .orderBy(desc(transactions.bookedAt))
     : [];
 

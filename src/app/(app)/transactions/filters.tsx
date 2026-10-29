@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Flag, Search, X } from "lucide-react";
+import { Flag, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,7 +40,8 @@ export function TransactionFilters({ accounts, categories }: { accounts: { id: s
 
   const category = params.get("category");
   const flagged = params.get("flagged") === "1";
-  const active = ["q", "account", "category", "from", "to", "flagged", "statement"].some((k) => params.get(k));
+  const removed = params.get("removed") === "1";
+  const active = ["q", "account", "category", "from", "to", "flagged", "removed", "statement"].some((k) => params.get(k));
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -80,6 +81,9 @@ export function TransactionFilters({ accounts, categories }: { accounts: { id: s
       <Input type="date" className="w-36" value={params.get("to") ?? ""} onChange={(e) => update({ to: e.target.value || null })} aria-label={t("to")} />
       <Button variant={flagged ? "default" : "outline"} size="sm" onClick={() => update({ flagged: flagged ? null : "1" })}>
         <Flag /> {t("needsAttention")}
+      </Button>
+      <Button variant={removed ? "default" : "outline"} size="sm" onClick={() => update({ removed: removed ? null : "1" })}>
+        <Trash2 /> {t("removed")}
       </Button>
       {active && (
         <Button

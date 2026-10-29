@@ -19,6 +19,7 @@ export type TxItem = {
   notes: string | null;
   statementId: string | null;
   isConfirmed: boolean;
+  excluded: boolean;
 };
 
 export function toTxItem(row: {
@@ -39,6 +40,7 @@ export function toTxItem(row: {
     notes: string | null;
     statementId: string | null;
     isConfirmed: boolean;
+    excludedAt: Date | null;
   };
   accountName: string;
   bankId: string;
@@ -67,5 +69,6 @@ export function toTxItem(row: {
     notes: tx.notes,
     statementId: tx.statementId,
     isConfirmed: tx.isConfirmed,
+    excluded: tx.excludedAt !== null,
   };
 }

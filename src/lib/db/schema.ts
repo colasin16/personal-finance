@@ -205,6 +205,8 @@ export const transactions = pgTable(
     flagReason: text("flag_reason"),
     transferGroupId: uuid("transfer_group_id"),
     notes: text("notes"),
+    // Set when the user removes the row: it stays so re-imports of the statement keep skipping it.
+    excludedAt: timestamp("excluded_at", { withTimezone: true }),
     fingerprint: text("fingerprint").notNull(),
     createdAt: createdAt(),
   },

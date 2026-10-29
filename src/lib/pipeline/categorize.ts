@@ -124,7 +124,7 @@ export async function previewRule(
       categorizedBy: transactions.categorizedBy,
     })
     .from(transactions)
-    .where(and(eq(transactions.householdId, householdId), isNull(transactions.transferGroupId)));
+    .where(and(eq(transactions.householdId, householdId), isNull(transactions.transferGroupId), isNull(transactions.excludedAt)));
   return rows.filter(
     (t) => t.categorizedBy !== "user" && t.categoryId !== rule.categoryId && ruleMatches(rule, { description: t.descriptionRaw, merchant: t.merchant }),
   );
@@ -193,6 +193,7 @@ export async function findTransferSuggestions(db: Db, householdId: string, accou
       and(
         eq(transactions.householdId, householdId),
         isNull(transactions.transferGroupId),
+        isNull(transactions.excludedAt),
         accountIds ? inArray(transactions.accountId, accountIds) : undefined,
       ),
     );

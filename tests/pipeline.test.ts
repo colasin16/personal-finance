@@ -1,11 +1,12 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { createDb, type Db } from "@/lib/db";
 import { categories, statements, transactions } from "@/lib/db/schema";
 import { SAMPLE_ACCOUNTS, SAMPLE_MONTHS, buildSampleStatements, renderSampleStatementPdf, sampleFileName } from "@/lib/dev/sample-statements";
 import { acceptInvite, createAccount, createHousehold, createInvite, findOrCreateUser } from "@/lib/households";
 import { processStatement, confirmStatement } from "@/lib/pipeline/process-statement";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
+import { listTransactions } from "@/lib/queries";
 import { applyRuleRetroactively, previewRule } from "@/lib/pipeline/categorize";
 import { MockLlmProvider } from "@/lib/services/llm/mock";
 import type { FileStorage } from "@/lib/services/storage";
@@ -109,6 +110,26 @@ describe("statement pipeline (PGlite + offline parser)", () => {
       .from(transactions)
       .where(and(eq(transactions.householdId, householdId), eq(transactions.merchant, "Bodega El Rincon"), isNull(transactions.categoryId)));
     expect(stillFlagged).toHaveLength(0);
+  });
+
+  it("keeps removed transactions hidden when the statement is processed again", async () => {
+    const [statement] = await db.select().from(statements).where(eq(statements.householdId, householdId)).orderBy(desc(statements.createdAt)).limit(1);
+    const [victim] = await db
+      .select()
+      .from(transactions)
+      .where(and(eq(transactions.statementId, statement!.id), isNull(transactions.transferGroupId)))
+      .limit(1);
+    await db.update(transactions).set({ excludedAt: new Date() }).where(eq(transactions.id, victim!.id));
+    const before = await db.select().from(transactions).where(eq(transactions.statementId, statement!.id));
+
+    await processStatement(db, statement!.id, { storage, llm });
+
+    const after = await db.select().from(transactions).where(eq(transactions.statementId, statement!.id));
+    expect(after).toHaveLength(before.length);
+    expect(after.find((r) => r.id === victim!.id)?.excludedAt).not.toBeNull();
+    const listed = await listTransactions(db, householdId, [statement!.accountId!], { statementId: statement!.id, pageSize: 2000 });
+    expect(listed.rows.some((r) => r.tx.id === victim!.id)).toBe(false);
+    expect(listed.total).toBe(before.length - 1);
   });
 
   it("confirms statements", async () => {

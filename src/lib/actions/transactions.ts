@@ -17,7 +17,7 @@ const uuid = z.string().uuid();
 async function loadTransactions(ids: string[]) {
   const ctx = await requireContext();
   const parsed = z.array(uuid).min(1).max(1000).parse(ids);
-  const visible = new Set((await getVisibleAccounts(ctx.db, ctx.household.id, ctx.user.id)).map((a) => a.id));
+  const visible = new Set((await getVisibleAccounts(ctx.db, ctx.household.id, ctx.user.id, { includeArchived: true })).map((a) => a.id));
   const rows = await ctx.db
     .select()
     .from(transactions)
@@ -74,6 +74,40 @@ export async function setNotesAction(id: string, notes: string): Promise<ActionR
   } catch (error) {
     return fail(error);
   }
+}
+
+/** Removes (or restores) transactions without deleting them, so re-importing a statement does not bring them back. */
+async function setExcluded(ids: string[], excluded: boolean): Promise<ActionResult<{ updated: number }>> {
+  try {
+    const { db, household, user, rows } = await loadTransactions(ids);
+    const changed = rows.filter((r) => (r.excludedAt !== null) !== excluded);
+    if (changed.length === 0) return ok({ updated: 0 });
+    // A removed row must not stay half of a linked transfer.
+    if (excluded) {
+      for (const groupId of new Set(changed.map((r) => r.transferGroupId).filter((g): g is string => !!g))) {
+        await unlinkTransfer(db, household.id, groupId);
+      }
+    }
+    await db
+      .update(transactions)
+      .set({ excludedAt: excluded ? new Date() : null })
+      .where(inArray(transactions.id, changed.map((r) => r.id)));
+    await db.insert(transactionChanges).values(
+      changed.map((r) => ({ transactionId: r.id, userId: user.id, field: "excluded", oldValue: String(!excluded), newValue: String(excluded) })),
+    );
+    revalidatePath("/", "layout");
+    return ok({ updated: changed.length });
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function excludeTransactionsAction(ids: string[]) {
+  return setExcluded(ids, true);
+}
+
+export async function restoreTransactionsAction(ids: string[]) {
+  return setExcluded(ids, false);
 }
 
 export async function getTransactionHistoryAction(id: string) {

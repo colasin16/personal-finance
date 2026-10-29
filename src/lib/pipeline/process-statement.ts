@@ -1,5 +1,5 @@
 import { UserError } from "@/lib/errors";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { accounts, banks, statements, transactions, type DetectedStatementInfo } from "@/lib/db/schema";
 import { compactIban, findIbans, redactSensitive } from "@/lib/domain/redact";
@@ -92,7 +92,8 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
     const issues = validateStatement({ openingBalanceCents: opening, closingBalanceCents: closing, transactions: rows });
 
     await setProgress("deduplicating");
-    await db.delete(transactions).where(eq(transactions.statementId, statementId));
+    // Removed rows are kept so their fingerprints keep them out of the re-import.
+    await db.delete(transactions).where(and(eq(transactions.statementId, statementId), isNull(transactions.excludedAt)));
     const values = withOrdinals(rows).map((row, position) => ({
       householdId: statement.householdId,
       accountId: account.id,

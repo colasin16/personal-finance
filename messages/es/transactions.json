@@ -12,7 +12,8 @@
     "from": "Desde",
     "to": "Hasta",
     "needsAttention": "Requiere atención",
-    "reset": "Restablecer"
+    "reset": "Restablecer",
+    "removed": "Eliminados"
   },
   "picker": {
     "search": "Buscar categorías…",
@@ -45,7 +46,11 @@
     "categorizedAs": "Categorizado como {category}",
     "suggestRule": "¿Categorizar siempre “{merchant}” como {category}?",
     "createRule": "Crear regla",
-    "updated": "{count, plural, one {# movimiento actualizado} other {# movimientos actualizados}}"
+    "updated": "{count, plural, one {# movimiento actualizado} other {# movimientos actualizados}}",
+    "remove": "Eliminar",
+    "restore": "Restaurar",
+    "removed": "{count, plural, one {# movimiento eliminado} other {# movimientos eliminados}}",
+    "restored": "{count, plural, one {# movimiento restaurado} other {# movimientos restaurados}}"
   },
   "detail": {
     "originalDescription": "Descripción original",
@@ -56,14 +61,17 @@
     "deletedCategory": "Categoría eliminada",
     "fields": {
       "category": "categoría",
-      "notes": "notas"
+      "notes": "notas",
+      "excluded": "eliminado"
     },
     "sourcePdf": "PDF original",
     "rule": "Regla",
     "unlinkTransfer": "Desvincular traspaso",
     "transferUnlinked": "Traspaso desvinculado",
     "saveNotes": "Guardar notas",
-    "notesSaved": "Notas guardadas"
+    "notesSaved": "Notas guardadas",
+    "remove": "Eliminar",
+    "restore": "Restaurar"
   },
   "rule": {
     "title": "Crear una regla",
