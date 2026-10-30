@@ -41,11 +41,11 @@ With mock auth in production, `AUTH_SECRET` is required and demo login is disabl
 
    ```html
    <h2>Sign in to Household Finance</h2>
-   <p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Sign in</a></p>
+   <p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Sign in</a></p>
    <p>Or enter this code: <strong>{{ .Token }}</strong></p>
    ```
 
-   `{{ .RedirectTo }}` is the app's `/auth/callback?next=…` URL, so the user lands where they started (e.g. an invite). This link (`token_hash`) works in any browser.
+   This link (`token_hash`) works in any browser. It relies on the Site URL being the app's public URL; in the browser that asked for the email, the user still lands where they started (e.g. an invite).
 4. Configure custom SMTP (**Authentication → Emails → SMTP Settings**, e.g. Resend or Postmark). Supabase's built-in sender only allows a few emails per hour and is meant for testing.
 
 `src/proxy.ts` refreshes the session on every request. App users get the same id as their Supabase user, which is what `supabase/rls.sql` expects.

@@ -2,7 +2,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { getDb } from "@/lib/db";
 import { ensureAuthUser } from "@/lib/households";
-import { safeNext } from "@/lib/safe-next";
+import { AUTH_NEXT_COOKIE, safeNext } from "@/lib/safe-next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
@@ -11,7 +11,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
-  const next = safeNext(params.get("next"));
+  const next = safeNext(params.get("next") ?? request.cookies.get(AUTH_NEXT_COOKIE)?.value);
   // Behind a proxy request.url can be an internal address; APP_URL is the public one.
   const base = process.env.APP_URL ?? request.url;
   const fail = () => NextResponse.redirect(new URL(`/login?error=link_invalid&next=${encodeURIComponent(next)}`, base));
@@ -38,5 +38,7 @@ export async function GET(request: NextRequest) {
     email: data.user.email,
     displayName: typeof name === "string" ? name : undefined,
   });
-  return NextResponse.redirect(new URL(next, base));
+  const response = NextResponse.redirect(new URL(next, base));
+  response.cookies.delete({ name: AUTH_NEXT_COOKIE, path: "/auth" });
+  return response;
 }

@@ -2,13 +2,13 @@
 
 import { UserError } from "@/lib/errors";
 import { fail } from "./result";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { ensureDemoHousehold } from "@/lib/dev/demo";
 import { ensureAuthUser, findOrCreateUser } from "@/lib/households";
-import { safeNext } from "@/lib/safe-next";
+import { AUTH_NEXT_COOKIE, safeNext } from "@/lib/safe-next";
 import { authMode, endSession, startSession } from "@/lib/server/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -48,6 +48,7 @@ export async function signIn(_: unknown, formData: FormData): Promise<SignInStat
       console.error("[auth] signInWithOtp failed", error.status, error.message);
       return { error: (await fail(new UserError(error.status === 429 ? "auth_rate_limited" : "auth_email_failed"))).error };
     }
+    (await cookies()).set(AUTH_NEXT_COOKIE, next, { httpOnly: true, sameSite: "lax", path: "/auth", maxAge: 60 * 60 });
     return { sentTo: email };
   }
 
