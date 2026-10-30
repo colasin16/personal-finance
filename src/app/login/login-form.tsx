@@ -94,7 +94,7 @@ function EmailStep({ next, mode, demoEnabled, linkError, onRestart }: Props & { 
 }
 
 /** Supabase's default email OTP length (Authentication → Providers → Email). */
-const CODE_LENGTH = 6;
+const CODE_LENGTH = 8;
 
 function CodeStep({ email, next, onRestart }: { email: string; next?: string; onRestart: () => void }) {
   const [state, action, pending] = useActionState(verifyEmailCode, null);
@@ -139,14 +139,14 @@ function CodeStep({ email, next, onRestart }: { email: string; next?: string; on
             autoFocus
           >
             <InputOTPGroup>
-              {[0, 1, 2].map((i) => (
-                <InputOTPSlot key={i} index={i} className="size-11 text-lg" aria-invalid={state?.error ? true : undefined} />
+              {[0, 1, 2, 3].map((i) => (
+                <InputOTPSlot key={i} index={i} className="size-9 text-base sm:size-11 sm:text-lg" aria-invalid={state?.error ? true : undefined} />
               ))}
             </InputOTPGroup>
             <InputOTPSeparator />
             <InputOTPGroup>
-              {[3, 4, 5].map((i) => (
-                <InputOTPSlot key={i} index={i} className="size-11 text-lg" aria-invalid={state?.error ? true : undefined} />
+              {[4, 5, 6, 7].map((i) => (
+                <InputOTPSlot key={i} index={i} className="size-9 text-base sm:size-11 sm:text-lg" aria-invalid={state?.error ? true : undefined} />
               ))}
             </InputOTPGroup>
           </InputOTP>

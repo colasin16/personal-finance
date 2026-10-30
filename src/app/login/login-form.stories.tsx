@@ -14,7 +14,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Supabase: Story = {};
 
-/** After the email is sent: enter the code (the mock accepts 123456). */
+/** After the email is sent: enter the code (the mock accepts 12345678). */
 export const CheckEmail: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
