@@ -4,7 +4,7 @@ import { findIbans, redactSensitive } from "@/lib/domain/redact";
 import { normalizeMerchant, transactionFingerprint, withOrdinals } from "@/lib/domain/text";
 import { fillRunningBalances, validateStatement } from "@/lib/domain/validation";
 import { findMatchingRule, type CategoryRule } from "@/lib/domain/rules";
-import { findMentionedAccount, findTransferPairs } from "@/lib/domain/transfers";
+import { findMentionedAccount, findTransferPairs, rankTransferMatches } from "@/lib/domain/transfers";
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
 import { keywordCategorize } from "@/lib/domain/keywords";
@@ -304,5 +304,20 @@ describe("findMentionedAccount", () => {
     expect(findMentionedAccount("Desde Cuenta Principal", accounts, "main")).toBeNull();
     expect(findMentionedAccount("AHORRO VACACIONESX", accounts, "main")).toBeNull();
     expect(findMentionedAccount("BIG BURGER", accounts, "main")).toBeNull();
+  });
+});
+
+describe("rankTransferMatches", () => {
+  const tx = { id: "t", accountId: "a", bookedAt: "2026-09-10", amountCents: -5000 };
+  it("keeps mirror amounts in other accounts within the window, closest first", () => {
+    const candidates = [
+      { id: "far", accountId: "b", bookedAt: "2026-09-30", amountCents: 5000 },
+      { id: "near", accountId: "c", bookedAt: "2026-09-11", amountCents: 5000 },
+      { id: "same-account", accountId: "a", bookedAt: "2026-09-10", amountCents: 5000 },
+      { id: "same-sign", accountId: "b", bookedAt: "2026-09-10", amountCents: -5000 },
+      { id: "other-amount", accountId: "b", bookedAt: "2026-09-10", amountCents: 4999 },
+      { id: "too-far", accountId: "b", bookedAt: "2026-11-01", amountCents: 5000 },
+    ];
+    expect(rankTransferMatches(tx, candidates).map((c) => c.id)).toEqual(["near", "far"]);
   });
 });

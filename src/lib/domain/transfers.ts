@@ -48,6 +48,20 @@ export function findTransferPairs(candidates: TransferCandidate[], maxDays = 3):
   return pairs;
 }
 
+/**
+ * Possible other sides of `tx` for a manual link: the mirror amount in another account,
+ * within `maxDays`, closest dates first.
+ */
+export function rankTransferMatches<T extends TransferCandidate>(tx: TransferCandidate, candidates: T[], maxDays = 31, limit = 10): T[] {
+  return candidates
+    .filter((c) => c.id !== tx.id && c.accountId !== tx.accountId && c.amountCents === -tx.amountCents)
+    .map((c) => ({ c, days: daysBetween(c.bookedAt, tx.bookedAt) }))
+    .filter(({ days }) => days <= maxDays)
+    .sort((a, b) => a.days - b.days || a.c.bookedAt.localeCompare(b.c.bookedAt))
+    .slice(0, limit)
+    .map(({ c }) => c);
+}
+
 export type NamedAccount = { id: string; name: string };
 
 const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

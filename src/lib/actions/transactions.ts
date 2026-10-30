@@ -1,13 +1,15 @@
 "use server";
 
 import { UserError } from "@/lib/errors";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { categories, categoryRules, dismissedSuggestions, transactionChanges, transactions } from "@/lib/db/schema";
 import { isValidRegex } from "@/lib/domain/rules";
+import { rankTransferMatches } from "@/lib/domain/transfers";
 import { applyAllRules, applyRuleRetroactively, linkTransfer, previewRule, unlinkTransfer } from "@/lib/pipeline/categorize";
 import { getVisibleAccounts } from "@/lib/queries";
+import type { AccountRefData } from "@/components/accounts/account-ref";
 import { requireContext } from "@/lib/server/auth";
 import { fail, ok, type ActionResult } from "./result";
 
@@ -17,14 +19,15 @@ const uuid = z.string().uuid();
 async function loadTransactions(ids: string[]) {
   const ctx = await requireContext();
   const parsed = z.array(uuid).min(1).max(1000).parse(ids);
-  const visible = new Set((await getVisibleAccounts(ctx.db, ctx.household.id, ctx.user.id, { includeArchived: true })).map((a) => a.id));
+  const visibleAccounts = await getVisibleAccounts(ctx.db, ctx.household.id, ctx.user.id, { includeArchived: true });
+  const visible = new Set(visibleAccounts.map((a) => a.id));
   const rows = await ctx.db
     .select()
     .from(transactions)
     .where(and(eq(transactions.householdId, ctx.household.id), inArray(transactions.id, parsed)));
   const allowed = rows.filter((r) => visible.has(r.accountId));
   if (allowed.length !== parsed.length) throw new UserError("transactions_not_found");
-  return { ...ctx, rows: allowed };
+  return { ...ctx, rows: allowed, visibleAccounts };
 }
 
 async function assertCategory(db: Awaited<ReturnType<typeof requireContext>>["db"], householdId: string, categoryId: string | null) {
@@ -247,6 +250,67 @@ export async function linkTransferAction(outgoingId: string, incomingId: string)
     await linkTransfer(db, household.id, outgoingId, incomingId);
     revalidatePath("/", "layout");
     return ok();
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export type TransferMatch = {
+  id: string;
+  bookedAt: string;
+  description: string;
+  amountCents: number;
+  currency: string;
+  account: AccountRefData;
+};
+
+const MATCH_WINDOW_DAYS = 31;
+
+/** Unlinked mirror movements in the user's other accounts that could be the other side of a transfer. */
+export async function findTransferMatchesAction(transactionId: string): Promise<ActionResult<TransferMatch[]>> {
+  try {
+    const { db, household, rows, visibleAccounts } = await loadTransactions([transactionId]);
+    const tx = rows[0]!;
+    if (tx.transferGroupId || tx.excludedAt) return ok([]);
+    const others = visibleAccounts.filter((a) => a.id !== tx.accountId);
+    if (others.length === 0) return ok([]);
+    const shift = (days: number) => new Date(Date.parse(tx.bookedAt) + days * 86_400_000).toISOString().slice(0, 10);
+    const candidates = await db
+      .select({
+        id: transactions.id,
+        accountId: transactions.accountId,
+        bookedAt: transactions.bookedAt,
+        amountCents: transactions.amountCents,
+        currency: transactions.currency,
+        merchant: transactions.merchant,
+        descriptionRaw: transactions.descriptionRaw,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.householdId, household.id),
+          inArray(transactions.accountId, others.map((a) => a.id)),
+          eq(transactions.amountCents, -tx.amountCents),
+          isNull(transactions.transferGroupId),
+          isNull(transactions.excludedAt),
+          gte(transactions.bookedAt, shift(-MATCH_WINDOW_DAYS)),
+          lte(transactions.bookedAt, shift(MATCH_WINDOW_DAYS)),
+        ),
+      );
+    const accountBy = new Map(others.map((a) => [a.id, a]));
+    return ok(
+      rankTransferMatches(tx, candidates, MATCH_WINDOW_DAYS).map((c) => {
+        const a = accountBy.get(c.accountId)!;
+        return {
+          id: c.id,
+          bookedAt: c.bookedAt,
+          description: c.merchant || c.descriptionRaw,
+          amountCents: c.amountCents,
+          currency: c.currency,
+          account: { name: a.name, bankId: a.bankId, bankName: a.bankName, bankColor: a.bankColor, ibanLast4: a.ibanLast4 },
+        };
+      }),
+    );
   } catch (error) {
     return fail(error);
   }

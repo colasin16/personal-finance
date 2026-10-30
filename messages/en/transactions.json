@@ -72,6 +72,7 @@
     },
     "sourcePdf": "Source PDF",
     "rule": "Rule",
+    "linkTransfer": "Link transfer",
     "unlinkTransfer": "Unlink transfer",
     "transferUnlinked": "Transfer unlinked",
     "saveNotes": "Save notes",
@@ -96,5 +97,13 @@
     "save": "Save rule",
     "saved": "Rule saved",
     "savedApplied": "Rule saved and applied to {count, plural, one {# transaction} other {# transactions}}"
+  },
+  "linkTransfer": {
+    "title": "Link to the other side of a transfer",
+    "hint": "Same amount with the opposite sign in your other accounts, closest dates first.",
+    "empty": "No matching movement found. We look for the same amount with the opposite sign in your other accounts, up to a month apart.",
+    "link": "Link",
+    "linked": "Transfer linked",
+    "cancel": "Cancel linking"
   }
 }

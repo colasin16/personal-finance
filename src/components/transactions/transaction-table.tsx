@@ -10,6 +10,7 @@ import {
   FileText,
   Flag,
   History,
+  Link2,
   Link2Off,
   Loader2,
   RotateCcw,
@@ -59,6 +60,7 @@ import {
 } from "@/components/ui/tooltip";
 import { CategoryLabel, UNCATEGORIZED_COLOR } from "./category-label";
 import { CategoryPicker, type CategoryOption } from "./category-picker";
+import { LinkTransferPicker } from "./link-transfer-picker";
 import { RuleDialog } from "./rule-dialog";
 import type { RuleInput } from "@/lib/actions/transactions";
 import type { TxItem } from "./tx-item";
@@ -422,6 +424,7 @@ function TransactionDetail({
   const flagReason = useFlagReason();
   const [notes, setNotes] = useState(tx.notes ?? "");
   const [history, setHistory] = useState<Change[] | null>(null);
+  const [linking, setLinking] = useState(false);
   const [pending, start] = useTransition();
   const catName = (id: string | null) =>
     id
@@ -467,6 +470,14 @@ function TransactionDetail({
               )}
             </span>
           </div>
+          {linking && (
+            <LinkTransferPicker
+              transactionId={tx.id}
+              amountCents={tx.amountCents}
+              onCancel={() => setLinking(false)}
+              onLinked={onClose}
+            />
+          )}
           {tx.linked.length > 0 && (
             <div>
               <p className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -609,6 +620,11 @@ function TransactionDetail({
             <Button variant="outline" size="sm" onClick={onCreateRule}>
               <Wand2 /> {t("rule")}
             </Button>
+            {!tx.transferGroupId && !tx.excluded && !linking && (
+              <Button variant="outline" size="sm" onClick={() => setLinking(true)}>
+                <Link2 /> {t("linkTransfer")}
+              </Button>
+            )}
             {tx.transferGroupId && (
               <Button
                 variant="outline"

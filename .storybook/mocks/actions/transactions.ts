@@ -34,3 +34,16 @@ export const categorizeMerchantAction = fn<typeof real.categorizeMerchantAction>
 export const linkTransferAction = fn<typeof real.linkTransferAction>(async () => done).mockName("linkTransferAction");
 export const unlinkTransferAction = fn<typeof real.unlinkTransferAction>(async () => done).mockName("unlinkTransferAction");
 export const dismissSuggestionAction = fn<typeof real.dismissSuggestionAction>(async () => done).mockName("dismissSuggestionAction");
+export const findTransferMatchesAction = fn<typeof real.findTransferMatchesAction>(async () => ({
+  ok: true,
+  data: [
+    {
+      id: "match-1",
+      bookedAt: "2026-09-02",
+      description: "Transferencia a Cuenta Común",
+      amountCents: -90000,
+      currency: "EUR",
+      account: { name: "Cuenta Nómina Alex", bankId: "ing", bankName: "ING", bankColor: "#ff6200", ibanLast4: "8901" },
+    },
+  ],
+})).mockName("findTransferMatchesAction");

@@ -72,6 +72,7 @@
     },
     "sourcePdf": "PDF original",
     "rule": "Regla",
+    "linkTransfer": "Vincular traspaso",
     "unlinkTransfer": "Desvincular traspaso",
     "transferUnlinked": "Traspaso desvinculado",
     "saveNotes": "Guardar notas",
@@ -96,5 +97,13 @@
     "save": "Guardar regla",
     "saved": "Regla guardada",
     "savedApplied": "Regla guardada y aplicada a {count, plural, one {# movimiento} other {# movimientos}}"
+  },
+  "linkTransfer": {
+    "title": "Vincular con la otra parte del traspaso",
+    "hint": "Mismo importe con signo contrario en tus otras cuentas, primero las fechas más cercanas.",
+    "empty": "No hay ningún movimiento que coincida. Buscamos el mismo importe con signo contrario en tus otras cuentas, con hasta un mes de diferencia.",
+    "link": "Vincular",
+    "linked": "Traspaso vinculado",
+    "cancel": "Cancelar vinculación"
   }
 }
