@@ -11,8 +11,9 @@ const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
 /**
  * Real Postgres (e.g. Supabase) when DATABASE_URL is set, otherwise an embedded PGlite
  * database stored in `.data/pglite` (or in memory for tests) so the app runs with zero setup.
+ * Postgres is migrated by `pnpm db:migrate` at deploy time (`migrate: true`), not on every cold start.
  */
-export async function createDb(options: { url?: string; dataDir?: string | "memory" } = {}): Promise<Db> {
+export async function createDb(options: { url?: string; dataDir?: string | "memory"; migrate?: boolean } = {}): Promise<Db> {
   const url = options.url ?? process.env.DATABASE_URL;
   let db: Db;
 
@@ -22,6 +23,7 @@ export async function createDb(options: { url?: string; dataDir?: string | "memo
     const { migrate } = await import("drizzle-orm/postgres-js/migrator");
     const client = postgres(url, { prepare: false, max: 5 });
     const pgDb = drizzle(client, { schema });
+    if (!options.migrate) return pgDb as unknown as Db;
     await migrate(pgDb, { migrationsFolder: MIGRATIONS_FOLDER });
     db = pgDb as unknown as Db;
   } else {

@@ -59,6 +59,7 @@ With mock auth in production, `AUTH_SECRET` is required and demo login is disabl
 | `pnpm typecheck` / `pnpm lint` | TypeScript / ESLint |
 | `pnpm samples` | Regenerate the sample bank statements in `samples/` |
 | `pnpm db:generate` | Generate a Drizzle migration after editing `src/lib/db/schema.ts` |
+| `pnpm db:migrate` | Apply migrations and seed banks on `DATABASE_URL`. Runs automatically on Vercel (`vercel-build`); on other hosts run it before `pnpm build`. The embedded PGlite database migrates itself on startup |
 | `pnpm storybook` / `pnpm build-storybook` | Storybook on http://localhost:6006: components in isolation with fake data (`src/stories/fixtures.ts`), language and light/dark toolbar switches. Server actions are replaced by mocks in `.storybook/mocks/actions` |
 
 ## How sharing works

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "pnpm db:migrate && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
@@ -13,6 +14,7 @@
     "samples": "tsx scripts/generate-samples.ts",
     "pdf:shape": "tsx scripts/pdf-shape.ts",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/db-migrate.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
