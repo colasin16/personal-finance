@@ -7,6 +7,7 @@ import { ArrowRight, FileText, FileUp, Loader2, MoreHorizontal, Plus, RotateCw, 
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { DetectedStatementInfo } from "@/lib/db/schema";
+import type { StatementStatus } from "@/app/api/statements/status/route";
 import { assignStatementAccountAction, deleteStatementAction, retryStatementAction } from "@/lib/actions/statements";
 import { translateError } from "@/i18n/errors";
 import { formatDate } from "@/lib/labels";
@@ -38,6 +39,8 @@ type StatementItem = {
 type AccountOption = AccountRefData & { id: string };
 
 const AUTO = "auto";
+const POLL_MS = 2000;
+const inProgress = (status: string) => status === "uploaded" || status === "processing";
 
 export function ImportView({
   accounts,
@@ -61,17 +64,38 @@ export function ImportView({
   const [over, setOver] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const input = useRef<HTMLInputElement>(null);
-  const busy = statements.some((s) => s.status === "uploaded" || s.status === "processing");
+  const [live, setLive] = useState<Record<string, StatementStatus>>({});
+  const pendingKey = statements
+    .filter((s) => inProgress(s.status))
+    .map((s) => s.id)
+    .join(",");
 
-  // Poll while the background queue works through uploads.
+  // Poll a small status endpoint while statements process, and re-render the page only once one finishes.
+  // (Refreshing the whole page on a timer queued up server renders and made the app unresponsive.)
   useEffect(() => {
-    if (!busy) return;
-    const timer = setInterval(() => {
+    if (!pendingKey) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const controller = new AbortController();
+    const tick = async () => {
       setNow(Date.now());
-      router.refresh();
-    }, 1500);
-    return () => clearInterval(timer);
-  }, [busy, router]);
+      try {
+        const res = await fetch(`/api/statements/status?ids=${pendingKey}`, { signal: controller.signal, cache: "no-store" });
+        if (res.ok) {
+          const { statuses } = (await res.json()) as { statuses: StatementStatus[] };
+          setLive(Object.fromEntries(statuses.map((s) => [s.id, s])));
+          if (statuses.some((s) => !inProgress(s.status))) return router.refresh();
+        }
+      } catch {
+        if (controller.signal.aborted) return;
+      }
+      timer = setTimeout(tick, POLL_MS);
+    };
+    timer = setTimeout(tick, POLL_MS);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [pendingKey, router]);
 
   const send = (files: FileList | null) => {
     if (files?.length) void upload(Array.from(files), target === AUTO ? null : target);
@@ -154,7 +178,7 @@ export function ImportView({
             </div>
           ) : (
             <ul className="divide-y">
-              {statements.map((s) => (
+              {statements.map((s) => ({ ...s, ...(inProgress(s.status) ? live[s.id] : undefined) })).map((s) => (
                 <StatementRow
                   key={s.id}
                   statement={s}
@@ -162,7 +186,7 @@ export function ImportView({
                   banks={banks}
                   members={members}
                   currentUserId={currentUserId}
-                  stuck={!jobsRunning && (s.status === "uploaded" || s.status === "processing") && now - Date.parse(s.createdAt) > 60_000}
+                  stuck={!jobsRunning && inProgress(s.status) && now - Date.parse(s.createdAt) > 60_000}
                 />
               ))}
             </ul>
