@@ -114,6 +114,7 @@
       "localDisk": "Local disk (.data/uploads)",
       "supabase": "Supabase Storage",
       "mockMagicLink": "Mock magic link (signed cookie)",
+      "supabaseAuth": "Supabase Auth (email link + code)",
       "inProcessQueue": "In-process queue",
       "brandfetch": "Brandfetch",
       "lettermarks": "Lettermarks (offline)"

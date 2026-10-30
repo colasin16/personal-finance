@@ -19,6 +19,27 @@ export async function findOrCreateUser(db: Db, email: string, displayName?: stri
   return created!;
 }
 
+/**
+ * The app user for a Supabase Auth user. New users get the auth user's id so `auth.uid()` in
+ * supabase/rls.sql matches; a user created before Supabase Auth is found by email.
+ */
+export async function ensureAuthUser(db: Db, authUser: { id: string; email: string; displayName?: string }) {
+  const [byId] = await db.select().from(users).where(eq(users.id, authUser.id));
+  if (byId) return byId;
+  const email = authUser.email.trim().toLowerCase();
+  const [byEmail] = await db.select().from(users).where(eq(users.email, email));
+  if (byEmail) return byEmail;
+  const [created] = await db
+    .insert(users)
+    .values({ id: authUser.id, email, displayName: authUser.displayName?.trim() || email.split("@")[0]! })
+    .onConflictDoNothing()
+    .returning();
+  if (created) return created;
+  // Created concurrently by another request.
+  const [existing] = await db.select().from(users).where(eq(users.id, authUser.id));
+  return existing!;
+}
+
 export async function getMembership(db: Db, userId: string) {
   const [row] = await db
     .select({ household: households, role: householdMembers.role })

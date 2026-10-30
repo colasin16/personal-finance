@@ -13,25 +13,42 @@ pnpm dev            # http://localhost:3000
 
 On the login screen, click **Demo as Alex** (or **Sam**). This creates the household "Alex & Sam" with three accounts (one shared) and imports May–Sep 2026 sample statements. Go to **Import** and drop the October PDFs from `samples/` to watch the pipeline run.
 
-You can also sign in with any email. The "magic link" is mocked and signs you in immediately. From there you create a household and invite your partner with a copyable link.
+You can also sign in with any email. Without Supabase Auth configured, the "magic link" is mocked and signs you in immediately. From there you create a household and invite your partner with a copyable link.
 
 ## Runs fully offline
 
-Every external service sits behind an adapter.
+Every external service sits behind an adapter. With no environment variables set, the app uses local mocks. **Settings → About** shows which mode each service is in.
 
-Statements are read and categorized entirely in code, with no LLM or external API. Each supported bank has a parser in `src/lib/parsers/` (others fall back to a generic parser). Categories come from your rules, merchant memory and the default category keywords. With no environment variables set, the app uses local mocks. **Settings → About** shows which mode each service is in.
+Statements are read and categorized entirely in code, with no LLM or external API. Each supported bank has a parser in `src/lib/parsers/` (others fall back to a generic parser). Categories come from your rules, merchant memory and the default category keywords.
 
 | Service | Default (mock) | Real (set in `.env.local`) |
 | --- | --- | --- |
 | Database | Embedded PGlite in `.data/pglite` | `DATABASE_URL` (Postgres / Supabase) |
 | PDF storage | Local disk `.data/uploads` | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET` |
-| Auth | Signed-cookie session, instant "magic link" | Supabase Auth (planned) |
+| Auth | Signed-cookie session, instant "magic link" | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (Supabase Auth: email link + one-time code, see below) |
 | Background jobs | In-process queue | Inngest (planned) |
 | Bank logos | Coloured lettermarks | `NEXT_PUBLIC_BRANDFETCH_CLIENT_ID` ([Brandfetch Logo API](https://docs.brandfetch.com/logo-api/overview), free). Logos are embedded from Brandfetch's CDN as its terms require. Bank domains are in `src/lib/banks.ts`. |
 
 Copy `.env.example` to `.env.local` to configure. Migrations in `drizzle/` run automatically on startup. Delete `.data/` to start from scratch.
 
-In production, `AUTH_SECRET` is required and demo login is disabled unless `ENABLE_DEMO=1`.
+With mock auth in production, `AUTH_SECRET` is required and demo login is disabled unless `ENABLE_DEMO=1`. Demo login is never available with Supabase Auth.
+
+### Supabase Auth setup
+
+1. Set `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (Project Settings → API Keys; the legacy anon key also works as `SUPABASE_ANON_KEY`). Set `APP_URL` to the public URL of the app (e.g. `https://finance.example.com`) so email links point to it.
+2. In **Authentication → URL Configuration**, set the Site URL to `APP_URL` and add `APP_URL/auth/callback**` to the Redirect URLs.
+3. In **Authentication → Emails → Magic Link**, include the one-time code so sign-in also works when the email opens in another browser or app (the default link only works in the browser that asked for it):
+
+   ```html
+   <h2>Sign in to Household Finance</h2>
+   <p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Sign in</a></p>
+   <p>Or enter this code: <strong>{{ .Token }}</strong></p>
+   ```
+
+   `{{ .RedirectTo }}` is the app's `/auth/callback?next=…` URL, so the user lands where they started (e.g. an invite). This link (`token_hash`) works in any browser.
+4. Configure custom SMTP (**Authentication → Emails → SMTP Settings**, e.g. Resend or Postmark). Supabase's built-in sender only allows a few emails per hour and is meant for testing.
+
+`src/proxy.ts` refreshes the session on every request. App users get the same id as their Supabase user, which is what `supabase/rls.sql` expects.
 
 ## Scripts
 

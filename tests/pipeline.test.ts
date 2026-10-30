@@ -4,7 +4,7 @@ import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { createDb, type Db } from "@/lib/db";
 import { categories, statements, transactions } from "@/lib/db/schema";
 import { SAMPLE_ACCOUNTS, SAMPLE_MONTHS, buildSampleStatements, renderSampleStatementPdf, sampleFileName } from "@/lib/dev/sample-statements";
-import { acceptInvite, createAccount, createHousehold, createInvite, findOrCreateUser } from "@/lib/households";
+import { acceptInvite, createAccount, createHousehold, createInvite, ensureAuthUser, findOrCreateUser } from "@/lib/households";
 import { processStatement, confirmStatement } from "@/lib/pipeline/process-statement";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
 import { listTransactions } from "@/lib/queries";
@@ -274,5 +274,20 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     expect(await confirmStatement(db, householdId, first!.id)).toBe(true);
     const rows = await db.select().from(transactions).where(eq(transactions.statementId, first!.id));
     expect(rows.every((r) => r.isConfirmed)).toBe(true);
+  });
+});
+
+describe("ensureAuthUser (Supabase Auth → app user)", () => {
+  it("creates users with the auth id, and links users created before Supabase Auth by email", async () => {
+    const db = await createDb({ dataDir: "memory", url: "" });
+    const authId = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
+
+    const created = await ensureAuthUser(db, { id: authId, email: "New@Example.com", displayName: "Nora" });
+    expect(created).toMatchObject({ id: authId, email: "new@example.com", displayName: "Nora" });
+    expect((await ensureAuthUser(db, { id: authId, email: "new@example.com" })).displayName).toBe("Nora");
+
+    const legacy = await findOrCreateUser(db, "old@example.com", "Olga");
+    const linked = await ensureAuthUser(db, { id: "0b6f1c2a-3d4e-4f50-8a6b-7c8d9e0f1a2b", email: "old@example.com" });
+    expect(linked.id).toBe(legacy.id);
   });
 });

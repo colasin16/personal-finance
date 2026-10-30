@@ -5,16 +5,18 @@ import { Logo } from "@/components/brand/logo";
 import { LanguageSwitch } from "@/components/theme/language-switch";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCurrentUser } from "@/lib/server/auth";
+import { safeNext } from "@/lib/safe-next";
+import { authMode, getCurrentUser } from "@/lib/server/auth";
 import { LoginForm } from "./login-form";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("auth.login"))("title") };
 }
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const { next } = await searchParams;
-  if (await getCurrentUser()) redirect(next?.startsWith("/") ? next : "/dashboard");
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
+  const { next, error } = await searchParams;
+  if (await getCurrentUser()) redirect(safeNext(next));
+  const mode = authMode();
   const t = await getTranslations("auth.login");
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center gap-8 p-6">
@@ -29,7 +31,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm next={next} demoEnabled={process.env.NODE_ENV !== "production" || process.env.ENABLE_DEMO === "1"} />
+          <LoginForm
+            next={next}
+            mode={mode}
+            linkError={error === "link_invalid"}
+            demoEnabled={mode === "mock" && (process.env.NODE_ENV !== "production" || process.env.ENABLE_DEMO === "1")}
+          />
         </CardContent>
       </Card>
     </main>
