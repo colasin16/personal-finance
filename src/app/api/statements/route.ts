@@ -10,6 +10,8 @@ import { getVisibleAccounts } from "@/lib/queries";
 import { enqueue } from "@/lib/services/jobs";
 
 export const runtime = "nodejs";
+// Statements are processed after the response, in the same function (see services/jobs.ts).
+export const maxDuration = 300;
 
 export type UploadResult = { fileName: string; statementId?: string; duplicate?: boolean; error?: string };
 

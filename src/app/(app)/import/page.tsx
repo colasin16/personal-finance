@@ -12,6 +12,9 @@ import { CompletenessGrid } from "@/components/statements/completeness-grid";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImportView } from "./import-view";
 
+// Retrying or assigning a statement processes it in the same function after the response.
+export const maxDuration = 300;
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("import");
   return { title: t("title") };
