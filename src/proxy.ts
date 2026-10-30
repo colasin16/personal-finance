@@ -7,6 +7,15 @@ export async function proxy(request: NextRequest) {
   const auth = supabaseAuthConfig();
   if (!auth) return NextResponse.next();
 
+  // Supabase falls back to the Site URL when the requested redirect isn't allow-listed, so the
+  // sign-in code can land on any page; hand it to the callback instead of dropping it.
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname !== "/auth/callback" && (searchParams.has("code") || searchParams.has("token_hash"))) {
+    const callback = request.nextUrl.clone();
+    callback.pathname = "/auth/callback";
+    return NextResponse.redirect(callback);
+  }
+
   let response = NextResponse.next({ request });
   const supabase = createServerClient(auth.url, auth.key, {
     cookies: {
