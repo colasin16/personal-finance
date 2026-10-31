@@ -241,6 +241,8 @@ Implementation notes:
 
 ## 11. Roadmap
 
+Concrete upcoming work lives in [`BACKLOG.md`](./BACKLOG.md).
+
 ### Phase 0 — Setup
 - Scaffold Next.js + TS + Tailwind + shadcn, ESLint/Prettier, Vitest, Playwright.
 - Supabase project, Drizzle schema & first migration, RLS policies.
