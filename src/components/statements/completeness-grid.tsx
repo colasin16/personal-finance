@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { CompletenessCell } from "@/lib/queries";
@@ -15,13 +17,19 @@ const CELL: Record<CompletenessCell["status"], string> = {
   none: "bg-muted",
 };
 
-/** Accounts × months — makes gaps in imported statements obvious at a glance. */
+/** Link that filters the Import page's statement list to one account and month (or clears it when already selected). */
+const filterHref = (accountId: string, month: string, active: boolean) =>
+  active ? "/import" : `/import?${new URLSearchParams({ month, account: accountId })}`;
+
+/** Accounts × months — makes gaps in imported statements obvious at a glance. Clicking a cell filters the statement list. */
 export function CompletenessGrid({
   months,
   grid,
+  selected,
 }: {
   months: string[];
   grid: { account: AccountRefData & { id: string }; cells: CompletenessCell[] }[];
+  selected?: { month?: string; accountId?: string };
 }) {
   const t = useTranslations("import.coverage");
   const locale = useLocale();
@@ -47,13 +55,21 @@ export function CompletenessGrid({
                   <AccountRef account={account} size="md" />
                 </td>
                 {cells.map((cell) => {
-                  const box = <div className={cn("h-6 rounded", CELL[cell.status])} />;
+                  const active = selected?.month === cell.month && selected?.accountId === account.id;
+                  const box = <div className={cn("h-6 rounded", CELL[cell.status], active && "ring-2 ring-foreground ring-offset-1 ring-offset-background")} />;
                   return (
                     <td key={cell.month}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          {cell.statementId ? (
-                            <Link href={`/statements/${cell.statementId}`} aria-label={`${account.name} ${formatMonth(cell.month, "long", locale)}`}>
+                          {cell.status !== "none" ? (
+                            <Link
+                              href={filterHref(account.id, cell.month, active)}
+                              scroll={false}
+                              onClick={() => document.getElementById("statements")?.scrollIntoView({ behavior: "smooth" })}
+                              aria-label={`${account.name} ${formatMonth(cell.month, "long", locale)}`}
+                              aria-current={active ? "true" : undefined}
+                              className="block rounded focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                            >
                               {box}
                             </Link>
                           ) : (

@@ -11,6 +11,20 @@
     "tip": "Consejo: primero <link>añade tus cuentas</link> con su IBAN para que los extractos se asignen automáticamente."
   },
   "empty": "Aún no hay extractos. Lo que subas aparecerá aquí.",
+  "filters": {
+    "month": "Mes",
+    "account": "Cuenta",
+    "status": "Estado",
+    "allMonths": "Todos los meses",
+    "allAccounts": "Todas las cuentas",
+    "allStatuses": "Todos los estados",
+    "reset": "Restablecer",
+    "noMatches": "Ningún extracto coincide con estos filtros."
+  },
+  "groups": {
+    "undated": "Sin fecha todavía",
+    "allConfirmed": "Todo confirmado"
+  },
   "row": {
     "detected": "Detectado: {bank}",
     "notDetected": "Cuenta aún sin detectar",

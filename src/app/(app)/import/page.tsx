@@ -5,6 +5,7 @@ import { banks } from "@/lib/db/schema";
 import { getMembers } from "@/lib/households";
 import { getCompleteness, getVisibleAccounts, listStatements } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
+import { isMonthParam } from "@/lib/statement-groups";
 import { PageHeader } from "@/components/page-header";
 import { toAccountRef } from "@/components/accounts/account-ref";
 import { CompletenessGrid } from "@/components/statements/completeness-grid";
@@ -19,7 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-export default async function ImportPage() {
+export default async function ImportPage({ searchParams }: { searchParams: Promise<{ month?: string; account?: string }> }) {
+  const params = await searchParams;
   const { db, user, household } = await requireContext();
   const [accounts, allAccounts] = await Promise.all([
     getVisibleAccounts(db, household.id, user.id),
@@ -52,6 +54,7 @@ export default async function ImportPage() {
             progress: s.progress,
             progressAt: s.progressAt.toISOString(),
             error: s.error,
+            accountId: s.accountId,
             account: accountName && bankId && bankName && bankColor ? { name: accountName, bankId, bankName, bankColor, ibanLast4 } : null,
             periodStart: s.periodStart,
             periodEnd: s.periodEnd,
@@ -67,6 +70,7 @@ export default async function ImportPage() {
           <CardContent>
             <CompletenessGrid
               months={completeness.months}
+              selected={{ month: isMonthParam(params.month) ? params.month : undefined, accountId: params.account }}
               grid={completeness.grid.map((g) => ({ account: { id: g.account.id, ...toAccountRef(g.account) }, cells: g.cells }))}
             />
           </CardContent>
