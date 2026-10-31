@@ -10,6 +10,8 @@
   "uploadStatements": "Upload statements",
   "openMenu": "Open menu",
   "closeMenu": "Close menu",
+  "collapseSidebar": "Collapse sidebar",
+  "expandSidebar": "Expand sidebar",
   "signOut": "Sign out",
   "offlineMode": "{count, plural, one {Offline mode · # service mocked} other {Offline mode · # services mocked}}",
   "allLive": "All services live",

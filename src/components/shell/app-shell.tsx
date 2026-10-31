@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeftRight,
   CircleAlert,
@@ -12,6 +12,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings,
   Upload,
   X,
@@ -30,10 +32,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { LanguageSwitch } from "@/components/theme/language-switch";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { ServiceMode } from "@/lib/services/modes";
+import { SIDEBAR_COOKIE, type SidebarState } from "./sidebar-state";
 import { UploadProvider } from "./upload-provider";
 
 type Props = {
@@ -42,6 +46,7 @@ type Props = {
   members: { id: string; displayName: string }[];
   issuesCount: number;
   modes: ServiceMode[];
+  sidebar: SidebarState;
   children: React.ReactNode;
 };
 
@@ -54,6 +59,37 @@ const NAV = [
   { href: "/settings", key: "settings", icon: Settings },
 ] as const;
 
+const RAIL_QUERY = "(min-width: 48rem)";
+const AUTO_RAIL_QUERY = "(min-width: 48rem) and (max-width: 63.999rem)";
+
+/** Whether the desktop sidebar is currently rendered as an icon rail (mirrors the `rail:` CSS variant). */
+function useIsRail(state: SidebarState) {
+  const [rail, setRail] = useState(false);
+  useEffect(() => {
+    const desktop = window.matchMedia(RAIL_QUERY);
+    const tablet = window.matchMedia(AUTO_RAIL_QUERY);
+    const update = () => setRail(desktop.matches && (state === "collapsed" || (state === "auto" && tablet.matches)));
+    update();
+    desktop.addEventListener("change", update);
+    tablet.addEventListener("change", update);
+    return () => {
+      desktop.removeEventListener("change", update);
+      tablet.removeEventListener("change", update);
+    };
+  }, [state]);
+  return rail;
+}
+
+function RailTooltip({ label, enabled, children }: { label: string; enabled: boolean; children: React.ReactElement }) {
+  if (!enabled) return children;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="right">{label}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 export const initials = (name: string) =>
   name
     .split(/\s+/)
@@ -62,33 +98,48 @@ export const initials = (name: string) =>
     .slice(0, 2)
     .toUpperCase();
 
-export function AppShell({ user, household, members, issuesCount, modes, children }: Props) {
+export function AppShell({ user, household, members, issuesCount, modes, sidebar: initialSidebar, children }: Props) {
   const pathname = usePathname();
   const t = useTranslations("shell");
   const ts = useTranslations("settings");
+  const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
+  const [sidebar, setSidebar] = useState(initialSidebar);
+  const rail = useIsRail(sidebar);
   const mockedCount = modes.filter((m) => m.mocked).length;
+
+  const toggleSidebar = () => {
+    const next = rail ? "expanded" : "collapsed";
+    setSidebar(next);
+    document.cookie = `${SIDEBAR_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+  };
 
   const nav = (
     <nav className="flex flex-1 flex-col gap-1">
       {NAV.map(({ href, key, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`) || (href === "/import" && pathname.startsWith("/statements"));
+        const label = t(`nav.${key}`);
+        const showCount = href === "/issues" && issuesCount > 0;
         return (
-          <Link
-            key={href}
-            href={href}
-            onClick={() => setOpen(false)}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-              active && "bg-muted text-foreground",
-            )}
-          >
-            <Icon className="size-4" />
-            {t(`nav.${key}`)}
-            {href === "/issues" && issuesCount > 0 && (
-              <Badge className="ml-auto h-5 min-w-5 rounded-full bg-amber-500 px-1.5 text-white hover:bg-amber-500">{issuesCount}</Badge>
-            )}
-          </Link>
+          <RailTooltip key={href} label={showCount ? `${label} (${issuesCount})` : label} enabled={rail}>
+            <Link
+              href={href}
+              onClick={() => setOpen(false)}
+              aria-label={rail ? label : undefined}
+              className={cn(
+                "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground rail:justify-center rail:px-0",
+                active && "bg-muted text-foreground",
+              )}
+            >
+              <Icon className="size-4 shrink-0" />
+              <span className="truncate rail:sr-only">{label}</span>
+              {showCount && (
+                <Badge className="ml-auto h-5 min-w-5 rounded-full bg-amber-500 px-1.5 text-white hover:bg-amber-500 rail:absolute rail:top-0.5 rail:right-1 rail:h-4 rail:min-w-4 rail:px-1 rail:text-[10px]">
+                  {issuesCount}
+                </Badge>
+              )}
+            </Link>
+          </RailTooltip>
         );
       })}
     </nav>
@@ -97,9 +148,12 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
   const modeInfo = (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-left text-xs text-muted-foreground hover:bg-muted">
-          <span className="size-2 rounded-full bg-amber-500" />
-          {mockedCount > 0 ? t("offlineMode", { count: mockedCount }) : t("allLive")}
+        <button
+          title={rail ? (mockedCount > 0 ? t("offlineMode", { count: mockedCount }) : t("allLive")) : undefined}
+          className="flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-left text-xs text-muted-foreground hover:bg-muted rail:justify-center rail:px-0"
+        >
+          <span className="size-2 shrink-0 rounded-full bg-amber-500" />
+          <span className="rail:sr-only">{mockedCount > 0 ? t("offlineMode", { count: mockedCount }) : t("allLive")}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent side="top" align="start" className="w-80">
@@ -122,35 +176,47 @@ export function AppShell({ user, household, members, issuesCount, modes, childre
 
   return (
     <UploadProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen" data-sidebar={sidebar}>
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex w-64 flex-col gap-6 border-r bg-background p-4 transition-transform md:translate-x-0",
+            "fixed inset-y-0 left-0 z-40 flex w-64 flex-col gap-6 overflow-x-hidden border-r bg-background p-4 transition-[translate,width] md:translate-x-0 rail:w-16 rail:px-2",
             open ? "translate-x-0" : "-translate-x-full",
           )}
         >
-          <div className="flex items-center justify-between">
-            <Link href="/dashboard">
-              <Logo />
+          <div className="flex items-center justify-between rail:justify-center">
+            <Link href="/dashboard" aria-label={rail ? tc("appName") : undefined}>
+              <Logo textClassName="whitespace-nowrap rail:sr-only" />
             </Link>
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(false)} aria-label={t("closeMenu")}>
               <X />
             </Button>
           </div>
-          <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
-            <Link href="/import" onClick={() => setOpen(false)}>
-              <Upload /> {t("uploadStatements")}
-            </Link>
-          </Button>
+          <RailTooltip label={t("uploadStatements")} enabled={rail}>
+            <Button asChild className="bg-emerald-600 hover:bg-emerald-700 rail:px-0">
+              <Link href="/import" onClick={() => setOpen(false)} aria-label={rail ? t("uploadStatements") : undefined}>
+                <Upload /> <span className="rail:sr-only">{t("uploadStatements")}</span>
+              </Link>
+            </Button>
+          </RailTooltip>
           {nav}
           {modeInfo}
         </aside>
         {open && <div className="fixed inset-0 z-30 bg-black/20 md:hidden" onClick={() => setOpen(false)} />}
 
-        <div className="flex min-w-0 flex-1 flex-col md:pl-64">
+        <div className="flex min-w-0 flex-1 flex-col transition-[padding] md:pl-64 rail:pl-16">
           <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur md:px-8">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(true)} aria-label={t("openMenu")}>
               <Menu />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="-ml-2 hidden md:inline-flex"
+              onClick={toggleSidebar}
+              aria-label={rail ? t("expandSidebar") : t("collapseSidebar")}
+              title={rail ? t("expandSidebar") : t("collapseSidebar")}
+            >
+              {rail ? <PanelLeftOpen /> : <PanelLeftClose />}
             </Button>
             <div className="flex min-w-0 items-center gap-2">
               <span className="truncate font-medium">{household.name}</span>

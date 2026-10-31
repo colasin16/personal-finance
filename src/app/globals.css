@@ -4,6 +4,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Desktop sidebar shown as an icon rail: when collapsed by the user, or by default on tablet widths. */
+@custom-variant rail {
+  @media (width >= 48rem) {
+    &:where([data-sidebar="collapsed"], [data-sidebar="collapsed"] *) {
+      @slot;
+    }
+  }
+  @media (48rem <= width < 64rem) {
+    &:where([data-sidebar="auto"], [data-sidebar="auto"] *) {
+      @slot;
+    }
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

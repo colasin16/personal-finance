@@ -10,6 +10,8 @@
   "uploadStatements": "Subir extractos",
   "openMenu": "Abrir menú",
   "closeMenu": "Cerrar menú",
+  "collapseSidebar": "Contraer menú lateral",
+  "expandSidebar": "Expandir menú lateral",
   "signOut": "Cerrar sesión",
   "offlineMode": "{count, plural, one {Modo sin conexión · # servicio simulado} other {Modo sin conexión · # servicios simulados}}",
   "allLive": "Todos los servicios conectados",
