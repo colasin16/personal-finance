@@ -31,7 +31,8 @@ describe("parseAmount", () => {
 
 describe("money", () => {
   it("formats euros in Spanish locale", () => {
-    expect(formatMoney(123456).replace(/\s/g, " ")).toBe("1234,56 €");
+    expect(formatMoney(123456).replace(/\s/g, " ")).toBe("1.234,56 €");
+    expect(formatMoney(12345678).replace(/\s/g, " ")).toBe("123.456,78 €");
     expect(formatMoney(-500, "EUR", { signed: true }).replace(/\s/g, " ")).toBe("-5,00 €");
   });
   it("applies ownership share", () => expect(applyShare(-10001, 50)).toBe(-5001));

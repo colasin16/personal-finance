@@ -14,6 +14,8 @@ export function formatMoney(
       style: "currency",
       currency,
       signDisplay: signed ? "exceptZero" : "auto",
+      // es-ES only groups from 10.000 by default ("1000,00 €"); always group so every amount reads the same.
+      useGrouping: "always",
     });
     formatters.set(key, fmt);
   }

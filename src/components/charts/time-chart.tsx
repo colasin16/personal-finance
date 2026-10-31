@@ -62,7 +62,7 @@ export function TimeChart({
   useEffect(() => {
     const el = container.current;
     if (!el) return;
-    const money = new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 });
+    const money = new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0, useGrouping: "always" });
     const compact = new Intl.NumberFormat(locale, { style: "currency", currency, notation: "compact", maximumFractionDigits: 1 });
     const monthFmt = new Intl.DateTimeFormat(dateLocale, { month: "short", year: "2-digit" });
     const dayFmt = new Intl.DateTimeFormat(dateLocale, { day: "numeric", month: "short", year: "numeric" });
