@@ -11,6 +11,20 @@
     "tip": "Tip: <link>add your accounts</link> with their IBAN first so statements are matched automatically."
   },
   "empty": "No statements yet. Your uploads will appear here.",
+  "filters": {
+    "month": "Month",
+    "account": "Account",
+    "status": "Status",
+    "allMonths": "All months",
+    "allAccounts": "All accounts",
+    "allStatuses": "All statuses",
+    "reset": "Reset",
+    "noMatches": "No statements match these filters."
+  },
+  "groups": {
+    "undated": "Not dated yet",
+    "allConfirmed": "All confirmed"
+  },
   "row": {
     "detected": "Detected {bank}",
     "notDetected": "Account not detected yet",

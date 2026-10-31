@@ -28,9 +28,19 @@ export default function ImportLoading() {
           </div>
         </div>
 
+        <div className="-mb-3 flex flex-wrap items-center gap-2">
+          <Skeleton className="h-9 w-44" />
+          <Skeleton className="h-9 w-56" />
+          <Skeleton className="h-9 w-44" />
+        </div>
+
         <Card className="py-0">
           <CardContent className="p-0">
-            <ul className="divide-y">
+            <div className="flex items-center gap-2 bg-muted/40 px-4 py-2.5">
+              <Skeleton className="size-4" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+            <ul className="divide-y border-t">
               {Array.from({ length: 4 }, (_, i) => (
                 <li key={i} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
                   <div className="flex min-w-0 flex-1 items-start gap-3">

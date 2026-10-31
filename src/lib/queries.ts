@@ -16,6 +16,7 @@ import {
 } from "@/lib/db/schema";
 import { findTransferSuggestions } from "@/lib/pipeline/categorize";
 import { applyShare } from "@/lib/money";
+import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
 /* ───────────────────────────── Accounts & visibility ───────────────────────────── */
 
@@ -399,7 +400,7 @@ export type TransactionFilters = {
   pageSize?: number;
 };
 
-export const PAGE_SIZE = 50;
+export const PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 export async function listTransactions(db: Db, householdId: string, visibleIds: string[], filters: TransactionFilters) {
   if (visibleIds.length === 0) return { rows: [], total: 0, sumCents: 0 };

@@ -91,7 +91,8 @@ export function TransactionFilters({ accounts, categories }: { accounts: (Accoun
           size="sm"
           onClick={() => {
             setQ("");
-            router.replace(pathname);
+            const size = params.get("size");
+            router.replace(size ? `${pathname}?${new URLSearchParams({ size })}` : pathname);
           }}
         >
           <X /> {t("reset")}

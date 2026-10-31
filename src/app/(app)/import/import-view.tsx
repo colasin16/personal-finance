@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { ArrowRight, FileText, FileUp, Loader2, MoreHorizontal, Plus, RotateCw, Trash2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, FileText, FileUp, Loader2, MoreHorizontal, Plus, RotateCw, Trash2, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { DetectedStatementInfo } from "@/lib/db/schema";
@@ -11,7 +11,8 @@ import type { StatementStatus } from "@/app/api/statements/status/route";
 import { assignStatementAccountAction, deleteStatementAction, retryStatementAction } from "@/lib/actions/statements";
 import { translateError } from "@/i18n/errors";
 import { isStaleProcessing, isInProgress as inProgress } from "@/lib/statement-processing";
-import { formatDate } from "@/lib/labels";
+import { formatDate, formatMonth, STATEMENT_STATUSES } from "@/lib/labels";
+import { filterStatements, groupStatements, isMonthParam, statementMonths } from "@/lib/statement-groups";
 import { cn } from "@/lib/utils";
 import { AccountRef, type AccountRefData } from "@/components/accounts/account-ref";
 import { AccountDialog, type BankOption, type MemberOption } from "@/components/accounts/account-dialog";
@@ -30,6 +31,7 @@ type StatementItem = {
   progress: string | null;
   progressAt: string;
   error: string | null;
+  accountId: string | null;
   account: AccountRefData | null;
   periodStart: string | null;
   periodEnd: string | null;
@@ -40,6 +42,7 @@ type StatementItem = {
 type AccountOption = AccountRefData & { id: string };
 
 const AUTO = "auto";
+const ALL = "all";
 const POLL_MS = 2000;
 
 export function ImportView({
@@ -56,8 +59,13 @@ export function ImportView({
   statements: StatementItem[];
 }) {
   const t = useTranslations("import");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
   const { upload, uploading } = useUpload();
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
   const [target, setTarget] = useState(AUTO);
   const [over, setOver] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -94,6 +102,27 @@ export function ImportView({
       clearTimeout(timer);
     };
   }, [pendingKey, router]);
+
+  const month = isMonthParam(params.get("month")) ? params.get("month")! : undefined;
+  const accountId = params.get("account") ?? undefined;
+  const status = params.get("status") ?? undefined;
+  const filtering = !!(month || accountId || status);
+  const setFilter = (changes: Record<string, string | null>) => {
+    const next = new URLSearchParams(params);
+    for (const [k, v] of Object.entries(changes)) {
+      if (v) next.set(k, v);
+      else next.delete(k);
+    }
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+  const current = statements.map((s) => ({ ...s, ...(inProgress(s.status) ? live[s.id] : undefined) }));
+  const groups = groupStatements(filterStatements(current, { month, accountId, status }), month);
+  const months = statementMonths(statements);
+  if (month && !months.includes(month)) months.unshift(month);
+  const accountOptions = [...new Map(statements.flatMap((s) => (s.accountId && s.account ? [[s.accountId, s.account] as const] : []))).entries()].sort(
+    ([, a], [, b]) => a.name.localeCompare(b.name),
+  );
 
   const send = (files: FileList | null) => {
     if (files?.length) void upload(Array.from(files), target === AUTO ? null : target);
@@ -167,27 +196,109 @@ export function ImportView({
         )}
       </div>
 
-      <Card className="py-0">
+      {statements.length > 0 && (
+        <div className="-mb-3 flex flex-wrap items-center gap-2">
+          <Select value={month ?? ALL} onValueChange={(v) => setFilter({ month: v === ALL ? null : v })}>
+            <SelectTrigger className="w-44" aria-label={t("filters.month")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>{t("filters.allMonths")}</SelectItem>
+              {months.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {formatMonth(m, "long", locale)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={accountId ?? ALL} onValueChange={(v) => setFilter({ account: v === ALL ? null : v })}>
+            <SelectTrigger className="w-56 [&>span]:min-w-0" aria-label={t("filters.account")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>{t("filters.allAccounts")}</SelectItem>
+              {accountOptions.map(([id, account]) => (
+                <SelectItem key={id} value={id}>
+                  <AccountRef account={account} />
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={status ?? ALL} onValueChange={(v) => setFilter({ status: v === ALL ? null : v })}>
+            <SelectTrigger className="w-44" aria-label={t("filters.status")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>{t("filters.allStatuses")}</SelectItem>
+              {STATEMENT_STATUSES.map((st) => (
+                <SelectItem key={st} value={st}>
+                  {tc(`statementStatus.${st}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {filtering && (
+            <Button variant="ghost" size="sm" onClick={() => setFilter({ month: null, account: null, status: null })}>
+              <X /> {t("filters.reset")}
+            </Button>
+          )}
+        </div>
+      )}
+
+      <Card id="statements" className="scroll-mt-4 py-0">
         <CardContent className="p-0">
           {statements.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-12 text-center text-sm text-muted-foreground">
               <FileText className="size-8" />
               {t("empty")}
             </div>
+          ) : groups.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-12 text-center text-sm text-muted-foreground">
+              <FileText className="size-8" />
+              {t("filters.noMatches")}
+            </div>
           ) : (
-            <ul className="divide-y">
-              {statements.map((s) => ({ ...s, ...(inProgress(s.status) ? live[s.id] : undefined) })).map((s) => (
-                <StatementRow
-                  key={s.id}
-                  statement={s}
-                  accounts={accounts}
-                  banks={banks}
-                  members={members}
-                  currentUserId={currentUserId}
-                  stuck={isStaleProcessing(s, now)}
-                />
-              ))}
-            </ul>
+            <div className="divide-y">
+              {groups.map((g) => {
+                const key = g.month ?? "undated";
+                // Fully confirmed months start collapsed, unless the list is filtered down to them.
+                const open = toggled[key] ?? (filtering || !g.allConfirmed);
+                return (
+                  <section key={key}>
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      onClick={() => setToggled((prev) => ({ ...prev, [key]: !open }))}
+                      className="flex w-full items-center gap-2 bg-muted/40 px-4 py-2 text-left text-sm hover:bg-muted/70"
+                    >
+                      <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-90")} />
+                      <span className="font-medium">{g.month ? formatMonth(g.month, "long", locale) : t("groups.undated")}</span>
+                      <span className="text-muted-foreground">· {tc("statementsCount", { count: g.items.length })}</span>
+                      {g.allConfirmed && (
+                        <span className="ml-auto flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
+                          <CheckCircle2 className="size-3.5" /> {t("groups.allConfirmed")}
+                        </span>
+                      )}
+                    </button>
+                    {open && (
+                      <ul className="divide-y border-t">
+                        {g.items.map((s) => (
+                          <StatementRow
+                            key={s.id}
+                            statement={s}
+                            accounts={accounts}
+                            banks={banks}
+                            members={members}
+                            currentUserId={currentUserId}
+                            stuck={isStaleProcessing(s, now)}
+                          />
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>

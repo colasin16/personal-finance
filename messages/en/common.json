@@ -41,7 +41,6 @@
   "transactionsCount": "{count, plural, one {# transaction} other {# transactions}}",
   "accountsCount": "{count, plural, one {# account} other {# accounts}}",
   "statementsCount": "{count, plural, one {# statement} other {# statements}}",
-  "pageOf": "Page {page} of {total}",
   "accountTypes": {
     "checking": "Current account",
     "savings": "Savings",
@@ -74,5 +73,17 @@
   "flags": {
     "low_confidence": "Low-confidence category suggestion",
     "uncategorized": "Could not categorize automatically"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "showing": "Showing {from}–{to} of {total}",
+    "perPage": "Per page",
+    "first": "First page",
+    "previous": "Previous page",
+    "next": "Next page",
+    "last": "Last page",
+    "page": "Page {page}",
+    "pageOf": "Page {page} of {total}",
+    "goTo": "Go to page"
   }
 }

@@ -2,27 +2,7 @@
 
 Upcoming work, roughly in priority order. Move an item to `PLAN.md` (or delete it) once it ships.
 
-## 1. Better pagination on the Transactions page
-
-**Today:** `listTransactions` (`src/lib/queries.ts`) pages with `limit/offset` and a fixed `PAGE_SIZE = 50`. `src/app/(app)/transactions/page.tsx` only renders "Page X of Y" plus previous/next links, and only when there's more than one page.
-
-**Ideas to evaluate:**
-- Numbered pages with first/last and ellipses, and jump to a page.
-- Page-size selector (25 / 50 / 100), kept in the URL like the other filters.
-- "Showing 51–100 of 1,234", plus pagination at the top of the table as well.
-- Keep the scroll position and selection sensible when changing pages.
-
-## 2. Import page: statements easy to browse and filter by month
-
-**Today:** `src/app/(app)/import/import-view.tsx` renders one flat list of every uploaded statement. The completeness grid shows month × account status, but you can't filter the list from it.
-
-**Ideas to evaluate:**
-- Group statements by period month (newest first), with per-account rows inside each month.
-- Month (and account / status) filter, kept in the URL.
-- Clicking a completeness-grid cell filters the list to that month/account.
-- Collapse fully confirmed months by default.
-
-## 3. Income categorized as an expense category should offset that category's spending (needs investigation)
+## 1. Income categorized as an expense category should offset that category's spending (needs investigation)
 
 **Problem:** we pay 100 € at a restaurant, a friend sends us 50 € back (Bizum/transfer) and we categorize that income as *Restaurants*. The real restaurant spend is 50 €, but the dashboard shows 100 €. It also counts the 50 € as income.
 

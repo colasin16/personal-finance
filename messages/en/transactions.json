@@ -2,8 +2,6 @@
   "title": "Transactions",
   "description": "Click a category to change it. Select several rows to recategorize them at once.",
   "summary": "{count, plural, one {# transaction} other {# transactions}} · net <money></money>",
-  "previousPage": "Previous page",
-  "nextPage": "Next page",
   "filters": {
     "search": "Search description, merchant, notes",
     "allAccounts": "All accounts",

@@ -8,6 +8,8 @@ import { findMentionedAccount, findTransferPairs, rankTransferMatches } from "@/
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
 import { keywordCategorize } from "@/lib/domain/keywords";
+import { DEFAULT_PAGE_SIZE, pageRange, parsePageSize } from "@/lib/pagination";
+import { filterStatements, groupStatements, isMonthParam, statementMonths } from "@/lib/statement-groups";
 
 describe("parseAmount", () => {
   it.each([
@@ -320,5 +322,68 @@ describe("rankTransferMatches", () => {
       { id: "too-far", accountId: "b", bookedAt: "2026-11-01", amountCents: 5000 },
     ];
     expect(rankTransferMatches(tx, candidates).map((c) => c.id)).toEqual(["near", "far"]);
+  });
+});
+
+describe("pagination", () => {
+  it("lists every page when there are few", () => {
+    expect(pageRange(1, 1)).toEqual([1]);
+    expect(pageRange(3, 7)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  });
+
+  it("adds ellipses around the current page, keeping first and last", () => {
+    expect(pageRange(1, 20)).toEqual([1, 2, 3, 4, 5, null, 20]);
+    expect(pageRange(4, 20)).toEqual([1, 2, 3, 4, 5, null, 20]);
+    expect(pageRange(5, 20)).toEqual([1, null, 4, 5, 6, null, 20]);
+    expect(pageRange(16, 20)).toEqual([1, null, 15, 16, 17, null, 20]);
+    expect(pageRange(17, 20)).toEqual([1, null, 16, 17, 18, 19, 20]);
+    expect(pageRange(20, 20)).toEqual([1, null, 16, 17, 18, 19, 20]);
+  });
+
+  it("only accepts the offered page sizes", () => {
+    expect(parsePageSize("25")).toBe(25);
+    expect(parsePageSize("100")).toBe(100);
+    expect(parsePageSize("2000")).toBe(DEFAULT_PAGE_SIZE);
+    expect(parsePageSize(undefined)).toBe(DEFAULT_PAGE_SIZE);
+  });
+});
+
+describe("statement groups", () => {
+  const st = (fileName: string, periodStart: string | null, periodEnd: string | null, status = "confirmed", account: string | null = "a1") => ({
+    fileName,
+    status,
+    accountId: account,
+    account: account ? { name: account === "a1" ? "Zeta" : "Alpha" } : null,
+    periodStart,
+    periodEnd,
+  });
+  const items = [
+    st("jan-a1.pdf", "2026-01-01", "2026-01-31"),
+    st("feb-a1.pdf", "2026-02-01", "2026-02-28", "needs_review"),
+    st("feb-a2.pdf", "2026-02-01", "2026-02-28", "confirmed", "a2"),
+    st("q1-a2.pdf", "2026-01-15", "2026-03-14", "confirmed", "a2"),
+    st("new.pdf", null, null, "needs_account", null),
+  ];
+
+  it("groups by period month, newest first, undated on top, ordered by account inside", () => {
+    const groups = groupStatements(items);
+    expect(groups.map((g) => g.month)).toEqual([null, "2026-02", "2026-01"]);
+    expect(groups[1].items.map((s) => s.fileName)).toEqual(["feb-a2.pdf", "feb-a1.pdf"]);
+    expect(groups[2].items.map((s) => s.fileName)).toEqual(["q1-a2.pdf", "jan-a1.pdf"]);
+    expect(groups.map((g) => g.allConfirmed)).toEqual([false, false, true]);
+  });
+
+  it("filters by covered month, account and status", () => {
+    expect(filterStatements(items, { month: "2026-03" }).map((s) => s.fileName)).toEqual(["q1-a2.pdf"]);
+    expect(filterStatements(items, { month: "2026-02", accountId: "a2" }).map((s) => s.fileName)).toEqual(["feb-a2.pdf", "q1-a2.pdf"]);
+    expect(filterStatements(items, { status: "needs_review" }).map((s) => s.fileName)).toEqual(["feb-a1.pdf"]);
+    expect(groupStatements(filterStatements(items, { month: "2026-02" }), "2026-02").map((g) => g.month)).toEqual(["2026-02"]);
+  });
+
+  it("lists the months with statements and validates month params", () => {
+    expect(statementMonths(items)).toEqual(["2026-02", "2026-01"]);
+    expect(isMonthParam("2026-02")).toBe(true);
+    expect(isMonthParam("2026-13")).toBe(false);
+    expect(isMonthParam("feb")).toBe(false);
   });
 });
