@@ -48,7 +48,8 @@ export function TimeChart({
 }: {
   series: ChartSeries[];
   markers?: ChartMarker[];
-  height?: number;
+  /** Pixels, or any CSS height (e.g. "100%") to fill a sized parent. */
+  height?: number | string;
   currency?: string;
   /** Locale for money formatting; date labels follow the active app locale. */
   locale?: string;

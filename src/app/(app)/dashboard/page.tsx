@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { CategoryBreakdown } from "./category-breakdown";
-import { CashFlowChart, NetWorthChart } from "./charts";
+import { CashFlowCard, NetWorthCard } from "./charts";
 import { DashboardFilters } from "./filters";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -136,29 +136,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>{t("netWorth.title")}</CardTitle>
-            <CardDescription>{t("netWorth.description")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <NetWorthChart netWorth={data.netWorth} accounts={data.accountSeries} markers={data.markers} />
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>{t("cashFlow.title")}</CardTitle>
-            <CardDescription>
-              {t.rich("cashFlow.description", {
-                income: (c) => <span className="text-emerald-600">{c}</span>,
-                spending: (c) => <span className="text-red-500">{c}</span>,
-              })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CashFlowChart months={data.months} />
-          </CardContent>
-        </Card>
+        <NetWorthCard className="lg:col-span-3" netWorth={data.netWorth} accounts={data.accountSeries} markers={data.markers} />
+        <CashFlowCard className="lg:col-span-2" months={data.months} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">

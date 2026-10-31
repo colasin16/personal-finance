@@ -12,22 +12,55 @@ import {
   type ChartMarker,
   type ChartSeries,
 } from "@/components/charts/time-chart";
+import { ExpandableChartCard } from "@/components/charts/expandable-chart-card";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/money";
 
 type Point = { time: string; value: number };
 
-export function NetWorthChart({
-  netWorth,
-  accounts,
-  markers,
-}: {
+type NetWorthData = {
   netWorth: Point[];
   accounts: { accountId: string; account: AccountRefData; points: Point[] }[];
   markers: { time: string; cents: number; label: string }[];
-}) {
+};
+
+export function NetWorthCard({ className, ...data }: NetWorthData & { className?: string }) {
   const t = useTranslations("dashboard.netWorth");
+  // Shared so the full view opens in the same mode as the card.
   const [split, setSplit] = useState(false);
+  return (
+    <ExpandableChartCard className={className} title={t("title")} description={t("description")}>
+      {(expanded) => <NetWorthChart {...data} split={split} onSplitChange={setSplit} expanded={expanded} />}
+    </ExpandableChartCard>
+  );
+}
+
+export function CashFlowCard({ className, months }: { className?: string; months: CashFlowMonth[] }) {
+  const t = useTranslations("dashboard.cashFlow");
+  return (
+    <ExpandableChartCard
+      className={className}
+      title={t("title")}
+      description={t.rich("description", {
+        income: (c) => <span className="text-emerald-600">{c}</span>,
+        spending: (c) => <span className="text-red-500">{c}</span>,
+      })}
+    >
+      {(expanded) => (expanded ? <div className="min-h-0 flex-1"><CashFlowChart months={months} height="100%" /></div> : <CashFlowChart months={months} />)}
+    </ExpandableChartCard>
+  );
+}
+
+function NetWorthChart({
+  netWorth,
+  accounts,
+  markers,
+  split,
+  onSplitChange: setSplit,
+  expanded,
+}: NetWorthData & { split: boolean; onSplitChange: (split: boolean) => void; expanded: boolean }) {
+  const t = useTranslations("dashboard.netWorth");
   const series = useMemo<ChartSeries[]>(
     () =>
       split
@@ -58,7 +91,7 @@ export function NetWorthChart({
     [split, markers, netWorth],
   );
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", expanded && "flex min-h-0 flex-1 flex-col")}>
       <div className="flex justify-end gap-1">
         <Button
           size="sm"
@@ -75,7 +108,13 @@ export function NetWorthChart({
           {t("byAccount")}
         </Button>
       </div>
-      <TimeChart series={series} markers={chartMarkers} height={300} />
+      {expanded ? (
+        <div className="min-h-0 flex-1">
+          <TimeChart series={series} markers={chartMarkers} height="100%" />
+        </div>
+      ) : (
+        <TimeChart series={series} markers={chartMarkers} height={300} />
+      )}
       {split && (
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
           {accounts.map((a, i) => (
@@ -107,11 +146,9 @@ const PALETTE = [
   "#8b5cf6",
 ];
 
-export function CashFlowChart({
-  months,
-}: {
-  months: { time: string; income: number; expenses: number; net: number }[];
-}) {
+type CashFlowMonth = { time: string; income: number; expenses: number; net: number };
+
+function CashFlowChart({ months, height = 300 }: { months: CashFlowMonth[]; height?: number | string }) {
   const netColor = useTheme().resolvedTheme === "dark" ? "#f4f4f5" : "#18181b";
   const series = useMemo<ChartSeries[]>(
     () => [
@@ -134,5 +171,5 @@ export function CashFlowChart({
     ],
     [months, netColor],
   );
-  return <TimeChart series={series} height={300} monthly />;
+  return <TimeChart series={series} height={height} monthly />;
 }

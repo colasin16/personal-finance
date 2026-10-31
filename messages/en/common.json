@@ -2,7 +2,12 @@
   "appName": "Household Finance",
   "appDescription": "Upload your monthly bank statements, get every transaction categorized, and see your household finances together.",
   "language": "Language",
-  "theme": { "label": "Change theme", "light": "Light", "dark": "Dark", "system": "System" },
+  "theme": {
+    "label": "Change theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "ibanEndingIn": "Account ending in {last4}",
   "actions": {
     "save": "Save",
@@ -25,7 +30,8 @@
     "showMore": "Show {count} more",
     "showLess": "Show less",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "fullView": "Open in full view"
   },
   "you": "{name} (you)",
   "uncategorized": "Uncategorized",
@@ -36,7 +42,12 @@
   "accountsCount": "{count, plural, one {# account} other {# accounts}}",
   "statementsCount": "{count, plural, one {# statement} other {# statements}}",
   "pageOf": "Page {page} of {total}",
-  "accountTypes": { "checking": "Current account", "savings": "Savings", "credit": "Credit card", "investment": "Investment" },
+  "accountTypes": {
+    "checking": "Current account",
+    "savings": "Savings",
+    "credit": "Credit card",
+    "investment": "Investment"
+  },
   "statementStatus": {
     "uploaded": "Queued",
     "processing": "Processing",

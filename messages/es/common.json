@@ -2,7 +2,12 @@
   "appName": "Finanzas del Hogar",
   "appDescription": "Sube los extractos mensuales de tus bancos, categoriza cada movimiento y ve las finanzas de tu hogar en común.",
   "language": "Idioma",
-  "theme": { "label": "Cambiar tema", "light": "Claro", "dark": "Oscuro", "system": "Sistema" },
+  "theme": {
+    "label": "Cambiar tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
   "ibanEndingIn": "Cuenta terminada en {last4}",
   "actions": {
     "save": "Guardar",
@@ -25,7 +30,8 @@
     "showMore": "Ver {count} más",
     "showLess": "Ver menos",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "fullView": "Ver a pantalla completa"
   },
   "you": "{name} (tú)",
   "uncategorized": "Sin categoría",
@@ -36,7 +42,12 @@
   "accountsCount": "{count, plural, one {# cuenta} other {# cuentas}}",
   "statementsCount": "{count, plural, one {# extracto} other {# extractos}}",
   "pageOf": "Página {page} de {total}",
-  "accountTypes": { "checking": "Cuenta corriente", "savings": "Ahorro", "credit": "Tarjeta de crédito", "investment": "Inversión" },
+  "accountTypes": {
+    "checking": "Cuenta corriente",
+    "savings": "Ahorro",
+    "credit": "Tarjeta de crédito",
+    "investment": "Inversión"
+  },
   "statementStatus": {
     "uploaded": "En cola",
     "processing": "Procesando",
