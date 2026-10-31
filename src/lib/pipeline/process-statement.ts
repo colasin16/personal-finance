@@ -1,5 +1,5 @@
 import { UserError } from "@/lib/errors";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { accounts, banks, statements, transactions, type DetectedStatementInfo } from "@/lib/db/schema";
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
@@ -7,6 +7,7 @@ import { compactIban, findIbans, redactSensitive } from "@/lib/domain/redact";
 import { normalizeDescription, normalizeMerchant, sha256, transactionFingerprint, withOrdinals } from "@/lib/domain/text";
 import { fillRunningBalances, validateStatement } from "@/lib/domain/validation";
 import { getStorage, type FileStorage } from "@/lib/services/storage";
+import { STALE_PROCESSING_MS } from "@/lib/statement-processing";
 import { parseStatement, selectParser } from "@/lib/parsers";
 import { autoLinkTransfers, categorizeTransactions } from "./categorize";
 import { extractPdfText } from "./extract-text";
@@ -73,14 +74,25 @@ export async function processStatement(db: Db, statementId: string, deps: Deps =
 /** Processes one statement row and returns the ids of new sibling statements (other accounts in the same PDF). */
 async function processSingleStatement(db: Db, statementId: string, deps: Deps): Promise<string[]> {
   const storage = deps.storage ?? getStorage();
-  const [statement] = await db.select().from(statements).where(eq(statements.id, statementId));
-  if (!statement || statement.status === "confirmed") return [];
+  // Claim the statement atomically so two workers (e.g. a retry on another instance) never process it at once.
+  const staleBefore = new Date(Date.now() - STALE_PROCESSING_MS);
+  const [statement] = await db
+    .update(statements)
+    .set({ status: "processing", progress: "reading_pdf", progressAt: new Date(), error: null })
+    .where(
+      and(
+        eq(statements.id, statementId),
+        ne(statements.status, "confirmed"),
+        or(ne(statements.status, "processing"), lt(statements.progressAt, staleBefore)),
+      ),
+    )
+    .returning();
+  if (!statement) return [];
 
   const setProgress = (progress: string) =>
-    db.update(statements).set({ status: "processing", progress, error: null }).where(eq(statements.id, statementId));
+    db.update(statements).set({ status: "processing", progress, progressAt: new Date(), error: null }).where(eq(statements.id, statementId));
 
   try {
-    await setProgress("reading_pdf");
     const bytes = await storage.get(statement.filePath);
     const { text, pageCount, charCount } = await extractPdfText(bytes);
     if (charCount < MIN_TEXT_CHARS) {

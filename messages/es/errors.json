@@ -29,5 +29,6 @@
   "upload_failed": "No se ha podido subir.",
   "no_files": "No se ha recibido ningún archivo.",
   "too_many_files": "Sube como máximo {max} archivos a la vez.",
-  "invalid_email": "Introduce un email válido."
+  "invalid_email": "Introduce un email válido.",
+  "already_processing": "Este extracto todavía se está procesando. Vuelve a intentarlo en unos minutos si no termina."
 }

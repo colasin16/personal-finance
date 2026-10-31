@@ -153,6 +153,8 @@ export const statements = pgTable(
     currency: text("currency"),
     status: statementStatus("status").notNull().default("uploaded"),
     progress: text("progress"),
+    /** Last time processing reported progress; used to detect abandoned jobs (see lib/statement-processing). */
+    progressAt: timestamp("progress_at", { withTimezone: true }).notNull().defaultNow(),
     error: text("error"),
     issues: jsonb("issues").$type<StatementIssue[]>().notNull().default([]),
     detected: jsonb("detected").$type<DetectedStatementInfo>(),

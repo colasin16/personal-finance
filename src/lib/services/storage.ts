@@ -35,6 +35,8 @@ export class LocalFileStorage implements FileStorage {
 }
 
 /** Supabase Storage via its REST API (private bucket, service role key — server side only). */
+const REQUEST_TIMEOUT_MS = 30_000;
+
 export class SupabaseFileStorage implements FileStorage {
   readonly kind = "supabase";
   constructor(
@@ -42,6 +44,11 @@ export class SupabaseFileStorage implements FileStorage {
     private readonly serviceKey: string,
     private readonly bucket = process.env.SUPABASE_STORAGE_BUCKET ?? "statements",
   ) {}
+
+  /** Bounds every request (including reading the body) so a hung connection can't block processing. */
+  private signal() {
+    return AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  }
 
   private endpoint(key: string) {
     return `${this.url.replace(/\/$/, "")}/storage/v1/object/${this.bucket}/${key.split("/").map(encodeURIComponent).join("/")}`;
@@ -56,18 +63,19 @@ export class SupabaseFileStorage implements FileStorage {
       method: "POST",
       headers: this.headers({ "Content-Type": contentType, "x-upsert": "true" }),
       body: Buffer.from(bytes),
+      signal: this.signal(),
     });
     if (!res.ok) throw new Error(`Supabase upload failed: ${res.status} ${await res.text()}`);
   }
 
   async get(key: string) {
-    const res = await fetch(this.endpoint(key), { headers: this.headers() });
+    const res = await fetch(this.endpoint(key), { headers: this.headers(), signal: this.signal() });
     if (!res.ok) throw new Error(`Supabase download failed: ${res.status}`);
     return new Uint8Array(await res.arrayBuffer());
   }
 
   async remove(key: string) {
-    const res = await fetch(this.endpoint(key), { method: "DELETE", headers: this.headers() });
+    const res = await fetch(this.endpoint(key), { method: "DELETE", headers: this.headers(), signal: this.signal() });
     if (!res.ok && res.status !== 404) throw new Error(`Supabase delete failed: ${res.status}`);
   }
 }

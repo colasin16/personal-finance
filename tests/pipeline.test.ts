@@ -269,6 +269,17 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     expect(await db.select().from(statements).where(eq(statements.fileSha256, statement.fileSha256))).toHaveLength(3);
   });
 
+  it("skips a statement another worker is actively processing, but takes over an abandoned one", async () => {
+    const [statement] = await db.select().from(statements).where(eq(statements.householdId, householdId)).orderBy(desc(statements.createdAt)).limit(1);
+    await db.update(statements).set({ status: "processing", progress: "extracting", progressAt: new Date() }).where(eq(statements.id, statement!.id));
+    await processStatement(db, statement!.id, { storage });
+    expect((await db.select().from(statements).where(eq(statements.id, statement!.id)))[0]!.status).toBe("processing");
+
+    await db.update(statements).set({ progressAt: new Date(Date.now() - 10 * 60_000) }).where(eq(statements.id, statement!.id));
+    await processStatement(db, statement!.id, { storage });
+    expect((await db.select().from(statements).where(eq(statements.id, statement!.id)))[0]!.status).toBe("needs_review");
+  });
+
   it("confirms statements", async () => {
     const [first] = await db.select().from(statements).where(eq(statements.householdId, householdId)).limit(1);
     expect(await confirmStatement(db, householdId, first!.id)).toBe(true);

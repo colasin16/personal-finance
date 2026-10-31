@@ -21,7 +21,7 @@ export async function createDb(options: { url?: string; dataDir?: string | "memo
     const { default: postgres } = await import("postgres");
     const { drizzle } = await import("drizzle-orm/postgres-js");
     const { migrate } = await import("drizzle-orm/postgres-js/migrator");
-    const client = postgres(url, { prepare: false, max: 5 });
+    const client = postgres(url, { prepare: false, max: 5, connect_timeout: 10 });
     const pgDb = drizzle(client, { schema });
     if (!options.migrate) return pgDb as unknown as Db;
     await migrate(pgDb, { migrationsFolder: MIGRATIONS_FOLDER });

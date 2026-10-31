@@ -5,7 +5,6 @@ import { banks } from "@/lib/db/schema";
 import { getMembers } from "@/lib/households";
 import { getCompleteness, getVisibleAccounts, listStatements } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
-import { pendingJobs } from "@/lib/services/jobs";
 import { PageHeader } from "@/components/page-header";
 import { toAccountRef } from "@/components/accounts/account-ref";
 import { CompletenessGrid } from "@/components/statements/completeness-grid";
@@ -32,7 +31,6 @@ export default async function ImportPage() {
     getMembers(db, household.id),
     db.select().from(banks).orderBy(asc(banks.name)),
   ]);
-  const jobsRunning = pendingJobs() > 0;
   const t = await getTranslations("import");
 
   return (
@@ -47,19 +45,18 @@ export default async function ImportPage() {
           banks={bankList.map(({ id, name, color, country }) => ({ id, name, color, country }))}
           members={members.map(({ id, displayName }) => ({ id, displayName }))}
           currentUserId={user.id}
-          jobsRunning={jobsRunning}
           statements={statementRows.map(({ statement: s, accountName, ibanLast4, bankId, bankName, bankColor }) => ({
             id: s.id,
             fileName: s.fileName,
             status: s.status,
             progress: s.progress,
+            progressAt: s.progressAt.toISOString(),
             error: s.error,
             account: accountName && bankId && bankName && bankColor ? { name: accountName, bankId, bankName, bankColor, ibanLast4 } : null,
             periodStart: s.periodStart,
             periodEnd: s.periodEnd,
             issues: s.issues.length,
             detected: s.detected,
-            createdAt: s.createdAt.toISOString(),
           }))}
         />
         <Card>

@@ -1,0 +1,1 @@
+ALTER TABLE "statements" ADD COLUMN "progress_at" timestamp with time zone DEFAULT now() NOT NULL;

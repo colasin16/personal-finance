@@ -29,5 +29,6 @@
   "upload_failed": "Upload failed.",
   "no_files": "No files received.",
   "too_many_files": "Upload at most {max} files at once.",
-  "invalid_email": "Enter a valid email address."
+  "invalid_email": "Enter a valid email address.",
+  "already_processing": "This statement is still being processed. Try again in a few minutes if it doesn't finish."
 }

@@ -15,7 +15,7 @@
     "detected": "Detected {bank}",
     "notDetected": "Account not detected yet",
     "iban": "IBAN •••• {last4}",
-    "stuck": "Processing was interrupted (server restarted). Retry to continue.",
+    "stuck": "Processing stopped responding. Retry to continue.",
     "balanceIssues": "{count, plural, one {# balance check didn't add up} other {# balance checks didn't add up}} — please review.",
     "whichAccount": "Which account is it?",
     "new": "New",

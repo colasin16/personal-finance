@@ -10,6 +10,7 @@ import type { DetectedStatementInfo } from "@/lib/db/schema";
 import type { StatementStatus } from "@/app/api/statements/status/route";
 import { assignStatementAccountAction, deleteStatementAction, retryStatementAction } from "@/lib/actions/statements";
 import { translateError } from "@/i18n/errors";
+import { isStaleProcessing, isInProgress as inProgress } from "@/lib/statement-processing";
 import { formatDate } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { AccountRef, type AccountRefData } from "@/components/accounts/account-ref";
@@ -27,20 +28,19 @@ type StatementItem = {
   fileName: string;
   status: string;
   progress: string | null;
+  progressAt: string;
   error: string | null;
   account: AccountRefData | null;
   periodStart: string | null;
   periodEnd: string | null;
   issues: number;
   detected: DetectedStatementInfo | null;
-  createdAt: string;
 };
 
 type AccountOption = AccountRefData & { id: string };
 
 const AUTO = "auto";
 const POLL_MS = 2000;
-const inProgress = (status: string) => status === "uploaded" || status === "processing";
 
 export function ImportView({
   accounts,
@@ -48,14 +48,12 @@ export function ImportView({
   members,
   currentUserId,
   statements,
-  jobsRunning,
 }: {
   accounts: AccountOption[];
   banks: BankOption[];
   members: MemberOption[];
   currentUserId: string;
   statements: StatementItem[];
-  jobsRunning: boolean;
 }) {
   const t = useTranslations("import");
   const router = useRouter();
@@ -186,7 +184,7 @@ export function ImportView({
                   banks={banks}
                   members={members}
                   currentUserId={currentUserId}
-                  stuck={!jobsRunning && inProgress(s.status) && now - Date.parse(s.createdAt) > 60_000}
+                  stuck={isStaleProcessing(s, now)}
                 />
               ))}
             </ul>

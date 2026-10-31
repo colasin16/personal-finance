@@ -15,7 +15,7 @@
     "detected": "Detectado: {bank}",
     "notDetected": "Cuenta aún sin detectar",
     "iban": "IBAN •••• {last4}",
-    "stuck": "El procesamiento se interrumpió (el servidor se reinició). Reintenta para continuar.",
+    "stuck": "El procesamiento dejó de responder. Reintenta para continuar.",
     "balanceIssues": "{count, plural, one {# comprobación de saldo no cuadra} other {# comprobaciones de saldo no cuadran}}: revísalo.",
     "whichAccount": "¿De qué cuenta es?",
     "new": "Nueva",
