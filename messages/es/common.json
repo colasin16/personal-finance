@@ -41,7 +41,6 @@
   "transactionsCount": "{count, plural, one {# movimiento} other {# movimientos}}",
   "accountsCount": "{count, plural, one {# cuenta} other {# cuentas}}",
   "statementsCount": "{count, plural, one {# extracto} other {# extractos}}",
-  "pageOf": "Página {page} de {total}",
   "accountTypes": {
     "checking": "Cuenta corriente",
     "savings": "Ahorro",
@@ -74,5 +73,17 @@
   "flags": {
     "low_confidence": "Sugerencia de categoría poco fiable",
     "uncategorized": "No se ha podido categorizar automáticamente"
+  },
+  "pagination": {
+    "label": "Paginación",
+    "showing": "Mostrando {from}–{to} de {total}",
+    "perPage": "Por página",
+    "first": "Primera página",
+    "previous": "Página anterior",
+    "next": "Página siguiente",
+    "last": "Última página",
+    "page": "Página {page}",
+    "pageOf": "Página {page} de {total}",
+    "goTo": "Ir a la página"
   }
 }

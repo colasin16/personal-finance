@@ -8,6 +8,7 @@ import { findMentionedAccount, findTransferPairs, rankTransferMatches } from "@/
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
 import { keywordCategorize } from "@/lib/domain/keywords";
+import { DEFAULT_PAGE_SIZE, pageRange, parsePageSize } from "@/lib/pagination";
 
 describe("parseAmount", () => {
   it.each([
@@ -320,5 +321,28 @@ describe("rankTransferMatches", () => {
       { id: "too-far", accountId: "b", bookedAt: "2026-11-01", amountCents: 5000 },
     ];
     expect(rankTransferMatches(tx, candidates).map((c) => c.id)).toEqual(["near", "far"]);
+  });
+});
+
+describe("pagination", () => {
+  it("lists every page when there are few", () => {
+    expect(pageRange(1, 1)).toEqual([1]);
+    expect(pageRange(3, 7)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  });
+
+  it("adds ellipses around the current page, keeping first and last", () => {
+    expect(pageRange(1, 20)).toEqual([1, 2, 3, 4, 5, null, 20]);
+    expect(pageRange(4, 20)).toEqual([1, 2, 3, 4, 5, null, 20]);
+    expect(pageRange(5, 20)).toEqual([1, null, 4, 5, 6, null, 20]);
+    expect(pageRange(16, 20)).toEqual([1, null, 15, 16, 17, null, 20]);
+    expect(pageRange(17, 20)).toEqual([1, null, 16, 17, 18, 19, 20]);
+    expect(pageRange(20, 20)).toEqual([1, null, 16, 17, 18, 19, 20]);
+  });
+
+  it("only accepts the offered page sizes", () => {
+    expect(parsePageSize("25")).toBe(25);
+    expect(parsePageSize("100")).toBe(100);
+    expect(parsePageSize("2000")).toBe(DEFAULT_PAGE_SIZE);
+    expect(parsePageSize(undefined)).toBe(DEFAULT_PAGE_SIZE);
   });
 });

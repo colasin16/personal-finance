@@ -2,8 +2,6 @@
   "title": "Movimientos",
   "description": "Haz clic en una categoría para cambiarla. Selecciona varias filas para recategorizarlas a la vez.",
   "summary": "{count, plural, one {# movimiento} other {# movimientos}} · neto <money></money>",
-  "previousPage": "Página anterior",
-  "nextPage": "Página siguiente",
   "filters": {
     "search": "Busca por descripción, comercio o notas",
     "allAccounts": "Todas las cuentas",
