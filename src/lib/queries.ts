@@ -1,5 +1,5 @@
 import { localizeCategoryName } from "@/lib/i18n/categories";
-import { addDays, differenceInCalendarDays, format, parseISO, startOfMonth, subMonths } from "date-fns";
+import { addDays, differenceInCalendarDays, endOfMonth, format, max, min, parseISO, startOfMonth, startOfWeek, subMonths } from "date-fns";
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNotNull, isNull, lte, or, sql, type SQL } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import {
@@ -100,18 +100,32 @@ export async function getCategories(db: Db, householdId: string, locale = "en") 
 
 /* ───────────────────────────────────── Dashboard ───────────────────────────────────── */
 
-export type Period = "3m" | "6m" | "12m" | "ytd" | "all";
+export type PresetPeriod = "3m" | "6m" | "12m" | "ytd" | "all";
+/** A preset range, or a single calendar month as `yyyy-MM`. */
+export type Period = PresetPeriod | `${number}-${number}`;
 /** Labels: messages/<locale>/dashboard.json `periods.<value>`. */
-export const PERIODS: Period[] = ["3m", "6m", "12m", "ytd", "all"];
+export const PERIODS: PresetPeriod[] = ["3m", "6m", "12m", "ytd", "all"];
+
+export const isMonthPeriod = (period: string): period is `${number}-${number}` => /^\d{4}-(0[1-9]|1[0-2])$/.test(period);
 
 export function parsePeriod(value: string | undefined | null): Period {
-  return PERIODS.includes(value as Period) ? (value as Period) : "6m";
+  if (value && isMonthPeriod(value)) return value;
+  return PERIODS.includes(value as PresetPeriod) ? (value as PresetPeriod) : "6m";
 }
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
 const monthKey = (date: string) => date.slice(0, 7);
 
 function periodRange(period: Period, anchor: Date, firstDate: Date) {
+  if (isMonthPeriod(period)) {
+    const start = parseISO(`${period}-01`);
+    const monthEnd = endOfMonth(start);
+    // Don't extend the latest (partial) month past the newest data; compare against the same days of the month before.
+    const end = anchor >= start && anchor < monthEnd ? anchor : monthEnd;
+    const prevStart = subMonths(start, 1);
+    const prevEnd = min([addDays(prevStart, differenceInCalendarDays(end, start)), addDays(start, -1)]);
+    return { start, end, prevStart, prevEnd };
+  }
   const end = anchor;
   let start: Date;
   if (period === "all") start = firstDate;
@@ -120,6 +134,12 @@ function periodRange(period: Period, anchor: Date, firstDate: Date) {
   if (start < firstDate && period !== "ytd") start = startOfMonth(firstDate);
   const days = differenceInCalendarDays(end, start) + 1;
   return { start, end, prevStart: addDays(start, -days), prevEnd: addDays(start, -1) };
+}
+
+function monthsBetween(from: Date, to: Date) {
+  const months: string[] = [];
+  for (let m = startOfMonth(from); m <= to; m = startOfMonth(addDays(m, 32))) months.push(format(m, "yyyy-MM"));
+  return months;
 }
 
 type DashboardTx = {
@@ -183,20 +203,26 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
   const current = totals(start, end);
   const previous = txs.length && prevEnd >= iso(first) ? totals(prevStart, prevEnd) : null;
 
-  // Monthly income / expenses / net
-  const monthly = new Map<string, { income: number; expenses: number }>();
-  for (let m = startOfMonth(range.start); m <= range.end; m = startOfMonth(addDays(m, 32))) {
-    monthly.set(format(m, "yyyy-MM"), { income: 0, expenses: 0 });
+  // Income / expenses / net per month, or per week (starting Monday, clamped to the month) for a single month.
+  const cashFlowGranularity: "month" | "week" = isMonthPeriod(period) ? "week" : "month";
+  const bucketKey =
+    cashFlowGranularity === "week"
+      ? (date: string) => (date < start ? start : iso(max([startOfWeek(parseISO(date), { weekStartsOn: 1 }), range.start])))
+      : (date: string) => `${monthKey(date)}-01`;
+  const buckets = new Map<string, { income: number; expenses: number }>();
+  for (let d = range.start; d <= range.end; d = addDays(d, 1)) {
+    const key = bucketKey(iso(d));
+    if (!buckets.has(key)) buckets.set(key, { income: 0, expenses: 0 });
   }
   for (const tx of flows) {
     if (tx.bookedAt < start || tx.bookedAt > end) continue;
-    const bucket = monthly.get(monthKey(tx.bookedAt));
+    const bucket = buckets.get(bucketKey(tx.bookedAt));
     if (!bucket) continue;
     const amount = share(tx);
     if (amount > 0) bucket.income += amount;
     else bucket.expenses += -amount;
   }
-  const months = [...monthly.entries()].map(([month, v]) => ({ month, time: `${month}-01`, ...v, net: v.income - v.expenses }));
+  const months = [...buckets.entries()].map(([time, v]) => ({ month: monthKey(time), time, ...v, net: v.income - v.expenses }));
 
   // Daily balances per account (forward-filled), then net worth = Σ balance × share.
   const lastBalanceByDay = new Map<string, Map<string, number>>();
@@ -274,9 +300,12 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
   return {
     accounts: inScope.map((s) => ({ ...s.account, sharePct: s.sharePct })),
     range: { start, end, hasData: txs.length > 0 },
+    /** Months with data, newest first (`yyyy-MM`), for the single-month picker. */
+    availableMonths: txs.length ? monthsBetween(first, latest).reverse() : [],
     kpis: { ...current, netWorth: netWorthNow, netWorthChange: netWorthNow !== null && netWorthStart !== null ? netWorthNow - netWorthStart : null },
     previous,
     months,
+    cashFlowGranularity,
     netWorth,
     accountSeries,
     categoryRanking,

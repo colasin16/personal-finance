@@ -62,7 +62,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   if (!data.range.hasData) {
     return (
       <>
-        <DashboardFilters scopes={scopes} periods={PERIODS} />
+        <DashboardFilters scopes={scopes} periods={PERIODS} months={data.availableMonths} />
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
             <FileUp className="size-12 text-emerald-600" />
@@ -116,7 +116,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <DashboardFilters scopes={scopes} periods={PERIODS} />
+      <DashboardFilters scopes={scopes} periods={PERIODS} months={data.availableMonths} />
       <p className="mb-4 text-xs text-muted-foreground">
         {t("range.period", { start: formatDate(data.range.start, locale), end: formatDate(data.range.end, locale) })} ·{" "}
         {tc("accountsCount", { count: data.accounts.length })}
@@ -137,7 +137,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         <NetWorthCard className="lg:col-span-3" netWorth={data.netWorth} accounts={data.accountSeries} markers={data.markers} />
-        <CashFlowCard className="lg:col-span-2" months={data.months} />
+        <CashFlowCard className="lg:col-span-2" months={data.months} granularity={data.cashFlowGranularity} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">

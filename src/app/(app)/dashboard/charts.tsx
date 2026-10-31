@@ -36,18 +36,26 @@ export function NetWorthCard({ className, ...data }: NetWorthData & { className?
   );
 }
 
-export function CashFlowCard({ className, months }: { className?: string; months: CashFlowMonth[] }) {
+export function CashFlowCard({
+  className,
+  months,
+  granularity = "month",
+}: {
+  className?: string;
+  months: CashFlowMonth[];
+  granularity?: "month" | "week";
+}) {
   const t = useTranslations("dashboard.cashFlow");
   return (
     <ExpandableChartCard
       className={className}
-      title={t("title")}
+      title={granularity === "week" ? t("titleWeekly") : t("title")}
       description={t.rich("description", {
         income: (c) => <span className="text-emerald-600">{c}</span>,
         spending: (c) => <span className="text-red-500">{c}</span>,
       })}
     >
-      {(expanded) => (expanded ? <div className="min-h-0 flex-1"><CashFlowChart months={months} height="100%" /></div> : <CashFlowChart months={months} />)}
+      {(expanded) => (expanded ? <div className="min-h-0 flex-1"><CashFlowChart months={months} monthly={granularity === "month"} height="100%" /></div> : <CashFlowChart months={months} monthly={granularity === "month"} />)}
     </ExpandableChartCard>
   );
 }
@@ -148,7 +156,7 @@ const PALETTE = [
 
 type CashFlowMonth = { time: string; income: number; expenses: number; net: number };
 
-function CashFlowChart({ months, height = 300 }: { months: CashFlowMonth[]; height?: number | string }) {
+function CashFlowChart({ months, monthly, height = 300 }: { months: CashFlowMonth[]; monthly: boolean; height?: number | string }) {
   const netColor = useTheme().resolvedTheme === "dark" ? "#f4f4f5" : "#18181b";
   const series = useMemo<ChartSeries[]>(
     () => [
@@ -171,5 +179,5 @@ function CashFlowChart({ months, height = 300 }: { months: CashFlowMonth[]; heig
     ],
     [months, netColor],
   );
-  return <TimeChart series={series} height={height} monthly />;
+  return <TimeChart series={series} height={height} monthly={monthly} />;
 }

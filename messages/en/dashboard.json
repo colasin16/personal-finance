@@ -1,6 +1,6 @@
 {
   "title": "Dashboard",
-  "periods": { "3m": "Last 3 months", "6m": "Last 6 months", "12m": "Last 12 months", "ytd": "Year to date", "all": "All time" },
+  "periods": { "3m": "Last 3 months", "6m": "Last 6 months", "12m": "Last 12 months", "ytd": "Year to date", "all": "All time", "month": "Month", "previousMonth": "Previous month", "nextMonth": "Next month" },
   "empty": {
     "title": "Your dashboard fills up as you import statements",
     "description": "Add your accounts, then drop last month's PDFs from each bank.",
@@ -29,6 +29,7 @@
   },
   "cashFlow": {
     "title": "Monthly cash flow",
+    "titleWeekly": "Weekly cash flow",
     "description": "<income>Income</income> vs <spending>spending</spending>, line = saved"
   },
   "ranking": {
