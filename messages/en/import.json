@@ -10,21 +10,6 @@
     "autoDetect": "Detect account automatically",
     "tip": "Tip: <link>add your accounts</link> with their IBAN first so statements are matched automatically."
   },
-  "empty": "No statements yet. Your uploads will appear here.",
-  "filters": {
-    "month": "Month",
-    "account": "Account",
-    "status": "Status",
-    "allMonths": "All months",
-    "allAccounts": "All accounts",
-    "allStatuses": "All statuses",
-    "reset": "Reset",
-    "noMatches": "No statements match these filters."
-  },
-  "groups": {
-    "undated": "Not dated yet",
-    "allConfirmed": "All confirmed"
-  },
   "row": {
     "detected": "Detected {bank}",
     "notDetected": "Account not detected yet",
@@ -47,9 +32,20 @@
     "reprocessing": "Reprocessing",
     "deleted": "Statement deleted"
   },
+  "attention": {
+    "title": "Pending · {count}",
+    "description": "Uploads in progress and statements waiting for you."
+  },
+  "months": {
+    "previous": "Previous month",
+    "next": "Next month",
+    "summary": "{done} of {total, plural, one {# account} other {# accounts}} confirmed",
+    "noStatement": "No statement",
+    "upload": "Upload"
+  },
   "coverage": {
     "title": "Statement coverage",
-    "description": "Every account, every month. Amber cells are months with no statement yet.",
+    "description": "Every account, every month. Amber cells are months with no statement yet. Click a month to see its statements.",
     "empty": "Add an account to start tracking statements.",
     "status": {
       "confirmed": "Confirmed",

@@ -28,45 +28,12 @@ export default function ImportLoading() {
           </div>
         </div>
 
-        <div className="-mb-3 flex flex-wrap items-center gap-2">
-          <Skeleton className="h-9 w-44" />
-          <Skeleton className="h-9 w-56" />
-          <Skeleton className="h-9 w-44" />
-        </div>
-
-        <Card className="py-0">
-          <CardContent className="p-0">
-            <div className="flex items-center gap-2 bg-muted/40 px-4 py-2.5">
-              <Skeleton className="size-4" />
-              <Skeleton className="h-4 w-40" />
-            </div>
-            <ul className="divide-y border-t">
-              {Array.from({ length: 4 }, (_, i) => (
-                <li key={i} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-                  <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground/50" />
-                    <div className="min-w-0 flex-1 space-y-1.5">
-                      <Skeleton className={`h-4 ${["w-64", "w-52", "w-72", "w-56"][i]} max-w-full`} />
-                      <Skeleton className="h-3 w-80 max-w-full" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-5 w-20 rounded-full" />
-                    <Skeleton className="h-8 w-20" />
-                    <Skeleton className="size-8" />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
+        <Card className="gap-0 pb-0">
+          <CardHeader className="border-b">
             <CardTitle>{t("coverage.title")}</CardTitle>
             <CardDescription>{t("coverage.description")}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 border-b py-4">
             {Array.from({ length: 3 }, (_, i) => (
               <div key={i} className="flex items-center gap-3">
                 <Skeleton className="h-4 w-44 shrink-0" />
@@ -78,6 +45,30 @@ export default function ImportLoading() {
               </div>
             ))}
           </CardContent>
+          <div className="flex items-center gap-3 border-b bg-muted/40 px-2 py-2">
+            <Skeleton className="size-8" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="size-8" />
+            <Skeleton className="h-3 w-36" />
+          </div>
+          <ul className="divide-y">
+            {Array.from({ length: 3 }, (_, i) => (
+              <li key={i} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground/50" />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <Skeleton className={`h-4 ${["w-64", "w-52", "w-72"][i]} max-w-full`} />
+                    <Skeleton className="h-3 w-80 max-w-full" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="size-8" />
+                </div>
+              </li>
+            ))}
+          </ul>
         </Card>
       </div>
     </LoadingPage>

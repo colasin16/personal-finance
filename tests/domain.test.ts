@@ -9,7 +9,7 @@ import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
 import { keywordCategorize } from "@/lib/domain/keywords";
 import { DEFAULT_PAGE_SIZE, pageRange, parsePageSize } from "@/lib/pagination";
-import { filterStatements, groupStatements, isMonthParam, statementMonths } from "@/lib/statement-groups";
+import { isMonthParam, monthBounds, monthSlots, needsAttention, shiftMonth } from "@/lib/statement-months";
 
 describe("parseAmount", () => {
   it.each([
@@ -348,42 +348,40 @@ describe("pagination", () => {
   });
 });
 
-describe("statement groups", () => {
-  const st = (fileName: string, periodStart: string | null, periodEnd: string | null, status = "confirmed", account: string | null = "a1") => ({
-    fileName,
-    status,
-    accountId: account,
-    account: account ? { name: account === "a1" ? "Zeta" : "Alpha" } : null,
-    periodStart,
-    periodEnd,
-  });
-  const items = [
-    st("jan-a1.pdf", "2026-01-01", "2026-01-31"),
-    st("feb-a1.pdf", "2026-02-01", "2026-02-28", "needs_review"),
-    st("feb-a2.pdf", "2026-02-01", "2026-02-28", "confirmed", "a2"),
-    st("q1-a2.pdf", "2026-01-15", "2026-03-14", "confirmed", "a2"),
-    st("new.pdf", null, null, "needs_account", null),
-  ];
-
-  it("groups by period month, newest first, undated on top, ordered by account inside", () => {
-    const groups = groupStatements(items);
-    expect(groups.map((g) => g.month)).toEqual([null, "2026-02", "2026-01"]);
-    expect(groups[1].items.map((s) => s.fileName)).toEqual(["feb-a2.pdf", "feb-a1.pdf"]);
-    expect(groups[2].items.map((s) => s.fileName)).toEqual(["q1-a2.pdf", "jan-a1.pdf"]);
-    expect(groups.map((g) => g.allConfirmed)).toEqual([false, false, true]);
-  });
-
-  it("filters by covered month, account and status", () => {
-    expect(filterStatements(items, { month: "2026-03" }).map((s) => s.fileName)).toEqual(["q1-a2.pdf"]);
-    expect(filterStatements(items, { month: "2026-02", accountId: "a2" }).map((s) => s.fileName)).toEqual(["feb-a2.pdf", "q1-a2.pdf"]);
-    expect(filterStatements(items, { status: "needs_review" }).map((s) => s.fileName)).toEqual(["feb-a1.pdf"]);
-    expect(groupStatements(filterStatements(items, { month: "2026-02" }), "2026-02").map((g) => g.month)).toEqual(["2026-02"]);
-  });
-
-  it("lists the months with statements and validates month params", () => {
-    expect(statementMonths(items)).toEqual(["2026-02", "2026-01"]);
-    expect(isMonthParam("2026-02")).toBe(true);
+describe("statement months", () => {
+  it("validates and shifts months across years", () => {
+    expect(isMonthParam("2026-09")).toBe(true);
     expect(isMonthParam("2026-13")).toBe(false);
-    expect(isMonthParam("feb")).toBe(false);
+    expect(shiftMonth("2026-01", -1)).toBe("2025-12");
+    expect(shiftMonth("2025-12", 1)).toBe("2026-01");
+    expect(monthBounds("2028-02")).toEqual({ start: "2028-02-01", end: "2028-02-29" });
+  });
+
+  it("flags unconfirmed, unassigned or undated statements as needing attention", () => {
+    const base = { status: "confirmed", accountId: "a", periodStart: "2026-09-01", periodEnd: "2026-09-30" };
+    expect(needsAttention(base)).toBe(false);
+    expect(needsAttention({ ...base, status: "needs_review" })).toBe(true);
+    expect(needsAttention({ ...base, accountId: null })).toBe(true);
+    expect(needsAttention({ ...base, periodStart: null })).toBe(true);
+  });
+
+  it("builds one slot per account, marking gaps only after the account's first statement", () => {
+    const st = (id: string, accountId: string, periodStart: string, periodEnd: string) => ({ id, accountId, periodStart, periodEnd });
+    const accounts = [
+      { id: "a", firstMonth: "2026-07" },
+      { id: "b", firstMonth: "2026-07" },
+      { id: "c", firstMonth: "2026-10" },
+    ];
+    const { slots, others } = monthSlots("2026-09", accounts, [
+      st("1", "a", "2026-08-15", "2026-09-14"),
+      st("2", "a", "2026-07-01", "2026-07-31"),
+      st("3", "archived", "2026-09-01", "2026-09-30"),
+    ]);
+    expect(slots.map((s) => [s.account.id, s.statements.map((x) => x.id), s.missing])).toEqual([
+      ["a", ["1"], false],
+      ["b", [], true],
+      ["c", [], false],
+    ]);
+    expect(others.map((s) => s.id)).toEqual(["3"]);
   });
 });

@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { CompletenessCell } from "@/lib/queries";
@@ -17,19 +15,17 @@ const CELL: Record<CompletenessCell["status"], string> = {
   none: "bg-muted",
 };
 
-/** Link that filters the Import page's statement list to one account and month (or clears it when already selected). */
-const filterHref = (accountId: string, month: string, active: boolean) =>
-  active ? "/import" : `/import?${new URLSearchParams({ month, account: accountId })}`;
+const monthHref = (month: string) => `/import?month=${month}`;
 
-/** Accounts × months — makes gaps in imported statements obvious at a glance. Clicking a cell filters the statement list. */
+/** Accounts × months — makes gaps in imported statements obvious at a glance. Clicking a month shows its statements. */
 export function CompletenessGrid({
   months,
   grid,
-  selected,
+  selectedMonth,
 }: {
   months: string[];
   grid: { account: AccountRefData & { id: string }; cells: CompletenessCell[] }[];
-  selected?: { month?: string; accountId?: string };
+  selectedMonth?: string;
 }) {
   const t = useTranslations("import.coverage");
   const locale = useLocale();
@@ -42,8 +38,18 @@ export function CompletenessGrid({
             <tr>
               <th />
               {months.map((m) => (
-                <th key={m} className="min-w-8 font-normal text-muted-foreground">
-                  {formatMonth(m, "short", locale)}
+                <th key={m} className="min-w-8 p-0 font-normal">
+                  <Link
+                    href={monthHref(m)}
+                    scroll={false}
+                    aria-current={m === selectedMonth ? "date" : undefined}
+                    className={cn(
+                      "block rounded px-1 py-0.5 hover:bg-muted hover:text-foreground",
+                      m === selectedMonth ? "bg-foreground font-medium text-background hover:bg-foreground hover:text-background" : "text-muted-foreground",
+                    )}
+                  >
+                    {formatMonth(m, "short", locale)}
+                  </Link>
                 </th>
               ))}
             </tr>
@@ -55,26 +61,25 @@ export function CompletenessGrid({
                   <AccountRef account={account} size="md" />
                 </td>
                 {cells.map((cell) => {
-                  const active = selected?.month === cell.month && selected?.accountId === account.id;
-                  const box = <div className={cn("h-6 rounded", CELL[cell.status], active && "ring-2 ring-foreground ring-offset-1 ring-offset-background")} />;
+                  const selected = cell.month === selectedMonth;
                   return (
                     <td key={cell.month}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          {cell.status !== "none" ? (
-                            <Link
-                              href={filterHref(account.id, cell.month, active)}
-                              scroll={false}
-                              onClick={() => document.getElementById("statements")?.scrollIntoView({ behavior: "smooth" })}
-                              aria-label={`${account.name} ${formatMonth(cell.month, "long", locale)}`}
-                              aria-current={active ? "true" : undefined}
-                              className="block rounded focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                            >
-                              {box}
-                            </Link>
-                          ) : (
-                            box
-                          )}
+                          <Link
+                            href={monthHref(cell.month)}
+                            scroll={false}
+                            aria-label={`${account.name} ${formatMonth(cell.month, "long", locale)}`}
+                            className="block rounded focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                          >
+                            <div
+                              className={cn(
+                                "h-6 rounded transition-opacity hover:opacity-80",
+                                CELL[cell.status],
+                                selected && "ring-2 ring-foreground/60 ring-offset-1 ring-offset-background",
+                              )}
+                            />
+                          </Link>
                         </TooltipTrigger>
                         <TooltipContent>
                           {account.name} · {formatMonth(cell.month, "long", locale)}: {t(`status.${cell.status}`)}

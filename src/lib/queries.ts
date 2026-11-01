@@ -17,6 +17,7 @@ import {
 import { findTransferSuggestions } from "@/lib/pipeline/categorize";
 import { applyShare } from "@/lib/money";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
+import { monthBounds } from "@/lib/statement-months";
 
 /* ───────────────────────────── Accounts & visibility ───────────────────────────── */
 
@@ -319,7 +320,19 @@ export type DashboardData = Awaited<ReturnType<typeof getDashboard>>;
 
 /* ─────────────────────────────────── Statements ─────────────────────────────────── */
 
-export async function listStatements(db: Db, householdId: string, userId: string, visibleIds: string[], limit = 200) {
+/** Statements for the Import page: those needing attention (see `needsAttention`), or the ones covering a month. */
+export async function listStatements(
+  db: Db,
+  householdId: string,
+  userId: string,
+  visibleIds: string[],
+  filter: { attention: true } | { month: string },
+  limit = 200,
+) {
+  const scope =
+    "month" in filter
+      ? and(lte(statements.periodStart, monthBounds(filter.month).end), gte(statements.periodEnd, monthBounds(filter.month).start))
+      : or(sql`${statements.status} <> 'confirmed'`, isNull(statements.accountId), isNull(statements.periodStart), isNull(statements.periodEnd));
   return db
     .select({
       statement: statements,
@@ -339,6 +352,7 @@ export async function listStatements(db: Db, householdId: string, userId: string
           visibleIds.length ? inArray(statements.accountId, visibleIds) : sql`false`,
           and(isNull(statements.accountId), eq(statements.uploadedBy, userId)),
         ),
+        scope,
       ),
     )
     .orderBy(desc(statements.createdAt))
@@ -379,7 +393,7 @@ export async function getCompleteness(db: Db, householdId: string, visible: Visi
       }
       return { month, status: "none" };
     });
-    return { account, cells };
+    return { account, cells, firstMonth: firstMonth ?? null };
   });
   return { months, grid, gaps };
 }
@@ -523,7 +537,7 @@ export async function getIssues(db: Db, householdId: string, userId: string) {
 
   // Statements of archived accounts still need review, so they must not vanish from the inbox.
   const withArchived = await getVisibleAccounts(db, householdId, userId, { includeArchived: true });
-  const statementRows = await listStatements(db, householdId, userId, withArchived.map((a) => a.id));
+  const statementRows = await listStatements(db, householdId, userId, withArchived.map((a) => a.id), { attention: true });
   const needsAccount = statementRows.filter((s) => s.statement.status === "needs_account");
   const failed = statementRows.filter((s) => s.statement.status === "failed");
   const toReview = statementRows.filter((s) => s.statement.status === "needs_review");

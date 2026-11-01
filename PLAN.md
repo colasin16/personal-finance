@@ -217,7 +217,7 @@ Implementation notes:
 
 - **Auth & onboarding**: sign up, create household, invite partner by email. Then a 3-step guided setup: add accounts → upload first statements → review.
 - **Accounts**: "Add account" searchable bank picker; nickname, owners and share %; archive.
-- **Import**: drag & drop multiple PDFs anywhere in the app; auto-detection of account and period; live status per file (uploading → reading → categorizing → ready for review); statements grouped by period month (fully confirmed months collapsed) and filterable by month, account and status from the URL or by clicking a completeness-grid cell.
+- **Import**: drag & drop multiple PDFs anywhere in the app; auto-detection of account and period; live status per file (uploading → reading → categorizing → ready for review). A "Pending" list holds uploads in progress and anything not yet confirmed; below the completeness grid, a month browser (`?month=`, ‹ › stepper or click a grid column) lists every account for that month: its statement, or a missing slot with an upload button for that account.
 - **Completeness**: accounts × months grid (imported / missing / needs review).
 - **Review**: editable table of parsed transactions, with flagged rows first; bulk accept; confirm.
 - **Issues & suggestions**: global counter in the header, plus a dedicated inbox page with one-click fixes.
