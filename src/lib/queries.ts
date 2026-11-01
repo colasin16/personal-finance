@@ -260,7 +260,6 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
   // Category ranking & top merchants (expenses only)
   const byCategory = new Map<string | null, { cents: number; count: number }>();
   const byMerchant = new Map<string, { cents: number; count: number }>();
-  const biggest: { time: string; cents: number; label: string }[] = [];
   for (const tx of flows) {
     if (tx.bookedAt < start || tx.bookedAt > end) continue;
     const amount = share(tx);
@@ -274,7 +273,6 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
     mm.cents += -amount;
     mm.count++;
     byMerchant.set(merchant, mm);
-    biggest.push({ time: tx.bookedAt, cents: -amount, label: merchant });
   }
   const expenseTotal = current.expenses || 1;
   const categoryRanking = [...byCategory.entries()]
@@ -295,10 +293,6 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
     .map(([name, v]) => ({ name, ...v }))
     .sort((a, b) => b.cents - a.cents)
     .slice(0, 8);
-  const markers = biggest
-    .sort((a, b) => b.cents - a.cents)
-    .slice(0, 5)
-    .sort((a, b) => a.time.localeCompare(b.time));
 
   return {
     accounts: inScope.map((s) => ({ ...s.account, sharePct: s.sharePct })),
@@ -313,7 +307,6 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
     accountSeries,
     categoryRanking,
     topMerchants,
-    markers,
   };
 }
 

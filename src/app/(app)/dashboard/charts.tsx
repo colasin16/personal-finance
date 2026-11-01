@@ -9,20 +9,17 @@ import {
 } from "@/components/accounts/account-ref";
 import {
   TimeChart,
-  type ChartMarker,
   type ChartSeries,
 } from "@/components/charts/time-chart";
 import { ExpandableChartCard } from "@/components/charts/expandable-chart-card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatMoney } from "@/lib/money";
 
 type Point = { time: string; value: number };
 
 type NetWorthData = {
   netWorth: Point[];
   accounts: { accountId: string; account: AccountRefData; points: Point[] }[];
-  markers: { time: string; cents: number; label: string }[];
 };
 
 export function NetWorthCard({ className, ...data }: NetWorthData & { className?: string }) {
@@ -63,7 +60,6 @@ export function CashFlowCard({
 function NetWorthChart({
   netWorth,
   accounts,
-  markers,
   split,
   onSplitChange: setSplit,
   expanded,
@@ -82,21 +78,6 @@ function NetWorthChart({
           }))
         : [{ kind: "area", data: netWorth, color: "#059669" }],
     [split, accounts, netWorth],
-  );
-  const chartMarkers = useMemo<ChartMarker[] | undefined>(
-    () =>
-      split
-        ? undefined
-        : markers
-            .filter((m) => netWorth.some((p) => p.time === m.time))
-            .map((m) => ({
-              time: m.time,
-              text: formatMoney(-Math.round(m.cents / 100) * 100),
-              color: "#dc2626",
-              position: "aboveBar",
-              shape: "arrowDown",
-            })),
-    [split, markers, netWorth],
   );
   return (
     <div className={cn("space-y-2", expanded && "flex min-h-0 flex-1 flex-col")}>
@@ -118,10 +99,10 @@ function NetWorthChart({
       </div>
       {expanded ? (
         <div className="min-h-0 flex-1">
-          <TimeChart series={series} markers={chartMarkers} height="100%" />
+          <TimeChart series={series} height="100%" />
         </div>
       ) : (
-        <TimeChart series={series} markers={chartMarkers} height={300} />
+        <TimeChart series={series} height={300} />
       )}
       {split && (
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">

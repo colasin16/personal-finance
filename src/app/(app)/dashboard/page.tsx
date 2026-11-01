@@ -136,7 +136,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
-        <NetWorthCard className="lg:col-span-3" netWorth={data.netWorth} accounts={data.accountSeries} markers={data.markers} />
+        <NetWorthCard className="lg:col-span-3" netWorth={data.netWorth} accounts={data.accountSeries} />
         <CashFlowCard className="lg:col-span-2" months={data.months} granularity={data.cashFlowGranularity} />
       </div>
 
