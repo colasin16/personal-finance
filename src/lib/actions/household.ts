@@ -6,11 +6,12 @@ import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { getDb } from "@/lib/db";
+import { getDb, type Db } from "@/lib/db";
 import { accounts, categories, households } from "@/lib/db/schema";
 import { acceptInvite, createAccount, createHousehold, createInvite, updateAccount, type AccountInput } from "@/lib/households";
 import { deleteCategory, updateCategory } from "@/lib/categories";
 import { localizeCategoryName } from "@/lib/i18n/categories";
+import { getVisibleAccounts } from "@/lib/queries";
 import { requireContext, requireUser } from "@/lib/server/auth";
 import { fail, ok, type ActionResult } from "./result";
 
@@ -28,7 +29,7 @@ export async function createHouseholdAction(_: unknown, formData: FormData) {
 export async function acceptInviteAction(token: string) {
   const user = await requireUser();
   try {
-    await acceptInvite(await getDb(), token, user.id);
+    await acceptInvite(await getDb(), token, user);
   } catch (error) {
     return fail(error);
   }
@@ -37,7 +38,8 @@ export async function acceptInviteAction(token: string) {
 
 export async function inviteMemberAction(email: string): Promise<ActionResult<{ url: string }>> {
   try {
-    const { db, user, household } = await requireContext();
+    const { db, user, household, role } = await requireContext();
+    if (role !== "owner") throw new UserError("owner_only");
     const address = z.string().trim().email("invalid_email").parse(email);
     const invite = await createInvite(db, household.id, user.id, address);
     revalidatePath("/settings", "layout");
@@ -60,9 +62,16 @@ export async function renameHouseholdAction(name: string): Promise<ActionResult>
   }
 }
 
+/** Members may only change accounts they can see: a partner's private account is off-limits even by id. */
+async function assertAccountVisible(db: Db, householdId: string, userId: string, accountId: string) {
+  const visible = await getVisibleAccounts(db, householdId, userId, { includeArchived: true });
+  if (!visible.some((a) => a.id === accountId)) throw new UserError("account_not_found");
+}
+
 export async function saveAccountAction(input: AccountInput, accountId?: string): Promise<ActionResult<{ id: string }>> {
   try {
-    const { db, household } = await requireContext();
+    const { db, household, user } = await requireContext();
+    if (accountId) await assertAccountVisible(db, household.id, user.id, accountId);
     const account = accountId ? await updateAccount(db, household.id, accountId, input) : await createAccount(db, household.id, input);
     revalidatePath("/", "layout");
     return ok({ id: account.id });
@@ -76,7 +85,8 @@ export async function saveAccountAction(input: AccountInput, accountId?: string)
 
 export async function archiveAccountAction(accountId: string, archived: boolean): Promise<ActionResult> {
   try {
-    const { db, household } = await requireContext();
+    const { db, household, user } = await requireContext();
+    await assertAccountVisible(db, household.id, user.id, accountId);
     await db
       .update(accounts)
       .set({ archivedAt: archived ? new Date() : null })

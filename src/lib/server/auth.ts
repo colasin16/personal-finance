@@ -13,18 +13,26 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 /**
  * Supabase Auth when configured (see `supabaseAuthConfig`); otherwise mock authentication for offline
  * development, where the session cookie holds the user id signed with AUTH_SECRET.
+ *
+ * Mock auth signs anyone in from just an email, so production refuses it unless explicitly enabled with
+ * ALLOW_MOCK_AUTH=1 (e.g. a throwaway demo) — a missing or misspelled Supabase variable must not open every account.
  */
-export const authMode = (): "supabase" | "mock" => (supabaseAuthConfig() ? "supabase" : "mock");
+export function authMode(): "supabase" | "mock" {
+  if (supabaseAuthConfig()) return "supabase";
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_MOCK_AUTH !== "1") {
+    throw new Error("Supabase Auth is not configured: set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY (or ALLOW_MOCK_AUTH=1 for a demo).");
+  }
+  return "mock";
+}
 
 const COOKIE = "pf_session";
 const DEV_SECRET = "dev-only-insecure-secret";
 
 function secret() {
   const value = process.env.AUTH_SECRET;
-  if (!value && process.env.NODE_ENV === "production" && process.env.ALLOW_DEV_AUTH !== "1") {
-    throw new Error("AUTH_SECRET must be set in production.");
-  }
-  return value || DEV_SECRET;
+  if (process.env.NODE_ENV !== "production") return value || DEV_SECRET;
+  if (!value || value.length < 32) throw new Error("AUTH_SECRET must be set to at least 32 characters in production.");
+  return value;
 }
 
 const sign = (userId: string) => createHmac("sha256", secret()).update(userId).digest("base64url");
@@ -60,6 +68,7 @@ export const getCurrentUser = cache(async () => {
       displayName: typeof name === "string" ? name : undefined,
     });
   }
+  if (authMode() !== "mock") return null;
   const raw = (await cookies()).get(COOKIE)?.value;
   if (!raw) return null;
   const [userId, signature] = raw.split(".");

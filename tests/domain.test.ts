@@ -9,6 +9,8 @@ import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
 import { keywordCategorize } from "@/lib/domain/keywords";
 import { DEFAULT_PAGE_SIZE, pageRange, parsePageSize } from "@/lib/pagination";
+import { decryptBytes, encryptBytes, isEncrypted } from "@/lib/crypto";
+import { EncryptedFileStorage } from "@/lib/services/storage";
 import { isMonthParam, monthBounds, monthSlots, needsAttention, shiftMonth } from "@/lib/statement-months";
 
 describe("parseAmount", () => {
@@ -383,5 +385,30 @@ describe("statement months", () => {
       ["c", [], false],
     ]);
     expect(others.map((s) => s.id)).toEqual(["3"]);
+  });
+});
+
+describe("encryption at rest", () => {
+  const memory = () => {
+    const files = new Map<string, Uint8Array>();
+    return { files, kind: "memory", put: async (k: string, b: Uint8Array) => void files.set(k, b), get: async (k: string) => files.get(k)!, remove: async (k: string) => void files.delete(k) };
+  };
+
+  it("stores files encrypted and reads them back", async () => {
+    const inner = memory();
+    const storage = new EncryptedFileStorage(inner);
+    const pdf = new TextEncoder().encode("%PDF-1.7 IBAN ES7614650100912345678901");
+    await storage.put("h/a.pdf", pdf);
+    const raw = inner.files.get("h/a.pdf")!;
+    expect(isEncrypted(raw)).toBe(true);
+    expect(Buffer.from(raw).includes(Buffer.from("ES76"))).toBe(false);
+    expect(await storage.get("h/a.pdf")).toEqual(pdf);
+  });
+
+  it("binds ciphertext to its key and passes legacy plaintext through", () => {
+    const sealed = encryptBytes(new Uint8Array([1, 2, 3]), "a.pdf");
+    expect(() => decryptBytes(sealed, "b.pdf")).toThrow();
+    const legacy = new TextEncoder().encode("%PDF-1.4");
+    expect(decryptBytes(legacy, "x.pdf")).toEqual(legacy);
   });
 });

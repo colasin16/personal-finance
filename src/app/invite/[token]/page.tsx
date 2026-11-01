@@ -6,7 +6,7 @@ import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDb } from "@/lib/db";
-import { getInvite, getMembership } from "@/lib/households";
+import { getInvite, getMembership, inviteMatchesUser } from "@/lib/households";
 import { getCurrentUser } from "@/lib/server/auth";
 import { AcceptInviteButton } from "@/app/onboarding/onboarding-form";
 
@@ -32,6 +32,11 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
             <CardTitle>{t("invalidTitle")}</CardTitle>
             <CardDescription>{t("invalidDescription")}</CardDescription>
           </CardHeader>
+        ) : !inviteMatchesUser(invite.invite, user) ? (
+          <CardHeader>
+            <CardTitle>{t("wrongEmailTitle")}</CardTitle>
+            <CardDescription>{t("wrongEmailDescription", { email: user.email })}</CardDescription>
+          </CardHeader>
         ) : membership ? (
           <CardHeader>
             <CardTitle>{t("alreadyMemberTitle", { household: membership.household.name })}</CardTitle>
@@ -48,7 +53,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
             </CardContent>
           </>
         )}
-        {(!invite || membership) && (
+        {(!invite || membership || !inviteMatchesUser(invite.invite, user)) && (
           <CardContent>
             <Button asChild variant="outline">
               <Link href="/dashboard">{t("goToDashboard")}</Link>

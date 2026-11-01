@@ -1,5 +1,6 @@
 import { UserError } from "@/lib/errors";
-import { and, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt, ne, or, sql } from "drizzle-orm";
+import { hmacIban } from "@/lib/crypto";
 import type { Db } from "@/lib/db";
 import { accounts, banks, statements, transactions, type DetectedStatementInfo } from "@/lib/db/schema";
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
@@ -15,7 +16,24 @@ import { extractPdfText } from "./extract-text";
 export const MIN_TEXT_CHARS = 40;
 
 export function ibanHash(householdId: string, iban: string) {
+  return hmacIban(`${householdId}:${compactIban(iban)}`);
+}
+
+/** The unkeyed hash stored before `ibanHash` used a server key — only to recognise and upgrade old rows. */
+export function legacyIbanHash(householdId: string, iban: string) {
   return sha256(`${householdId}:${compactIban(iban)}`);
+}
+
+/** Replaces legacy IBAN hashes on the household's accounts with keyed ones, for the IBANs we now know. */
+export async function upgradeLegacyIbanHashes(db: Db, householdId: string, ibans: string[]) {
+  const legacy = new Map(ibans.map((iban) => [legacyIbanHash(householdId, iban), ibanHash(householdId, iban)]));
+  if (!legacy.size) return 0;
+  const rows = await db
+    .update(accounts)
+    .set({ ibanHash: sql`case ${accounts.ibanHash} ${sql.join([...legacy].map(([from, to]) => sql`when ${from} then ${to}`), sql` `)} end` })
+    .where(and(eq(accounts.householdId, householdId), inArray(accounts.ibanHash, [...legacy.keys()])))
+    .returning({ id: accounts.id });
+  return rows.length;
 }
 
 async function detectBank(db: Db, text: string): Promise<string | null> {
@@ -106,6 +124,7 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
     const bankId = parser?.bankId ?? keywordBankId;
     const sectionIbans = parser?.accountIbans ? parser.accountIbans(text) : findSectionIbans(text);
     const ibans = sectionIbans.length > 0 ? sectionIbans : findIbans(text);
+    await upgradeLegacyIbanHashes(db, statement.householdId, ibans);
     const hashes = ibans.map((iban) => ibanHash(statement.householdId, iban));
     const knownAccounts = hashes.length
       ? await db

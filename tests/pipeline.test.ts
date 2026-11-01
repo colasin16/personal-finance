@@ -4,13 +4,13 @@ import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { createDb, type Db } from "@/lib/db";
 import { categories, statements, transactions } from "@/lib/db/schema";
 import { SAMPLE_ACCOUNTS, SAMPLE_MONTHS, buildSampleStatements, renderSampleStatementPdf, sampleFileName } from "@/lib/dev/sample-statements";
-import { acceptInvite, createAccount, createHousehold, createInvite, ensureAuthUser, findOrCreateUser } from "@/lib/households";
-import { processStatement, confirmStatement } from "@/lib/pipeline/process-statement";
+import { acceptInvite, createAccount, createHousehold, createInvite, ensureAuthUser, findOrCreateUser, getMembership } from "@/lib/households";
+import { processStatement, confirmStatement, ibanHash, legacyIbanHash, upgradeLegacyIbanHashes } from "@/lib/pipeline/process-statement";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
 import { listTransactions } from "@/lib/queries";
 import { applyAllRules, applyRuleRetroactively, autoLinkTransfers, categorizeTransactions, previewRule } from "@/lib/pipeline/categorize";
 import type { FileStorage } from "@/lib/services/storage";
-import { categoryRules, transactionChanges } from "@/lib/db/schema";
+import { accounts, categoryRules, transactionChanges } from "@/lib/db/schema";
 import { deleteCategory } from "@/lib/categories";
 
 class MemoryStorage implements FileStorage {
@@ -44,7 +44,7 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     alexId = alex.id;
     householdId = (await createHousehold(db, alex.id, "Alex & Sam")).id;
     const invite = await createInvite(db, householdId, alex.id, "sam@example.com");
-    await acceptInvite(db, invite.token, sam.id);
+    await acceptInvite(db, invite.token, sam);
     const userIds = { alex: alex.id, sam: sam.id };
 
     for (const account of SAMPLE_ACCOUNTS) {
@@ -300,5 +300,34 @@ describe("ensureAuthUser (Supabase Auth → app user)", () => {
     const legacy = await findOrCreateUser(db, "old@example.com", "Olga");
     const linked = await ensureAuthUser(db, { id: "0b6f1c2a-3d4e-4f50-8a6b-7c8d9e0f1a2b", email: "old@example.com" });
     expect(linked.id).toBe(legacy.id);
+  });
+});
+
+describe("household security", () => {
+  it("only lets the invited email accept an invite", async () => {
+    const db = await createDb({ dataDir: "memory", url: "" });
+    const owner = await findOrCreateUser(db, "owner@example.com", "Owner");
+    const intruder = await findOrCreateUser(db, "intruder@example.com", "Intruder");
+    const invited = await findOrCreateUser(db, "Partner@Example.com", "Partner");
+    const household = await createHousehold(db, owner.id, "Home");
+    const invite = await createInvite(db, household.id, owner.id, "partner@example.com");
+
+    await expect(acceptInvite(db, invite.token, intruder)).rejects.toMatchObject({ code: "invite_wrong_email" });
+    await acceptInvite(db, invite.token, { ...invited, email: "Partner@Example.com" });
+    expect((await getMembership(db, invited.id))?.household.id).toBe(household.id);
+  });
+
+  it("upgrades legacy unkeyed IBAN hashes to keyed ones", async () => {
+    const db = await createDb({ dataDir: "memory", url: "" });
+    const owner = await findOrCreateUser(db, "legacy@example.com", "Legacy");
+    const household = await createHousehold(db, owner.id, "Home");
+    const iban = "ES7614650100912345678901";
+    const account = await createAccount(db, household.id, { bankId: SAMPLE_ACCOUNTS[0].bank, name: "Old", iban, owners: [{ userId: owner.id, sharePct: 100 }] });
+    await db.update(accounts).set({ ibanHash: legacyIbanHash(household.id, iban) }).where(eq(accounts.id, account.id));
+
+    expect(ibanHash(household.id, iban)).not.toBe(legacyIbanHash(household.id, iban));
+    expect(await upgradeLegacyIbanHashes(db, household.id, [iban])).toBe(1);
+    const [row] = await db.select().from(accounts).where(eq(accounts.id, account.id));
+    expect(row!.ibanHash).toBe(ibanHash(household.id, iban));
   });
 });

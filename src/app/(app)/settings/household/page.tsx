@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HouseholdSettingsPage() {
-  const { db, user, household } = await requireContext();
+  const { db, user, household, role } = await requireContext();
   const t = await getTranslations("settings");
   const [members, invites] = await Promise.all([
     getMembers(db, household.id),
@@ -52,7 +52,7 @@ export default async function HouseholdSettingsPage() {
             ))}
           </ul>
         </div>
-        <InviteForm />
+        {role === "owner" ? <InviteForm /> : <p className="text-sm text-muted-foreground">{t("household.inviteOwnerOnly")}</p>}
       </CardContent>
     </Card>
   );

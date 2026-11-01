@@ -100,11 +100,15 @@ export async function pendingInvitesFor(db: Db, email: string) {
     );
 }
 
-export async function acceptInvite(db: Db, token: string, userId: string) {
+/** Whether an invite may be accepted by this user: invite links are bound to the address they were sent to. */
+export const inviteMatchesUser = (invite: { email: string }, user: { email: string }) => invite.email === user.email.trim().toLowerCase();
+
+export async function acceptInvite(db: Db, token: string, user: { id: string; email: string }) {
   const row = await getInvite(db, token);
   if (!row) throw new UserError("invite_invalid");
-  if (await getMembership(db, userId)) throw new UserError("already_in_household");
-  await db.insert(householdMembers).values({ householdId: row.invite.householdId, userId, role: "member" });
+  if (!inviteMatchesUser(row.invite, user)) throw new UserError("invite_wrong_email");
+  if (await getMembership(db, user.id)) throw new UserError("already_in_household");
+  await db.insert(householdMembers).values({ householdId: row.invite.householdId, userId: user.id, role: "member" });
   await db.update(householdInvites).set({ acceptedAt: new Date() }).where(eq(householdInvites.id, row.invite.id));
   return row.invite.householdId;
 }

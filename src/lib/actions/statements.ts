@@ -22,6 +22,9 @@ async function loadStatement(statementId: string) {
   if (statement.accountId) {
     const visible = await getVisibleAccounts(ctx.db, ctx.household.id, ctx.user.id, { includeArchived: true });
     if (!visible.some((a) => a.id === statement.accountId)) throw new UserError("statement_not_found");
+  } else if (statement.uploadedBy !== ctx.user.id) {
+    // Unassigned statements are only visible to whoever uploaded them (as in the file and status routes).
+    throw new UserError("statement_not_found");
   }
   return { ...ctx, statement };
 }

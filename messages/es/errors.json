@@ -30,5 +30,7 @@
   "no_files": "No se ha recibido ningún archivo.",
   "too_many_files": "Sube como máximo {max} archivos a la vez.",
   "invalid_email": "Introduce un email válido.",
-  "already_processing": "Este extracto todavía se está procesando. Vuelve a intentarlo en unos minutos si no termina."
+  "already_processing": "Este extracto todavía se está procesando. Vuelve a intentarlo en unos minutos si no termina.",
+  "invite_wrong_email": "Esta invitación se envió a otra dirección de correo. Inicia sesión con esa dirección para aceptarla.",
+  "owner_only": "Solo el propietario del hogar puede hacer esto."
 }

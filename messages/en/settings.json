@@ -8,7 +8,8 @@
     "members": "Members",
     "you": "(you)",
     "invited": "invited",
-    "roles": { "owner": "owner", "member": "member" }
+    "roles": { "owner": "owner", "member": "member" },
+    "inviteOwnerOnly": "Only the household owner can invite people."
   },
   "invite": {
     "label": "Invite your partner",

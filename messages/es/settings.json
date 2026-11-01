@@ -8,7 +8,8 @@
     "members": "Miembros",
     "you": "(tú)",
     "invited": "invitado",
-    "roles": { "owner": "propietario", "member": "miembro" }
+    "roles": { "owner": "propietario", "member": "miembro" },
+    "inviteOwnerOnly": "Solo el propietario del hogar puede invitar a otras personas."
   },
   "invite": {
     "label": "Invita a tu pareja",

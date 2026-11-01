@@ -1,5 +1,6 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { decryptBytes, encryptBytes } from "@/lib/crypto";
 
 export interface FileStorage {
   readonly kind: string;
@@ -80,15 +81,36 @@ export class SupabaseFileStorage implements FileStorage {
   }
 }
 
+/** Encrypts files before they reach the underlying storage, so a bucket or disk leak exposes only ciphertext. */
+export class EncryptedFileStorage implements FileStorage {
+  constructor(private readonly inner: FileStorage) {}
+
+  get kind() {
+    return this.inner.kind;
+  }
+
+  put(key: string, bytes: Uint8Array) {
+    return this.inner.put(key, encryptBytes(bytes, key), "application/octet-stream");
+  }
+
+  async get(key: string) {
+    return decryptBytes(await this.inner.get(key), key);
+  }
+
+  remove(key: string) {
+    return this.inner.remove(key);
+  }
+}
+
 let storage: FileStorage | undefined;
 
+/** The configured backend without encryption — only for maintenance scripts that migrate existing files. */
+export function getRawStorage(): FileStorage {
+  const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
+  return SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? new SupabaseFileStorage(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) : new LocalFileStorage();
+}
+
 export function getStorage(): FileStorage {
-  if (!storage) {
-    const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
-    storage =
-      SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
-        ? new SupabaseFileStorage(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-        : new LocalFileStorage();
-  }
+  storage ??= new EncryptedFileStorage(getRawStorage());
   return storage;
 }
