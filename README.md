@@ -31,7 +31,9 @@ Statements are read and categorized entirely in code, with no LLM or external AP
 
 Copy `.env.example` to `.env.local` to configure. Migrations in `drizzle/` run automatically on startup. Delete `.data/` to start from scratch.
 
-With mock auth in production, `AUTH_SECRET` is required and demo login is disabled unless `ENABLE_DEMO=1`. Demo login is never available with Supabase Auth.
+Production refuses to start without Supabase Auth, because mock sign-in needs only an email. `ALLOW_MOCK_AUTH=1` overrides this for throwaway deployments; it then requires an `AUTH_SECRET` of 32+ characters, and demo login stays off unless `ENABLE_DEMO=1`. Demo login is never available with Supabase Auth.
+
+Production also requires `DATA_ENCRYPTION_KEY` (`openssl rand -base64 32`). Statement PDFs are encrypted with AES-256-GCM before they reach storage, and account IBANs are stored only as an HMAC keyed by it. Keep a backup of the key: without it, stored PDFs can't be read. Data stored before encryption is migrated by running `pnpm exec tsx --env-file=.env.production.local scripts/secure-existing-data.ts` once after deploying (it's safe to rerun).
 
 ### Supabase Auth setup
 
@@ -48,7 +50,7 @@ With mock auth in production, `AUTH_SECRET` is required and demo login is disabl
    This link (`token_hash`) works in any browser. It relies on the Site URL being the app's public URL; in the browser that asked for the email, the user still lands where they started (e.g. an invite).
 4. Configure custom SMTP (**Authentication → Emails → SMTP Settings**, e.g. Resend or Postmark). Supabase's built-in sender only allows a few emails per hour and is meant for testing.
 
-`src/proxy.ts` refreshes the session on every request. App users get the same id as their Supabase user, which is what `supabase/rls.sql` expects.
+`src/proxy.ts` refreshes the session on every request. App users get the same id as their Supabase user, which is what `auth.uid()` in the Row Level Security policies expects.
 
 ## Scripts
 
@@ -69,7 +71,7 @@ With mock auth in production, `AUTH_SECRET` is required and demo login is disabl
 - Transfers between your own accounts are detected and excluded from income and spending.
 - Category changes and rules apply to the whole household. Every edit is recorded in the transaction's history.
 
-Authorization is enforced in the server layer (`src/lib/queries.ts`, `src/lib/actions/*`). `supabase/rls.sql` contains matching Row Level Security policies for when the database moves to Supabase. They are tested in `tests/rls.test.ts`.
+Authorization is enforced twice. The server layer (`src/lib/queries.ts`, `src/lib/actions/*`) scopes every query, and Postgres Row Level Security (migration `drizzle/0006_row_level_security.sql`, applied by `pnpm db:migrate`) checks it again. Signed-in requests use `getUserDb(userId)`, which runs each query as the `authenticated` role with `auth.uid()` set to the user. `getSystemDb()` bypasses RLS and is only for sign-in, onboarding, invites and the background statement pipeline. The policies are tested in `tests/rls.test.ts`.
 
 ## Languages and themes
 

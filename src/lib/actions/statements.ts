@@ -3,6 +3,7 @@
 import { UserError } from "@/lib/errors";
 import { and, eq, isNull, lt, ne, notInArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getSystemDb } from "@/lib/db";
 import { accounts, statements } from "@/lib/db/schema";
 import { confirmStatement, processStatement } from "@/lib/pipeline/process-statement";
 import { getVisibleAccounts } from "@/lib/queries";
@@ -29,8 +30,9 @@ async function loadStatement(statementId: string) {
   return { ...ctx, statement };
 }
 
-function reprocess(db: Parameters<typeof processStatement>[0], statementId: string) {
-  enqueue(`process:${statementId}`, () => processStatement(db, statementId));
+/** Processing is a background job: it runs on the system connection, after this user's access was checked. */
+function reprocess(statementId: string) {
+  enqueue(`process:${statementId}`, async () => processStatement(await getSystemDb(), statementId));
 }
 
 export async function retryStatementAction(statementId: string): Promise<ActionResult> {
@@ -51,7 +53,7 @@ export async function retryStatementAction(statementId: string): Promise<ActionR
       )
       .returning({ id: statements.id });
     if (!claimed) throw new UserError("already_processing");
-    reprocess(db, statement.id);
+    reprocess(statement.id);
     revalidatePath("/", "layout");
     return ok();
   } catch (error) {
@@ -73,7 +75,7 @@ export async function assignStatementAccountAction(statementId: string, accountI
         .where(and(eq(accounts.id, accountId), isNull(accounts.ibanHash)));
     }
     await db.update(statements).set({ accountId, status: "uploaded", progress: "queued", progressAt: new Date(), error: null }).where(eq(statements.id, statement.id));
-    reprocess(db, statement.id);
+    reprocess(statement.id);
     revalidatePath("/", "layout");
     return ok();
   } catch (error) {

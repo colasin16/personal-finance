@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDb } from "@/lib/db";
+import { getSystemDb } from "@/lib/db";
 import { getInvite, getMembership, inviteMatchesUser } from "@/lib/households";
 import { getCurrentUser } from "@/lib/server/auth";
 import { AcceptInviteButton } from "@/app/onboarding/onboarding-form";
@@ -18,7 +18,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   const { token } = await params;
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=/invite/${encodeURIComponent(token)}`);
-  const db = await getDb();
+  const db = await getSystemDb();
   const invite = await getInvite(db, token);
   const membership = await getMembership(db, user.id);
   const t = await getTranslations("auth.invite");

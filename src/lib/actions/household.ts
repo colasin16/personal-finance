@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { getDb, type Db } from "@/lib/db";
+import { getSystemDb, type Db } from "@/lib/db";
 import { accounts, categories, households } from "@/lib/db/schema";
 import { acceptInvite, createAccount, createHousehold, createInvite, updateAccount, type AccountInput } from "@/lib/households";
 import { deleteCategory, updateCategory } from "@/lib/categories";
@@ -19,7 +19,7 @@ export async function createHouseholdAction(_: unknown, formData: FormData) {
   const user = await requireUser();
   const name = String(formData.get("name") ?? "").trim();
   try {
-    await createHousehold(await getDb(), user.id, name);
+    await createHousehold(await getSystemDb(), user.id, name);
   } catch (error) {
     return fail(error);
   }
@@ -29,7 +29,7 @@ export async function createHouseholdAction(_: unknown, formData: FormData) {
 export async function acceptInviteAction(token: string) {
   const user = await requireUser();
   try {
-    await acceptInvite(await getDb(), token, user);
+    await acceptInvite(await getSystemDb(), token, user);
   } catch (error) {
     return fail(error);
   }
@@ -139,9 +139,10 @@ export async function updateCategoryAction(categoryId: string, input: z.input<ty
 
 export async function deleteCategoryAction(categoryId: string, targetId: string | null): Promise<ActionResult<{ moved: number }>> {
   try {
-    const { db, household, user } = await requireContext();
+    const { household, user } = await requireContext();
     const uuid = z.string().uuid();
-    const result = await deleteCategory(db, household.id, user.id, uuid.parse(categoryId), targetId ? uuid.parse(targetId) : null);
+    // Household-wide: it also recategorizes partners' private transactions, which this user can't see.
+    const result = await deleteCategory(await getSystemDb(), household.id, user.id, uuid.parse(categoryId), targetId ? uuid.parse(targetId) : null);
     revalidatePath("/", "layout");
     return ok(result);
   } catch (error) {

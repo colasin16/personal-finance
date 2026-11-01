@@ -41,7 +41,8 @@ export async function getVisibleAccounts(db: Db, householdId: string, userId: st
     .select({ accountId: accountOwners.accountId, userId: accountOwners.userId, sharePct: accountOwners.sharePct, displayName: users.displayName })
     .from(accountOwners)
     .innerJoin(users, eq(users.id, accountOwners.userId))
-    .where(inArray(accountOwners.accountId, ids));
+    .where(inArray(accountOwners.accountId, ids))
+    .orderBy(desc(accountOwners.sharePct), asc(users.displayName), asc(accountOwners.userId));
 
   const balances = await db
     .selectDistinctOn([transactions.accountId], {
@@ -500,24 +501,23 @@ async function getLinkedTransactions(db: Db, householdId: string, visibleIds: st
         .orderBy(asc(transactions.bookedAt))
     : [];
   const visible = new Set(visibleIds);
-  return (tx: { id: string; transferGroupId: string | null }): LinkedTransaction[] =>
-    members
-      .filter((m) => tx.transferGroupId && m.tx.transferGroupId === tx.transferGroupId && m.tx.id !== tx.id)
-      .map((m) =>
-        visible.has(m.tx.accountId)
-          ? {
-              hidden: false,
-              id: m.tx.id,
-              accountId: m.tx.accountId,
-              account: { name: m.accountName, bankId: m.bankId, bankName: m.bankName, bankColor: m.bankColor, ibanLast4: m.ibanLast4 },
-              bookedAt: m.tx.bookedAt,
-              description: m.tx.merchant || m.tx.descriptionRaw,
-              amountCents: m.tx.amountCents,
-              currency: m.tx.currency,
-              removed: m.tx.excludedAt !== null,
-            }
-          : { hidden: true, id: m.tx.id },
-      );
+  return (tx: { id: string; transferGroupId: string | null }): LinkedTransaction[] => {
+    if (!tx.transferGroupId) return [];
+    const others = members.filter((m) => m.tx.transferGroupId === tx.transferGroupId && m.tx.id !== tx.id && visible.has(m.tx.accountId));
+    // The other side is in an account this user can't see (Row Level Security hides its row too): say only that it exists.
+    if (others.length === 0) return [{ hidden: true, id: `hidden:${tx.transferGroupId}` }];
+    return others.map((m) => ({
+      hidden: false,
+      id: m.tx.id,
+      accountId: m.tx.accountId,
+      account: { name: m.accountName, bankId: m.bankId, bankName: m.bankName, bankColor: m.bankColor, ibanLast4: m.ibanLast4 },
+      bookedAt: m.tx.bookedAt,
+      description: m.tx.merchant || m.tx.descriptionRaw,
+      amountCents: m.tx.amountCents,
+      currency: m.tx.currency,
+      removed: m.tx.excludedAt !== null,
+    }));
+  };
 }
 
 export type TransactionRow = Awaited<ReturnType<typeof listTransactions>>["rows"][number];

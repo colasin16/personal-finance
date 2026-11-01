@@ -8,6 +8,7 @@ import { categories, categoryRules, dismissedSuggestions, transactionChanges, tr
 import { isValidRegex } from "@/lib/domain/rules";
 import { rankTransferMatches } from "@/lib/domain/transfers";
 import { applyAllRules, applyRuleRetroactively, linkTransfer, previewRule, unlinkTransfer } from "@/lib/pipeline/categorize";
+import { getSystemDb } from "@/lib/db";
 import { getVisibleAccounts } from "@/lib/queries";
 import type { AccountRefData } from "@/components/accounts/account-ref";
 import { requireContext } from "@/lib/server/auth";
@@ -16,6 +17,14 @@ import { fail, ok, type ActionResult } from "./result";
 const uuid = z.string().uuid();
 
 /** Loads transactions the current user is allowed to touch. */
+/**
+ * The other side of a transfer may sit in a partner's private account, which Row Level Security hides from this user,
+ * so unlinking runs privileged. Only call it with a group id taken from a transaction the user can see.
+ */
+async function unlinkBothSides(householdId: string, transferGroupId: string) {
+  await unlinkTransfer(await getSystemDb(), householdId, transferGroupId);
+}
+
 async function loadTransactions(ids: string[]) {
   const ctx = await requireContext();
   const parsed = z.array(uuid).min(1).max(1000).parse(ids);
@@ -47,7 +56,7 @@ export async function setCategoryAction(ids: string[], categoryId: string | null
 
     // Recategorizing one side of a linked transfer breaks the link.
     for (const groupId of new Set(rows.map((r) => r.transferGroupId).filter((g): g is string => !!g))) {
-      if (category?.kind !== "transfer") await unlinkTransfer(db, household.id, groupId);
+      if (category?.kind !== "transfer") await unlinkBothSides(household.id, groupId);
     }
     const changed = rows.filter((r) => r.categoryId !== categoryId || r.categorizedBy !== "user" || r.flagged);
     if (changed.length === 0) return ok({ updated: 0 });
@@ -88,7 +97,7 @@ async function setExcluded(ids: string[], excluded: boolean): Promise<ActionResu
     // A removed row must not stay half of a linked transfer.
     if (excluded) {
       for (const groupId of new Set(changed.map((r) => r.transferGroupId).filter((g): g is string => !!g))) {
-        await unlinkTransfer(db, household.id, groupId);
+        await unlinkBothSides(household.id, groupId);
       }
     }
     await db
@@ -318,8 +327,8 @@ export async function findTransferMatchesAction(transactionId: string): Promise<
 
 export async function unlinkTransferAction(transactionId: string): Promise<ActionResult> {
   try {
-    const { db, household, rows } = await loadTransactions([transactionId]);
-    if (rows[0]!.transferGroupId) await unlinkTransfer(db, household.id, rows[0]!.transferGroupId);
+    const { household, rows } = await loadTransactions([transactionId]);
+    if (rows[0]!.transferGroupId) await unlinkBothSides(household.id, rows[0]!.transferGroupId);
     revalidatePath("/", "layout");
     return ok();
   } catch (error) {

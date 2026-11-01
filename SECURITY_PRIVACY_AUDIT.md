@@ -17,6 +17,8 @@ I only read the code; I didn't change anything or test any of these attacks agai
 
 ## Findings, most serious first
 
+> **Status:** C1, C2, H1, H2, H3 and the email binding and owner-only parts of H4 are fixed. C3 is partly fixed: PDFs are now encrypted with an app key (`DATA_ENCRYPTION_KEY`), but KMS / per-household keys and retention are not done yet. For H3, signed-in requests now run under RLS and the policies ship as a Drizzle migration, but the login role is still privileged. The remaining items are tracked in `BACKLOG.md`.
+
 ### Critical
 
 **C1. Mock sign-in can run in production, which means anyone can log in as anyone.**

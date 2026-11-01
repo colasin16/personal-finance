@@ -15,6 +15,7 @@
     "pdf:shape": "tsx scripts/pdf-shape.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db-migrate.ts",
+    "secure:data": "tsx scripts/secure-existing-data.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

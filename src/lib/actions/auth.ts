@@ -5,7 +5,7 @@ import { fail } from "./result";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { getDb } from "@/lib/db";
+import { getSystemDb } from "@/lib/db";
 import { ensureDemoHousehold } from "@/lib/dev/demo";
 import { ensureAuthUser, findOrCreateUser } from "@/lib/households";
 import { AUTH_NEXT_COOKIE, safeNext } from "@/lib/safe-next";
@@ -52,7 +52,7 @@ export async function signIn(_: unknown, formData: FormData): Promise<SignInStat
     return { sentTo: email };
   }
 
-  const db = await getDb();
+  const db = await getSystemDb();
   const user = await findOrCreateUser(db, email, name);
   await startSession(user.id);
   redirect(next);
@@ -72,7 +72,7 @@ export async function verifyEmailCode(_: unknown, formData: FormData): Promise<S
     return { error: (await fail(new UserError("auth_code_invalid"))).error, sentTo: parsed.data.email };
   }
   const name = data.user.user_metadata?.display_name;
-  await ensureAuthUser(await getDb(), {
+  await ensureAuthUser(await getSystemDb(), {
     id: data.user.id,
     email: data.user.email ?? parsed.data.email,
     displayName: typeof name === "string" ? name : undefined,
@@ -83,7 +83,7 @@ export async function verifyEmailCode(_: unknown, formData: FormData): Promise<S
 export async function signInDemo(who: "alex" | "sam") {
   const demoAllowed = authMode() === "mock" && (process.env.NODE_ENV !== "production" || process.env.ENABLE_DEMO === "1");
   if (!demoAllowed) throw new UserError("demo_disabled");
-  const db = await getDb();
+  const db = await getSystemDb();
   const { alex, sam } = await ensureDemoHousehold(db);
   await startSession(who === "sam" ? sam.id : alex.id);
   redirect("/dashboard");

@@ -94,7 +94,7 @@ describe("statement pipeline (PGlite + offline parser)", () => {
     expect(row.linked).toEqual([expect.objectContaining({ hidden: false, id: incoming.id, accountId: incoming.accountId, amountCents: -outgoing.amountCents })]);
     // The other side's details stay private when its account isn't visible.
     const hidden = (await list([outgoing.accountId])).rows.find((r) => r.tx.id === outgoing.id)!;
-    expect(hidden.linked).toEqual([{ hidden: true, id: incoming.id }]);
+    expect(hidden.linked).toEqual([{ hidden: true, id: `hidden:${outgoing.transferGroupId}` }]);
   });
 
   it("categorizes most transactions and flags the rest", async () => {

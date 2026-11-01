@@ -5,7 +5,7 @@ import { Logo } from "@/components/brand/logo";
 import { LanguageSwitch } from "@/components/theme/language-switch";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDb } from "@/lib/db";
+import { getSystemDb } from "@/lib/db";
 import { getMembership, pendingInvitesFor } from "@/lib/households";
 import { requireUser } from "@/lib/server/auth";
 import { AcceptInviteButton, CreateHouseholdForm } from "./onboarding-form";
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OnboardingPage() {
   const user = await requireUser();
-  const db = await getDb();
+  const db = await getSystemDb();
   if (await getMembership(db, user.id)) redirect("/dashboard");
   const invites = await pendingInvitesFor(db, user.email);
   const t = await getTranslations("auth.onboarding");

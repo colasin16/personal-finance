@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { getDb } from "@/lib/db";
+import { getSystemDb, getUserDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { ensureAuthUser, getMembership } from "@/lib/households";
 import { supabaseAuthConfig } from "@/lib/supabase/config";
@@ -62,7 +62,7 @@ export const getCurrentUser = cache(async () => {
     const claims = data?.claims;
     if (!claims?.sub || !claims.email) return null;
     const name = claims.user_metadata?.display_name;
-    return ensureAuthUser(await getDb(), {
+    return ensureAuthUser(await getSystemDb(), {
       id: claims.sub,
       email: claims.email,
       displayName: typeof name === "string" ? name : undefined,
@@ -76,7 +76,7 @@ export const getCurrentUser = cache(async () => {
   const expected = Buffer.from(sign(userId));
   const given = Buffer.from(signature);
   if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
-  const db = await getDb();
+  const db = await getSystemDb();
   const [user] = await db.select().from(users).where(eq(users.id, userId));
   return user ?? null;
 });
@@ -87,10 +87,10 @@ export async function requireUser() {
   return user;
 }
 
-/** Signed-in user + their household. Redirects to login/onboarding when missing. */
+/** Signed-in user + their household. Redirects to login/onboarding when missing. `db` is subject to Row Level Security. */
 export const requireContext = cache(async () => {
   const user = await requireUser();
-  const db = await getDb();
+  const db = await getUserDb(user.id);
   const membership = await getMembership(db, user.id);
   if (!membership) redirect("/onboarding");
   return { db, user, household: membership.household, role: membership.role };

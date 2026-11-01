@@ -43,6 +43,13 @@
       "when": 1793446863519,
       "tag": "0005_lively_loners",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793546212905,
+      "tag": "0006_row_level_security",
+      "breakpoints": true
     }
   ]
 }

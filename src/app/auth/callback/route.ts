@@ -1,6 +1,6 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
-import { getDb } from "@/lib/db";
+import { getSystemDb } from "@/lib/db";
 import { ensureAuthUser } from "@/lib/households";
 import { AUTH_NEXT_COOKIE, safeNext } from "@/lib/safe-next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   }
 
   const name = data.user.user_metadata?.display_name;
-  await ensureAuthUser(await getDb(), {
+  await ensureAuthUser(await getSystemDb(), {
     id: data.user.id,
     email: data.user.email,
     displayName: typeof name === "string" ? name : undefined,

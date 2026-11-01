@@ -1,5 +1,5 @@
 import { UserError } from "@/lib/errors";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db";
@@ -21,7 +21,7 @@ export async function findOrCreateUser(db: Db, email: string, displayName?: stri
 
 /**
  * The app user for a Supabase Auth user. New users get the auth user's id so `auth.uid()` in
- * supabase/rls.sql matches; a user created before Supabase Auth is found by email.
+ * the Row Level Security policies match; a user created before Supabase Auth is found by email.
  */
 export async function ensureAuthUser(db: Db, authUser: { id: string; email: string; displayName?: string }) {
   const [byId] = await db.select().from(users).where(eq(users.id, authUser.id));
@@ -140,12 +140,14 @@ async function assertOwnersAreMembers(db: Db, householdId: string, owners: { use
   if (owners.some((o) => !members.has(o.userId))) throw new UserError("owners_not_members");
 }
 
+// No RETURNING below: under Row Level Security a private account is only readable once its owners exist.
 export async function createAccount(db: Db, householdId: string, input: AccountInput) {
   const data = accountInputSchema.parse(input);
   await assertOwnersAreMembers(db, householdId, data.owners);
-  const [account] = await db
-    .insert(accounts)
-    .values({
+  const id = randomUUID();
+  await db.transaction(async (tx) => {
+    await tx.insert(accounts).values({
+      id,
       householdId,
       bankId: data.bankId,
       name: data.name,
@@ -154,29 +156,37 @@ export async function createAccount(db: Db, householdId: string, input: AccountI
       currency: data.currency,
       type: data.type,
       isPrivate: data.isPrivate,
-    })
-    .returning();
-  await db.insert(accountOwners).values(data.owners.map((o) => ({ accountId: account!.id, ...o })));
-  return account!;
+    });
+    await tx.insert(accountOwners).values(data.owners.map((o) => ({ accountId: id, ...o })));
+  });
+  return { id };
 }
 
 export async function updateAccount(db: Db, householdId: string, accountId: string, input: AccountInput) {
   const data = accountInputSchema.parse(input);
   await assertOwnersAreMembers(db, householdId, data.owners);
-  const [account] = await db
-    .update(accounts)
-    .set({
-      bankId: data.bankId,
-      name: data.name,
-      currency: data.currency,
-      type: data.type,
-      isPrivate: data.isPrivate,
-      ...(data.iban ? { ibanLast4: data.iban.slice(-4), ibanHash: ibanHash(householdId, data.iban) } : {}),
-    })
-    .where(and(eq(accounts.id, accountId), eq(accounts.householdId, householdId)))
-    .returning();
-  if (!account) throw new UserError("account_not_found");
-  await db.delete(accountOwners).where(eq(accountOwners.accountId, accountId));
-  await db.insert(accountOwners).values(data.owners.map((o) => ({ accountId, ...o })));
-  return account;
+  const [current] = await db
+    .select({ id: accounts.id })
+    .from(accounts)
+    .where(and(eq(accounts.id, accountId), eq(accounts.householdId, householdId)));
+  if (!current) throw new UserError("account_not_found");
+
+  // Fields first, while this user is still among the owners: Row Level Security only lets them change
+  // owners of accounts they can see, and never lets them turn an account into one they can't see.
+  await db.transaction(async (tx) => {
+    await tx
+      .update(accounts)
+      .set({
+        bankId: data.bankId,
+        name: data.name,
+        currency: data.currency,
+        type: data.type,
+        isPrivate: data.isPrivate,
+        ...(data.iban ? { ibanLast4: data.iban.slice(-4), ibanHash: ibanHash(householdId, data.iban) } : {}),
+      })
+      .where(eq(accounts.id, accountId));
+    await tx.delete(accountOwners).where(eq(accountOwners.accountId, accountId));
+    await tx.insert(accountOwners).values(data.owners.map((o) => ({ accountId, ...o })));
+  });
+  return { id: accountId };
 }

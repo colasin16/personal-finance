@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
-import { getDb } from "@/lib/db";
+import { getUserDb } from "@/lib/db";
 import { statements } from "@/lib/db/schema";
 import { getMembership } from "@/lib/households";
 import { getVisibleAccounts } from "@/lib/queries";
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "not_signed_in" }, { status: 401 });
   if (ids.length === 0) return NextResponse.json({ statuses: [] });
-  const db = await getDb();
+  const db = await getUserDb(user.id);
   const membership = await getMembership(db, user.id);
   if (!membership) return NextResponse.json({ error: "no_household" }, { status: 403 });
 

@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "@/lib/db";
+import { getUserDb } from "@/lib/db";
 import { statements } from "@/lib/db/schema";
 import { getMembership } from "@/lib/households";
 import { getVisibleAccounts } from "@/lib/queries";
@@ -13,7 +13,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) return new Response("Not signed in", { status: 401 });
-  const db = await getDb();
+  const db = await getUserDb(user.id);
   const membership = await getMembership(db, user.id);
   if (!membership || !/^[0-9a-f-]{36}$/.test(id)) return new Response("Not found", { status: 404 });
 
