@@ -44,8 +44,8 @@ export function CompletenessGrid({
                     scroll={false}
                     aria-current={m === selectedMonth ? "date" : undefined}
                     className={cn(
-                      "block rounded px-1 py-0.5 hover:bg-muted hover:text-foreground",
-                      m === selectedMonth ? "bg-foreground font-medium text-background hover:bg-foreground hover:text-background" : "text-muted-foreground",
+                      "block rounded px-1 py-0.5 hover:text-foreground",
+                      m === selectedMonth ? "bg-muted font-medium text-foreground" : "text-muted-foreground",
                     )}
                   >
                     {formatMonth(m, "short", locale)}
@@ -61,7 +61,6 @@ export function CompletenessGrid({
                   <AccountRef account={account} size="md" />
                 </td>
                 {cells.map((cell) => {
-                  const selected = cell.month === selectedMonth;
                   return (
                     <td key={cell.month}>
                       <Tooltip>
@@ -72,13 +71,7 @@ export function CompletenessGrid({
                             aria-label={`${account.name} ${formatMonth(cell.month, "long", locale)}`}
                             className="block rounded focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                           >
-                            <div
-                              className={cn(
-                                "h-6 rounded transition-opacity hover:opacity-80",
-                                CELL[cell.status],
-                                selected && "ring-2 ring-foreground/60 ring-offset-1 ring-offset-background",
-                              )}
-                            />
+                            <div className={cn("h-6 rounded transition-opacity hover:opacity-80", CELL[cell.status])} />
                           </Link>
                         </TooltipTrigger>
                         <TooltipContent>
