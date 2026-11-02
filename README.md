@@ -69,6 +69,7 @@ Production also requires `DATA_ENCRYPTION_KEY` (`openssl rand -base64 32`). Stat
 - Each account has one or more **owners**, each with a share (50/50 by default for shared accounts). The per-person dashboard counts shared accounts at that person's share.
 - Both partners see each other's accounts unless an account is marked **private**.
 - Transfers between your own accounts are detected and excluded from income and spending.
+- Money back into an expense category (e.g. a friend's share of a dinner) offsets that category's spending instead of counting as income.
 - Category changes and rules apply to the whole household. Every edit is recorded in the transaction's history.
 
 Authorization is enforced twice. The server layer (`src/lib/queries.ts`, `src/lib/actions/*`) scopes every query, and Postgres Row Level Security (migration `drizzle/0006_row_level_security.sql`, applied by `pnpm db:migrate`) checks it again. Signed-in requests use `getUserDb(userId)`, which runs each query as the `authenticated` role with `auth.uid()` set to the user. `getSystemDb()` bypasses RLS and is only for sign-in, onboarding, invites and the background statement pipeline. The policies are tested in `tests/rls.test.ts`.

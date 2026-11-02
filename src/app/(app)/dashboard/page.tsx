@@ -149,6 +149,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             icon: c.icon,
             color: c.color,
             cents: c.cents,
+            spent: c.spent,
+            reimbursed: c.reimbursed,
             count: c.count,
             pct: c.pct,
             href: txHref({ category: c.categoryId ?? "none" }),

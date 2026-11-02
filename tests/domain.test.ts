@@ -10,6 +10,7 @@ import { findMentionedAccount, findTransferPairs, rankTransferMatches } from "@/
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
 import { keywordCategorize } from "@/lib/domain/keywords";
+import { netCashFlow } from "@/lib/domain/cashflow";
 import { DEFAULT_PAGE_SIZE, pageRange, parsePageSize } from "@/lib/pagination";
 import { decryptBytes, encryptBytes, isEncrypted } from "@/lib/crypto";
 import { EncryptedFileStorage } from "@/lib/services/storage";
@@ -445,5 +446,40 @@ describe("category colours", () => {
 
   it("generates valid random colours", () => {
     for (let i = 0; i < 50; i++) expect(randomColor()).toMatch(/^#[0-9a-f]{6}$/);
+  });
+});
+
+describe("netCashFlow", () => {
+  const isExpense = (id: string) => id === "restaurants" || id === "groceries";
+
+  it("nets a reimbursement against its expense category instead of counting it as income", () => {
+    const r = netCashFlow(
+      [
+        { amount: -10000, categoryId: "restaurants" },
+        { amount: 5000, categoryId: "restaurants" },
+        { amount: 200000, categoryId: "salary" },
+      ],
+      isExpense,
+    );
+    expect(r.income).toBe(200000);
+    expect(r.expenses).toBe(5000);
+    expect(r.byCategory.get("restaurants")).toEqual({ spent: 10000, reimbursed: 5000, cents: 5000, count: 2 });
+  });
+
+  it("counts uncategorized money in as income", () => {
+    const r = netCashFlow([{ amount: 3000, categoryId: null }, { amount: -1000, categoryId: null }], isExpense);
+    expect(r).toMatchObject({ income: 3000, expenses: 1000 });
+  });
+
+  it("moves an over-reimbursed category's excess to income, keeping income − expenses unchanged", () => {
+    const flows = [
+      { amount: -2000, categoryId: "restaurants" },
+      { amount: 5000, categoryId: "restaurants" },
+      { amount: -4000, categoryId: "groceries" },
+    ];
+    const r = netCashFlow(flows, isExpense);
+    expect(r).toMatchObject({ income: 3000, expenses: 4000 });
+    expect(r.byCategory.get("restaurants")?.cents).toBe(0);
+    expect(r.income - r.expenses).toBe(flows.reduce((s, f) => s + f.amount, 0));
   });
 });

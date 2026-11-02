@@ -30,6 +30,7 @@ A collaborative web app where my partner and I can:
 - Dashboards can be filtered by: *Me*, *Partner*, *Shared*, *Everything*.
 - For shared accounts, per-person views apply the ownership split (e.g. a €100 shared expense counts as €50 each).
 - Transfers between our own accounts are detected and excluded from income/expense totals.
+- Money coming back into an *expense* category (e.g. a friend paying their half of a dinner) is a reimbursement: it reduces that category's spending for the period instead of counting as income. If a category is reimbursed beyond what was spent, the excess counts as income. Top merchants stay outflow-only.
 
 ## 3. Tech stack
 

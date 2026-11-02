@@ -42,7 +42,8 @@
     "viewList": "Show as list",
     "viewPie": "Show as pie chart",
     "pieLabel": "Spending by category pie chart",
-    "total": "Total spending"
+    "total": "Total spending",
+    "netOf": "{spent} spent · {reimbursed} reimbursed"
   },
   "topMerchants": {
     "title": "Top merchants",

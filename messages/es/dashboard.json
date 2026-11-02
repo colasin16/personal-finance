@@ -42,7 +42,8 @@
     "viewList": "Ver como lista",
     "viewPie": "Ver como gráfico circular",
     "pieLabel": "Gráfico circular de gastos por categoría",
-    "total": "Gasto total"
+    "total": "Gasto total",
+    "netOf": "{spent} gastado · {reimbursed} reembolsado"
   },
   "topMerchants": {
     "title": "Comercios principales",

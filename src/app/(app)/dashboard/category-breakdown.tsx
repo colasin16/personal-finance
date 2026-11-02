@@ -7,11 +7,24 @@ import { ChartPie, List } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { CategoryIcon, categoryTint } from "@/components/transactions/category-label";
 import { Money } from "@/components/money";
+import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { ExpandableChartCard } from "@/components/charts/expandable-chart-card";
 import { cn } from "@/lib/utils";
 
-export type CategorySlice = { key: string; name: string; icon?: string | null; color: string; cents: number; count: number; pct: number; href: string };
+export type CategorySlice = {
+  key: string;
+  name: string;
+  icon?: string | null;
+  color: string;
+  /** Net spending: `spent` minus `reimbursed`. */
+  cents: number;
+  spent: number;
+  reimbursed: number;
+  count: number;
+  pct: number;
+  href: string;
+};
 
 const STROKE = 36;
 const HOVER_GROW = 8;
@@ -84,6 +97,9 @@ function CategoryBars({ items }: { items: CategorySlice[] }) {
               <Money cents={c.cents} className="font-medium" /> <span className="text-xs text-muted-foreground">{Math.round(c.pct * 100)}%</span>
             </span>
           </div>
+          {c.reimbursed > 0 && (
+            <p className="text-xs text-muted-foreground">{t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) })}</p>
+          )}
           <div className="h-2 overflow-hidden rounded-full bg-background/50">
             <div className="h-full rounded-full transition-all" style={{ width: `${Math.max(1, c.pct * 100)}%`, background: c.color }} />
           </div>
@@ -94,6 +110,7 @@ function CategoryBars({ items }: { items: CategorySlice[] }) {
 }
 
 function PieLegend({ items, active, onActive, className }: { items: CategorySlice[]; active: number | null; onActive: (i: number | null) => void; className?: string }) {
+  const t = useTranslations("dashboard.ranking");
   return (
     <ul className={cn("w-full space-y-1 overflow-y-auto pr-1", className)}>
       {items.map((c, i) => (
@@ -108,7 +125,9 @@ function PieLegend({ items, active, onActive, className }: { items: CategorySlic
             className={cn("flex items-center gap-2 rounded-md border px-2 py-1 text-sm transition-[filter] hover:brightness-95 dark:hover:brightness-125", active === i && "brightness-95 dark:brightness-125")}
           >
             <CategoryIcon icon={c.icon} />
-            <span className="min-w-0 flex-1 truncate">{c.name}</span>
+            <span className="min-w-0 flex-1 truncate" title={c.reimbursed > 0 ? t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) }) : undefined}>
+              {c.name}
+            </span>
             <span className="text-xs text-muted-foreground tabular-nums">{Math.round(c.pct * 100)}%</span>
             <Money cents={c.cents} className="w-24 text-right font-medium" />
           </Link>

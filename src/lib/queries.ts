@@ -16,6 +16,7 @@ import {
 } from "@/lib/db/schema";
 import { findTransferSuggestions } from "@/lib/pipeline/categorize";
 import { applyShare } from "@/lib/money";
+import { netCashFlow } from "@/lib/domain/cashflow";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import { isMonthPeriod, isYearPeriod, parseRangePeriod, type Period } from "@/lib/dashboard-periods";
 import { monthBounds } from "@/lib/statement-months";
@@ -186,20 +187,20 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
   // Transfers between our own accounts are neither income nor spending.
   const isTransfer = (tx: DashboardTx) => tx.transferGroupId !== null || (tx.categoryId !== null && catBy.get(tx.categoryId)?.kind === "transfer");
   const flows = txs.filter((tx) => !isTransfer(tx));
+  // Money back into an expense category (e.g. a friend's half of a dinner) reduces that category's spending.
+  const isExpenseCategory = (categoryId: string) => catBy.get(categoryId)?.kind === "expense";
+  const netFlows = (txsIn: DashboardTx[]) => netCashFlow(txsIn.map((tx) => ({ amount: share(tx), categoryId: tx.categoryId })), isExpenseCategory);
 
-  const totals = (from: string, to: string) => {
-    let income = 0;
-    let expenses = 0;
-    for (const tx of flows) {
-      if (tx.bookedAt < from || tx.bookedAt > to) continue;
-      const amount = share(tx);
-      if (amount > 0) income += amount;
-      else expenses += -amount;
-    }
-    return { income, expenses, net: income - expenses, savingsRate: income > 0 ? (income - expenses) / income : null };
-  };
-  const current = totals(start, end);
-  const previous = txs.length && prevEnd >= iso(first) ? totals(prevStart, prevEnd) : null;
+  const inRange = (from: string, to: string) => flows.filter((tx) => tx.bookedAt >= from && tx.bookedAt <= to);
+  const summarize = ({ income, expenses }: { income: number; expenses: number }) => ({
+    income,
+    expenses,
+    net: income - expenses,
+    savingsRate: income > 0 ? (income - expenses) / income : null,
+  });
+  const currentFlows = netFlows(inRange(start, end));
+  const current = summarize(currentFlows);
+  const previous = txs.length && prevEnd >= iso(first) ? summarize(netFlows(inRange(prevStart, prevEnd))) : null;
 
   // Income / expenses / net per day (up to two weeks), per week (starting Monday, clamped to the range; up to ~two months) or per month.
   const rangeDays = differenceInCalendarDays(range.end, range.start) + 1;
@@ -215,13 +216,17 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
     const key = bucketKey(iso(d));
     if (!buckets.has(key)) buckets.set(key, { income: 0, expenses: 0 });
   }
-  for (const tx of flows) {
-    if (tx.bookedAt < start || tx.bookedAt > end) continue;
-    const bucket = buckets.get(bucketKey(tx.bookedAt));
-    if (!bucket) continue;
-    const amount = share(tx);
-    if (amount > 0) bucket.income += amount;
-    else bucket.expenses += -amount;
+  const bucketTxs = new Map<string, DashboardTx[]>();
+  for (const tx of inRange(start, end)) {
+    const key = bucketKey(tx.bookedAt);
+    if (!buckets.has(key)) continue;
+    const list = bucketTxs.get(key) ?? [];
+    list.push(tx);
+    bucketTxs.set(key, list);
+  }
+  for (const [key, list] of bucketTxs) {
+    const { income, expenses } = netFlows(list);
+    buckets.set(key, { income, expenses });
   }
   const months = [...buckets.entries()].map(([time, v]) => ({ month: monthKey(time), time, ...v, net: v.income - v.expenses }));
 
@@ -255,17 +260,11 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
   const netWorthNow = netWorth.at(-1)?.value ?? null;
   const netWorthStart = netWorth[0]?.value ?? null;
 
-  // Category ranking & top merchants (expenses only)
-  const byCategory = new Map<string | null, { cents: number; count: number }>();
+  // Category ranking (net of reimbursements) & top merchants (outflows only: a reimbursement comes from someone else)
   const byMerchant = new Map<string, { cents: number; count: number }>();
-  for (const tx of flows) {
-    if (tx.bookedAt < start || tx.bookedAt > end) continue;
+  for (const tx of inRange(start, end)) {
     const amount = share(tx);
     if (amount >= 0) continue;
-    const c = byCategory.get(tx.categoryId) ?? { cents: 0, count: 0 };
-    c.cents += -amount;
-    c.count++;
-    byCategory.set(tx.categoryId, c);
     const merchant = tx.merchant || tx.descriptionRaw;
     const mm = byMerchant.get(merchant) ?? { cents: 0, count: 0 };
     mm.cents += -amount;
@@ -273,7 +272,8 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
     byMerchant.set(merchant, mm);
   }
   const expenseTotal = current.expenses || 1;
-  const categoryRanking = [...byCategory.entries()]
+  const categoryRanking = [...currentFlows.byCategory.entries()]
+    .filter(([, v]) => v.cents > 0)
     .map(([categoryId, v]) => {
       const cat: Category | undefined = categoryId ? catBy.get(categoryId) : undefined;
       return {
