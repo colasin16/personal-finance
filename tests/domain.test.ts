@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { normalizeHex, randomColor } from "@/lib/colors";
 import { DEFAULT_PERIOD, parsePeriod, parseRangePeriod, rangePeriod } from "@/lib/dashboard-periods";
 import { formatMoney, parseAmount, applyShare } from "@/lib/money";
 import { findIbans, redactSensitive } from "@/lib/domain/redact";
@@ -430,5 +431,19 @@ describe("dashboard periods", () => {
 
   it("parses custom range bounds", () => {
     expect(parseRangePeriod(rangePeriod("2026-03-01", "2026-04-15"))).toEqual({ from: "2026-03-01", to: "2026-04-15" });
+  });
+});
+
+describe("category colours", () => {
+  it("normalises hex input to #rrggbb", () => {
+    expect(normalizeHex("#57D858")).toBe("#57d858");
+    expect(normalizeHex(" 57d858 ")).toBe("#57d858");
+    expect(normalizeHex("#abc")).toBe("#aabbcc");
+    expect(normalizeHex("#57d85")).toBeNull();
+    expect(normalizeHex("#zzzzzz")).toBeNull();
+  });
+
+  it("generates valid random colours", () => {
+    for (let i = 0; i < 50; i++) expect(randomColor()).toMatch(/^#[0-9a-f]{6}$/);
   });
 });

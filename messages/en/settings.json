@@ -70,6 +70,8 @@
     "iconEmpty": "No icons found",
     "iconMore": "Showing the first {count}. Type to narrow it down.",
     "color": "Color",
+    "randomColor": "Random color",
+    "hexColor": "Hex color",
     "added": "Category added",
     "name": "Name",
     "kind": "Type",

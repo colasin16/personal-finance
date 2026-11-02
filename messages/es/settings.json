@@ -70,6 +70,8 @@
     "iconEmpty": "No se encontraron iconos",
     "iconMore": "Mostrando los primeros {count}. Escribe para afinar.",
     "color": "Color",
+    "randomColor": "Color aleatorio",
+    "hexColor": "Color hexadecimal",
     "added": "Categoría añadida",
     "name": "Nombre",
     "kind": "Tipo",

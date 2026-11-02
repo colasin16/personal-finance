@@ -5,7 +5,8 @@ import { Copy, Loader2, Plus, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { createCategoryAction, inviteMemberAction, renameHouseholdAction } from "@/lib/actions/household";
-import { CATEGORY_COLORS, ColorSwatches } from "@/components/categories/color-swatches";
+import { ColorInput } from "@/components/categories/color-input";
+import { randomColor } from "@/lib/colors";
 import { IconPicker } from "@/components/transactions/icon-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,7 +94,7 @@ export function AddCategoryForm() {
   const tc = useTranslations("common");
   const [name, setName] = useState("");
   const [kind, setKind] = useState<"expense" | "income" | "transfer">("expense");
-  const [color, setColor] = useState(CATEGORY_COLORS[0]!);
+  const [color, setColor] = useState("#6366f1");
   const [icon, setIcon] = useState("tag");
   const [pending, start] = useTransition();
   return (
@@ -106,6 +107,7 @@ export function AddCategoryForm() {
           if (!r.ok) return void toast.error(r.error);
           toast.success(t("added"));
           setName("");
+          setColor(randomColor());
         });
       }}
     >
@@ -129,7 +131,7 @@ export function AddCategoryForm() {
           <Plus /> {tc("actions.add")}
         </Button>
       </div>
-      <ColorSwatches value={color} onChange={setColor} label={t("color")} />
+      <ColorInput value={color} onChange={setColor} />
     </form>
   );
 }
