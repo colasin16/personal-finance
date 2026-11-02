@@ -25,19 +25,25 @@ function MerchantGroupSkeleton() {
   return (
     <Card className="py-0">
       <CardContent className="space-y-3 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1.5">
+        <div className="flex items-start gap-3">
+          <div className="flex-1 space-y-2">
             <Skeleton className="h-5 w-40" />
-            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-4 w-44" />
           </div>
+          <Skeleton className="h-6 w-20" />
           <Skeleton className="size-7" />
         </div>
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="flex justify-between gap-3">
-            <Skeleton className={`h-3 ${["w-3/4", "w-2/3", "w-4/5"][i]}`} />
-            <Skeleton className="h-3 w-14" />
-          </div>
-        ))}
+        <div className="divide-y rounded-md border">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center justify-between gap-3 px-3 py-2.5">
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className={`h-4 ${["w-3/4", "w-2/3", "w-4/5"][i]}`} />
+                <Skeleton className="h-3 w-40" />
+              </div>
+              <Skeleton className="h-4 w-14" />
+            </div>
+          ))}
+        </div>
         <Skeleton className="h-3 w-20" />
         <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
           <Skeleton className="h-4 w-40" />

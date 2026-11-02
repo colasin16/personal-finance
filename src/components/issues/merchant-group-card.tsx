@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Loader2, X } from "lucide-react";
+import { AlertTriangle, ChevronDown, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { categorizeMerchantAction, dismissSuggestionAction } from "@/lib/actions/transactions";
 import { FLAG_CODES, formatDate } from "@/lib/labels";
 import { AccountRef, type AccountRefData } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -58,17 +59,24 @@ export function MerchantGroupCard({
   return (
     <Card className="py-0">
       <CardContent className="space-y-3 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate font-medium">{merchant}</p>
-            <p className="text-xs text-muted-foreground">
-              {tc("transactionsCount", { count: rows.length })} · <Money cents={totalCents} /> · {reasonLabel}
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="truncate text-base font-semibold" title={merchant}>
+              {merchant}
             </p>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                <AlertTriangle aria-hidden />
+                {reasonLabel}
+              </Badge>
+              <span>{tc("transactionsCount", { count: rows.length })}</span>
+            </div>
           </div>
+          <Money cents={totalCents} colored className="shrink-0 pt-0.5 text-lg font-semibold" />
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 shrink-0"
+            className="-mr-1 size-7 shrink-0 text-muted-foreground"
             aria-label={tc("actions.dismiss")}
             disabled={pending}
             onClick={() => start(async () => void (await dismissSuggestionAction(dismissKey)))}
@@ -76,20 +84,28 @@ export function MerchantGroupCard({
             <X />
           </Button>
         </div>
-        {(expanded ? rows : rows.slice(0, 3)).map((r) => (
-          <div key={r.id} className="flex justify-between gap-3 text-xs text-muted-foreground">
-            <span className="flex min-w-0 items-center gap-1">
-              <span className="shrink-0">{formatDate(r.bookedAt, locale)} ·</span>
-              <AccountRef account={r.account} className="max-w-[45%] shrink-0" />
-              <span className="truncate">· {r.description}</span>
-            </span>
-            <Money cents={r.amountCents} className="shrink-0" />
-          </div>
-        ))}
+        <ul className="divide-y rounded-md border">
+          {(expanded ? rows : rows.slice(0, 3)).map((r) => (
+            <li key={r.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
+              <div className="min-w-0 space-y-0.5">
+                <p className="truncate text-sm" title={r.description}>
+                  {r.description}
+                </p>
+                <p className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="shrink-0 tabular-nums">{formatDate(r.bookedAt, locale)}</span>
+                  <span aria-hidden>·</span>
+                  <AccountRef account={r.account} className="min-w-0" />
+                </p>
+              </div>
+              <Money cents={r.amountCents} colored className="shrink-0 text-sm font-medium" />
+            </li>
+          ))}
+        </ul>
         {rows.length > 3 && (
-          <button className="text-xs text-muted-foreground underline" onClick={() => setExpanded(!expanded)}>
+          <Button variant="link" size="sm" className="h-auto px-0 text-xs text-muted-foreground hover:text-foreground" onClick={() => setExpanded(!expanded)}>
             {expanded ? tc("actions.showLess") : tc("actions.showMore", { count: rows.length - 3 })}
-          </button>
+            <ChevronDown className={expanded ? "rotate-180" : undefined} />
+          </Button>
         )}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
           <label className="flex items-center gap-2 text-xs">
