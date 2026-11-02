@@ -8,8 +8,8 @@ import {
   ArrowLeftRight,
   CircleAlert,
   FileUp,
+  House,
   Landmark,
-  LayoutDashboard,
   LogOut,
   Menu,
   PanelLeftClose,
@@ -51,11 +51,11 @@ type Props = {
 };
 
 const NAV = [
-  { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", key: "dashboard", icon: House },
+  { href: "/accounts", key: "accounts", icon: Landmark },
   { href: "/import", key: "import", icon: FileUp },
   { href: "/transactions", key: "transactions", icon: ArrowLeftRight },
   { href: "/issues", key: "issues", icon: CircleAlert },
-  { href: "/accounts", key: "accounts", icon: Landmark },
   { href: "/settings", key: "settings", icon: Settings },
 ] as const;
 
