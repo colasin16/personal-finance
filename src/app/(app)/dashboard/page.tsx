@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { getMembers } from "@/lib/households";
 import { formatDate } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
-import { getDashboard, parsePeriod, parseScope, PERIODS } from "@/lib/queries";
+import { getDashboard, parsePeriod, parseScope } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   if (!data.range.hasData) {
     return (
       <>
-        <DashboardFilters scopes={scopes} periods={PERIODS} months={data.availableMonths} />
+        <DashboardFilters scopes={scopes} months={data.availableMonths} range={data.range} />
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
             <FileUp className="size-12 text-emerald-600" />
@@ -116,7 +116,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <DashboardFilters scopes={scopes} periods={PERIODS} months={data.availableMonths} />
+      <DashboardFilters scopes={scopes} months={data.availableMonths} range={data.range} />
       <p className="mb-4 text-xs text-muted-foreground">
         {t("range.period", { start: formatDate(data.range.start, locale), end: formatDate(data.range.end, locale) })} ·{" "}
         {tc("accountsCount", { count: data.accounts.length })}

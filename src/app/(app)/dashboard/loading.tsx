@@ -14,7 +14,7 @@ export default function DashboardLoading() {
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Skeleton className="h-8 w-64 rounded-lg" />
-          <Skeleton className="h-9 w-36" />
+          <Skeleton className="h-8 w-96 max-w-full rounded-md" />
         </div>
       </div>
       <Skeleton className="mb-4 h-4 w-96 max-w-full" />
@@ -33,9 +33,12 @@ export default function DashboardLoading() {
             <CardDescription>{t("netWorth.description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex justify-end gap-2">
-              <Skeleton className="h-8 w-16" />
-              <Skeleton className="h-8 w-24" />
+            <div className="flex justify-between gap-2">
+              <Skeleton className="h-8 w-48" />
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-24" />
+              </div>
             </div>
             <Skeleton className="h-[300px] w-full" />
           </CardContent>

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_PERIOD, parsePeriod, parseRangePeriod, rangePeriod } from "@/lib/dashboard-periods";
 import { formatMoney, parseAmount, applyShare } from "@/lib/money";
 import { findIbans, redactSensitive } from "@/lib/domain/redact";
 import { normalizeMerchant, transactionFingerprint, withOrdinals } from "@/lib/domain/text";
@@ -410,5 +411,24 @@ describe("encryption at rest", () => {
     expect(() => decryptBytes(sealed, "b.pdf")).toThrow();
     const legacy = new TextEncoder().encode("%PDF-1.4");
     expect(decryptBytes(legacy, "x.pdf")).toEqual(legacy);
+  });
+});
+
+describe("dashboard periods", () => {
+  it("accepts presets, months, years and ranges of at least a week", () => {
+    expect(parsePeriod("1w")).toBe("1w");
+    expect(parsePeriod("2026-08")).toBe("2026-08");
+    expect(parsePeriod("2025")).toBe("2025");
+    expect(parsePeriod("2026-03-01_2026-03-07")).toBe("2026-03-01_2026-03-07");
+  });
+
+  it("falls back to the default for unknown, malformed or too-short periods", () => {
+    for (const value of [null, "ytd", "2026-13", "2026-03-01_2026-03-06", "2026-03-10_2026-03-01", "2026-03-01_x", "2026-03-01_2026-03-08_2026-04-01"]) {
+      expect(parsePeriod(value)).toBe(DEFAULT_PERIOD);
+    }
+  });
+
+  it("parses custom range bounds", () => {
+    expect(parseRangePeriod(rangePeriod("2026-03-01", "2026-04-15"))).toEqual({ from: "2026-03-01", to: "2026-04-15" });
   });
 });

@@ -14,6 +14,7 @@ import {
 import { ExpandableChartCard } from "@/components/charts/expandable-chart-card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PeriodPresets } from "./period-picker";
 
 type Point = { time: string; value: number };
 
@@ -40,13 +41,14 @@ export function CashFlowCard({
 }: {
   className?: string;
   months: CashFlowMonth[];
-  granularity?: "month" | "week";
+  granularity?: "month" | "week" | "day";
 }) {
   const t = useTranslations("dashboard.cashFlow");
+  const title = { month: t("title"), week: t("titleWeekly"), day: t("titleDaily") }[granularity];
   return (
     <ExpandableChartCard
       className={className}
-      title={granularity === "week" ? t("titleWeekly") : t("title")}
+      title={title}
       description={t.rich("description", {
         income: (c) => <span className="text-emerald-600">{c}</span>,
         spending: (c) => <span className="text-red-500">{c}</span>,
@@ -64,7 +66,7 @@ function NetWorthChart({
   onSplitChange: setSplit,
   expanded,
 }: NetWorthData & { split: boolean; onSplitChange: (split: boolean) => void; expanded: boolean }) {
-  const t = useTranslations("dashboard.netWorth");
+  const t = useTranslations("dashboard");
   const series = useMemo<ChartSeries[]>(
     () =>
       split
@@ -72,30 +74,23 @@ function NetWorthChart({
             kind: "line",
             data: a.points,
             color: PALETTE[i % PALETTE.length]!,
-            title: a.account.ibanLast4
-              ? `${a.account.name} *${a.account.ibanLast4}`
-              : a.account.name,
+            title: a.account.ibanLast4 ? `${a.account.name} *${a.account.ibanLast4}` : a.account.name,
           }))
         : [{ kind: "area", data: netWorth, color: "#059669" }],
     [split, accounts, netWorth],
   );
   return (
     <div className={cn("space-y-2", expanded && "flex min-h-0 flex-1 flex-col")}>
-      <div className="flex justify-end gap-1">
-        <Button
-          size="sm"
-          variant={split ? "ghost" : "secondary"}
-          onClick={() => setSplit(false)}
-        >
-          {t("total")}
-        </Button>
-        <Button
-          size="sm"
-          variant={split ? "secondary" : "ghost"}
-          onClick={() => setSplit(true)}
-        >
-          {t("byAccount")}
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <PeriodPresets />
+        <div className="flex gap-1">
+          <Button size="sm" variant={split ? "ghost" : "secondary"} onClick={() => setSplit(false)}>
+            {t("netWorth.total")}
+          </Button>
+          <Button size="sm" variant={split ? "secondary" : "ghost"} onClick={() => setSplit(true)}>
+            {t("netWorth.byAccount")}
+          </Button>
+        </div>
       </div>
       {expanded ? (
         <div className="min-h-0 flex-1">

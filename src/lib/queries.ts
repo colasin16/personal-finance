@@ -1,5 +1,5 @@
 import { localizeCategoryName } from "@/lib/i18n/categories";
-import { addDays, differenceInCalendarDays, endOfMonth, format, max, min, parseISO, startOfMonth, startOfWeek, subMonths } from "date-fns";
+import { addDays, differenceInCalendarDays, endOfMonth, endOfYear, format, max, min, parseISO, startOfMonth, startOfWeek, subMonths, subYears } from "date-fns";
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNotNull, isNull, lte, or, sql, type SQL } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import {
@@ -17,6 +17,7 @@ import {
 import { findTransferSuggestions } from "@/lib/pipeline/categorize";
 import { applyShare } from "@/lib/money";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
+import { isMonthPeriod, isYearPeriod, parseRangePeriod, type Period } from "@/lib/dashboard-periods";
 import { monthBounds } from "@/lib/statement-months";
 
 /* ───────────────────────────── Accounts & visibility ───────────────────────────── */
@@ -103,38 +104,32 @@ export async function getCategories(db: Db, householdId: string, locale = "en") 
 
 /* ───────────────────────────────────── Dashboard ───────────────────────────────────── */
 
-export type PresetPeriod = "3m" | "6m" | "12m" | "ytd" | "all";
-/** A preset range, or a single calendar month as `yyyy-MM`. */
-export type Period = PresetPeriod | `${number}-${number}`;
-/** Labels: messages/<locale>/dashboard.json `periods.<value>`. */
-export const PERIODS: PresetPeriod[] = ["3m", "6m", "12m", "ytd", "all"];
-
-export const isMonthPeriod = (period: string): period is `${number}-${number}` => /^\d{4}-(0[1-9]|1[0-2])$/.test(period);
-
-export function parsePeriod(value: string | undefined | null): Period {
-  if (value && isMonthPeriod(value)) return value;
-  return PERIODS.includes(value as PresetPeriod) ? (value as PresetPeriod) : "6m";
-}
+export { DEFAULT_PERIOD, parsePeriod, PERIODS, type Period, type PresetPeriod } from "@/lib/dashboard-periods";
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
 const monthKey = (date: string) => date.slice(0, 7);
 
 function periodRange(period: Period, anchor: Date, firstDate: Date) {
-  if (isMonthPeriod(period)) {
-    const start = parseISO(`${period}-01`);
-    const monthEnd = endOfMonth(start);
-    // Don't extend the latest (partial) month past the newest data; compare against the same days of the month before.
-    const end = anchor >= start && anchor < monthEnd ? anchor : monthEnd;
-    const prevStart = subMonths(start, 1);
+  if (isMonthPeriod(period) || isYearPeriod(period)) {
+    const year = isYearPeriod(period);
+    const start = parseISO(year ? `${period}-01-01` : `${period}-01`);
+    const calendarEnd = year ? endOfYear(start) : endOfMonth(start);
+    // Don't extend the latest (partial) month/year past the newest data; compare against the same days of the one before.
+    const end = anchor >= start && anchor < calendarEnd ? anchor : calendarEnd;
+    const prevStart = year ? subYears(start, 1) : subMonths(start, 1);
     const prevEnd = min([addDays(prevStart, differenceInCalendarDays(end, start)), addDays(start, -1)]);
     return { start, end, prevStart, prevEnd };
   }
-  const end = anchor;
+  const custom = parseRangePeriod(period);
   let start: Date;
-  if (period === "all") start = firstDate;
-  else if (period === "ytd") start = new Date(end.getFullYear(), 0, 1);
+  let end = anchor;
+  if (custom) [start, end] = [parseISO(custom.from), parseISO(custom.to)];
+  else if (period === "all") start = firstDate;
+  // Short ranges are rolling windows; longer ones start on a month boundary.
+  else if (period === "1w") start = addDays(end, -6);
+  else if (period === "1m") start = addDays(subMonths(end, 1), 1);
   else start = startOfMonth(subMonths(end, Number.parseInt(period, 10) - 1));
-  if (start < firstDate && period !== "ytd") start = startOfMonth(firstDate);
+  if (!custom && start < firstDate) start = period === "1w" || period === "1m" ? firstDate : startOfMonth(firstDate);
   const days = differenceInCalendarDays(end, start) + 1;
   return { start, end, prevStart: addDays(start, -days), prevEnd: addDays(start, -1) };
 }
@@ -206,12 +201,15 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
   const current = totals(start, end);
   const previous = txs.length && prevEnd >= iso(first) ? totals(prevStart, prevEnd) : null;
 
-  // Income / expenses / net per month, or per week (starting Monday, clamped to the month) for a single month.
-  const cashFlowGranularity: "month" | "week" = isMonthPeriod(period) ? "week" : "month";
+  // Income / expenses / net per day (up to two weeks), per week (starting Monday, clamped to the range; up to ~two months) or per month.
+  const rangeDays = differenceInCalendarDays(range.end, range.start) + 1;
+  const cashFlowGranularity: "month" | "week" | "day" = rangeDays <= 14 ? "day" : rangeDays <= 62 ? "week" : "month";
   const bucketKey =
-    cashFlowGranularity === "week"
-      ? (date: string) => (date < start ? start : iso(max([startOfWeek(parseISO(date), { weekStartsOn: 1 }), range.start])))
-      : (date: string) => `${monthKey(date)}-01`;
+    cashFlowGranularity === "day"
+      ? (date: string) => date
+      : cashFlowGranularity === "week"
+        ? (date: string) => (date < start ? start : iso(max([startOfWeek(parseISO(date), { weekStartsOn: 1 }), range.start])))
+        : (date: string) => `${monthKey(date)}-01`;
   const buckets = new Map<string, { income: number; expenses: number }>();
   for (let d = range.start; d <= range.end; d = addDays(d, 1)) {
     const key = bucketKey(iso(d));
