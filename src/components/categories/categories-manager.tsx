@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CategoryLabel } from "@/components/transactions/category-label";
 import { CategoryPicker, type CategoryOption } from "@/components/transactions/category-picker";
 import { IconPicker } from "@/components/transactions/icon-picker";
-import { ColorSwatches } from "./color-swatches";
+import { ColorInput } from "./color-input";
 
 const KINDS = ["expense", "income", "transfer"] as const;
 
@@ -41,7 +41,7 @@ export function CategoriesManager({ categories }: { categories: ManagedCategory[
             <h3 className="mb-1.5 text-xs font-medium text-muted-foreground uppercase">{t(`kinds.${kind}`)}</h3>
             <ul className="grid gap-x-4 sm:grid-cols-2">
               {list.map((c) => (
-                <li key={c.id} className="flex items-center gap-2 border-b py-1.5 text-sm">
+                <li key={c.id} className="flex items-center gap-2 border-b py-1.5 text-sm last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
                   <button type="button" onClick={() => setEditing(c)} className="flex min-w-0 flex-1 items-center gap-2 text-left" aria-label={t("edit")}>
                     <CategoryLabel name={c.name} icon={c.icon} color={c.color} className="min-w-0" />
                     {c.system && <Lock className="size-3 shrink-0 text-muted-foreground" aria-label={t("system")} />}
@@ -133,8 +133,8 @@ function EditCategoryDialog({ category, onClose }: { category: ManagedCategory; 
             {category.system && <p className="text-xs text-muted-foreground">{t("systemHint")}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label>{t("color")}</Label>
-            <ColorSwatches value={color} onChange={setColor} label={t("color")} />
+            <Label htmlFor="edit-category-color">{t("color")}</Label>
+            <ColorInput id="edit-category-color" value={color} onChange={setColor} />
           </div>
           <div className="rounded-lg bg-muted p-3">
             <CategoryLabel name={name.trim() || category.name} icon={icon} color={color} />

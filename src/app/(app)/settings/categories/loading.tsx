@@ -26,7 +26,7 @@ export default function CategoriesLoading() {
                 <h3 className="mb-1.5 text-xs font-medium text-muted-foreground uppercase">{t(`categories.kinds.${kind}`)}</h3>
                 <ul className="grid gap-x-4 sm:grid-cols-2">
                   {Array.from({ length: rows }, (_, i) => (
-                    <li key={i} className="flex h-10 items-center gap-2 border-b py-1.5">
+                    <li key={i} className="flex h-10 items-center gap-2 border-b py-1.5 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
                       <Skeleton className={`h-6 rounded-md ${WIDTHS[i % WIDTHS.length]}`} />
                       <span className="flex-1" />
                       <Skeleton className="h-3 w-12" />
@@ -45,10 +45,9 @@ export default function CategoriesLoading() {
               <Skeleton className="h-9 w-32" />
               <Skeleton className="h-9 w-20" />
             </div>
-            <div className="flex gap-1.5">
-              {Array.from({ length: 10 }, (_, i) => (
-                <Skeleton key={i} className="size-6 rounded-full" />
-              ))}
+            <div className="flex gap-2">
+              <Skeleton className="size-9" />
+              <Skeleton className="h-9 w-32" />
             </div>
           </div>
         </CardContent>
