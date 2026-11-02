@@ -1,5 +1,6 @@
 import type { CategoryOption } from "@/components/transactions/category-picker";
 import type { TxItem } from "@/components/transactions/tx-item";
+import type { CategorySlice } from "@/app/(app)/dashboard/category-breakdown";
 
 /** Fake data for Storybook stories; nothing here comes from real statements. */
 export const categories: CategoryOption[] = [
@@ -102,3 +103,37 @@ export const transactions: TxItem[] = [
     notes: "September payroll",
   }),
 ];
+
+const slice = (key: string, name: string, icon: string, color: string, spent: number, reimbursed: number, count: number) => ({
+  key,
+  name,
+  icon,
+  color,
+  spent,
+  reimbursed,
+  cents: spent - reimbursed,
+  count,
+  href: "#",
+});
+
+/** Dashboard category ranking rows, sorted by net spending with `pct` of the total. */
+const categorySlices = (items: Omit<CategorySlice, "pct">[]): CategorySlice[] => {
+  const total = items.reduce((sum, c) => sum + c.cents, 0) || 1;
+  return items.map((c) => ({ ...c, pct: c.cents / total })).sort((a, b) => b.cents - a.cents);
+};
+
+const plain = [
+  slice("housing", "Housing", "house", "#6366f1", 267_139, 0, 9),
+  slice("health", "Health", "heart-pulse", "#ef4444", 188_568, 0, 18),
+  slice("groceries", "Groceries", "shopping-basket", "#22c55e", 156_326, 0, 100),
+];
+
+export const plainCategorySlices = categorySlices(plain);
+
+export const reimbursedCategorySlices = categorySlices([
+  slice("leisure", "Leisure & travel", "plane", "#06b6d4", 521_359, 26_050, 107),
+  slice("car", "Car & fuel", "car", "#94a3b8", 302_694, 3_000, 40),
+  slice("restaurants", "Restaurants & bars", "utensils", "#f97316", 224_755, 7_290, 94),
+  slice("shopping", "Shopping", "shopping-bag", "#eab308", 275_928, 58_797, 82),
+  ...plain,
+]);

@@ -99,7 +99,7 @@ export function categoryTint(color: string) {
 }
 
 /** Category color darkened in light mode and lightened in dark mode so text stays readable on the tint. */
-const CATEGORY_TEXT = "text-[color-mix(in_srgb,var(--category)_65%,black)] dark:text-[color-mix(in_srgb,var(--category)_70%,white)]";
+export const CATEGORY_TEXT = "text-[color-mix(in_srgb,var(--category)_65%,black)] dark:text-[color-mix(in_srgb,var(--category)_70%,white)]";
 
 /** Icon + name pill; the category color drives the text, border and a translucent background. */
 export function CategoryLabel({

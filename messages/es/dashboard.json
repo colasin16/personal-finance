@@ -36,14 +36,22 @@
   },
   "ranking": {
     "title": "En qué se va el dinero",
-    "description": "Gastos por categoría · haz clic para ver los movimientos",
+    "description": "Neto de reembolsos · haz clic para ver los movimientos",
     "empty": "No hay gastos en este periodo.",
     "count": "{count} mov.",
     "viewList": "Ver como lista",
     "viewPie": "Ver como gráfico circular",
     "pieLabel": "Gráfico circular de gastos por categoría",
     "total": "Gasto total",
-    "netOf": "{spent} gastado · {reimbursed} reembolsado"
+    "netOf": "{spent} gastado · {reimbursed} reembolsado",
+    "reimbursedLabel": "reembolsado",
+    "share": "{pct}% del gasto",
+    "legendNet": "Gasto neto",
+    "legendReimbursed": "Reembolsado"
+  },
+  "categoryChart": {
+    "title": "Gasto por categoría",
+    "description": "Gasto neto en el periodo · haz clic en una barra para ver sus movimientos"
   },
   "topMerchants": {
     "title": "Comercios principales",

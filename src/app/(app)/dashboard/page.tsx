@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { CategoryBreakdown } from "./category-breakdown";
+import { CategoryColumnsCard } from "./category-columns";
 import { CashFlowCard, NetWorthCard } from "./charts";
 import { DashboardFilters } from "./filters";
 
@@ -113,6 +114,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   ];
 
   const txHref = (extra: Record<string, string>) => `/transactions?${new URLSearchParams({ from: data.range.start, to: data.range.end, ...extra })}`;
+  const categoryItems = data.categoryRanking.map((c) => ({
+    key: c.categoryId ?? "none",
+    name: c.name ?? tc("uncategorized"),
+    icon: c.icon,
+    color: c.color,
+    cents: c.cents,
+    spent: c.spent,
+    reimbursed: c.reimbursed,
+    count: c.count,
+    pct: c.pct,
+    href: txHref({ category: c.categoryId ?? "none" }),
+  }));
 
   return (
     <>
@@ -140,22 +153,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <CashFlowCard className="lg:col-span-2" months={data.months} granularity={data.cashFlowGranularity} />
       </div>
 
+      <CategoryColumnsCard className="mt-6" items={categoryItems} />
+
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
-        <CategoryBreakdown
-          className="lg:col-span-3"
-          items={data.categoryRanking.map((c) => ({
-            key: c.categoryId ?? "none",
-            name: c.name ?? tc("uncategorized"),
-            icon: c.icon,
-            color: c.color,
-            cents: c.cents,
-            spent: c.spent,
-            reimbursed: c.reimbursed,
-            count: c.count,
-            pct: c.pct,
-            href: txHref({ category: c.categoryId ?? "none" }),
-          }))}
-        />
+        <CategoryBreakdown className="lg:col-span-3" items={categoryItems} />
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>{t("topMerchants.title")}</CardTitle>

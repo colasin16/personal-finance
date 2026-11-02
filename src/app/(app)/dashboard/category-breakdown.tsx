@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChartPie, List } from "lucide-react";
+import { ChartPie, List, Undo2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { CategoryIcon, categoryTint } from "@/components/transactions/category-label";
+import { CATEGORY_TEXT, CategoryIcon, categoryTint } from "@/components/transactions/category-label";
 import { Money } from "@/components/money";
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
@@ -81,30 +81,76 @@ function Pie({ items, active, onActive, className }: { items: CategorySlice[]; a
   );
 }
 
-function CategoryBars({ items }: { items: CategorySlice[] }) {
+export const REIMBURSED_TEXT = "text-emerald-700 dark:text-emerald-400";
+/** Diagonal stripes in the reimbursement green (via currentColor): the reimbursed part of a category's spending. */
+export const HATCH = { backgroundImage: "repeating-linear-gradient(-45deg, currentColor 0 2px, transparent 2px 5px)" };
+
+function Reimbursed({ c, className }: { c: CategorySlice; className?: string }) {
   const t = useTranslations("dashboard.ranking");
   return (
-    <div className="space-y-3">
+    <span
+      className={cn("inline-flex items-center gap-1 tabular-nums", REIMBURSED_TEXT, className)}
+      title={t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) })}
+    >
+      <Undo2 className="size-3 shrink-0" aria-hidden />
+      {formatMoney(-c.reimbursed, "EUR", { signed: true })}
+      <span className="sr-only sm:not-sr-only">{t("reimbursedLabel")}</span>
+    </span>
+  );
+}
+
+function CategoryBars({ items }: { items: CategorySlice[] }) {
+  const t = useTranslations("dashboard.ranking");
+  // Bars show the share of total net spending; the reimbursed segment uses the same scale.
+  const total = items.reduce((sum, c) => sum + c.cents, 0) || 1;
+  const anyReimbursed = items.some((c) => c.reimbursed > 0);
+  return (
+    <div className="space-y-2">
       {items.map((c) => (
-        <Link key={c.key} href={c.href} className="group block space-y-1.5 rounded-lg border px-3 py-2 transition-[filter] hover:brightness-95 dark:hover:brightness-125" style={categoryTint(c.color)}>
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="flex items-center gap-2">
-              <CategoryIcon icon={c.icon} className="size-4" />
-              {c.name}
-              <span className="text-xs text-muted-foreground">{t("count", { count: c.count })}</span>
-            </span>
-            <span className="tabular-nums">
-              <Money cents={c.cents} className="font-medium" /> <span className="text-xs text-muted-foreground">{Math.round(c.pct * 100)}%</span>
-            </span>
+        <Link
+          key={c.key}
+          href={c.href}
+          className="group block space-y-2 rounded-lg border px-3 py-2.5 transition-[filter] hover:brightness-95 dark:hover:brightness-125"
+          style={categoryTint(c.color)}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className={cn("flex items-center gap-2 text-sm font-medium", CATEGORY_TEXT)}>
+                <CategoryIcon icon={c.icon} className="size-4 shrink-0" />
+                <span className="truncate">{c.name}</span>
+              </p>
+              <p className="mt-0.5 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+                {t("count", { count: c.count })} · {t("share", { pct: Math.round(c.pct * 100) })}
+              </p>
+            </div>
+            <div className="shrink-0 text-right">
+              <Money cents={c.cents} className="block text-sm font-semibold" />
+              {c.reimbursed > 0 && <Reimbursed c={c} className="mt-0.5 text-xs" />}
+            </div>
           </div>
-          {c.reimbursed > 0 && (
-            <p className="text-xs text-muted-foreground">{t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) })}</p>
-          )}
-          <div className="h-2 overflow-hidden rounded-full bg-background/50">
-            <div className="h-full rounded-full transition-all" style={{ width: `${Math.max(1, c.pct * 100)}%`, background: c.color }} />
+          <div className="flex h-2 overflow-hidden rounded-full bg-background/50">
+            <div
+              className={cn("h-full transition-all", c.reimbursed > 0 ? "rounded-l-full" : "rounded-full")}
+              style={{ width: `${Math.max(1, c.pct * 100)}%`, background: c.color }}
+            />
+            {c.reimbursed > 0 && (
+              <div className={cn("h-full rounded-r-full transition-all", REIMBURSED_TEXT)} style={{ width: `${(c.reimbursed / total) * 100}%`, ...HATCH }} />
+            )}
           </div>
         </Link>
       ))}
+      {anyReimbursed && (
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-1.5 w-4 rounded-full bg-muted-foreground" aria-hidden />
+            {t("legendNet")}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className={cn("h-1.5 w-4 rounded-full", REIMBURSED_TEXT)} style={HATCH} aria-hidden />
+            {t("legendReimbursed")}
+          </span>
+        </p>
+      )}
     </div>
   );
 }
@@ -124,10 +170,13 @@ function PieLegend({ items, active, onActive, className }: { items: CategorySlic
             style={categoryTint(c.color)}
             className={cn("flex items-center gap-2 rounded-md border px-2 py-1 text-sm transition-[filter] hover:brightness-95 dark:hover:brightness-125", active === i && "brightness-95 dark:brightness-125")}
           >
-            <CategoryIcon icon={c.icon} />
-            <span className="min-w-0 flex-1 truncate" title={c.reimbursed > 0 ? t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) }) : undefined}>
-              {c.name}
-            </span>
+            <CategoryIcon icon={c.icon} className={CATEGORY_TEXT} />
+            <span className={cn("min-w-0 flex-1 truncate font-medium", CATEGORY_TEXT)}>{c.name}</span>
+            {c.reimbursed > 0 && (
+              <span title={t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) })}>
+                <Undo2 className={cn("size-3.5", REIMBURSED_TEXT)} aria-label={t("legendReimbursed")} />
+              </span>
+            )}
             <span className="text-xs text-muted-foreground tabular-nums">{Math.round(c.pct * 100)}%</span>
             <Money cents={c.cents} className="w-24 text-right font-medium" />
           </Link>

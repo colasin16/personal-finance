@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 
 const BARS = ["h-40", "h-52", "h-36", "h-60", "h-44", "h-56"];
+const COLUMNS = ["h-56", "h-36", "h-32", "h-24", "h-24", "h-20", "h-16", "h-10", "h-8"];
 const CATEGORY_WIDTHS = ["85%", "62%", "48%", "33%", "21%"];
 
 export default function DashboardLoading() {
@@ -58,21 +59,38 @@ export default function DashboardLoading() {
         </Card>
       </div>
 
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>{t("categoryChart.title")}</CardTitle>
+          <CardDescription>{t("categoryChart.description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex h-64 items-end gap-3 border-b pb-px pl-16">
+            {COLUMNS.map((h, i) => (
+              <Skeleton key={i} className={`${h} mx-auto max-w-14 flex-1 rounded-b-none`} />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>{t("ranking.title")}</CardTitle>
             <CardDescription>{t("ranking.description")}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2">
             {CATEGORY_WIDTHS.map((w, i) => (
-              <div key={i} className="space-y-1.5 rounded-lg border px-3 py-2">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="size-4 rounded-full" />
-                    <Skeleton className="h-4 w-28" />
+              <div key={i} className="space-y-2 rounded-lg border px-3 py-2.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="size-4 rounded-full" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                    <Skeleton className="h-3 w-24" />
                   </div>
-                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-20" />
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-muted/50">
                   <Skeleton className="h-full rounded-full" style={{ width: w }} />

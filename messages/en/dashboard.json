@@ -36,14 +36,22 @@
   },
   "ranking": {
     "title": "Where the money goes",
-    "description": "Spending by category · click to see the transactions",
+    "description": "Net of reimbursements · click to see the transactions",
     "empty": "No spending in this period.",
     "count": "{count} tx",
     "viewList": "Show as list",
     "viewPie": "Show as pie chart",
     "pieLabel": "Spending by category pie chart",
     "total": "Total spending",
-    "netOf": "{spent} spent · {reimbursed} reimbursed"
+    "netOf": "{spent} spent · {reimbursed} reimbursed",
+    "reimbursedLabel": "reimbursed",
+    "share": "{pct}% of spending",
+    "legendNet": "Net spending",
+    "legendReimbursed": "Reimbursed"
+  },
+  "categoryChart": {
+    "title": "Spending by category",
+    "description": "Net spending in this period · click a bar to see its transactions"
   },
   "topMerchants": {
     "title": "Top merchants",
