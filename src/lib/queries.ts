@@ -18,7 +18,7 @@ import { findTransferSuggestions } from "@/lib/pipeline/categorize";
 import { applyShare } from "@/lib/money";
 import { netCashFlow } from "@/lib/domain/cashflow";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
-import { isMonthPeriod, isYearPeriod, parseRangePeriod, type Period } from "@/lib/dashboard-periods";
+import { isMonthPeriod, isYearPeriod, parseRangePeriod, type DashboardView, type Period } from "@/lib/dashboard-periods";
 import { monthBounds } from "@/lib/statement-months";
 
 /* ───────────────────────────── Accounts & visibility ───────────────────────────── */
@@ -105,7 +105,7 @@ export async function getCategories(db: Db, householdId: string, locale = "en") 
 
 /* ───────────────────────────────────── Dashboard ───────────────────────────────────── */
 
-export { DEFAULT_PERIOD, parsePeriod, PERIODS, type Period, type PresetPeriod } from "@/lib/dashboard-periods";
+export { DEFAULT_PERIOD, parsePeriod, parseView, PERIODS, type DashboardView, type Period, type PresetPeriod } from "@/lib/dashboard-periods";
 
 const iso = (d: Date) => format(d, "yyyy-MM-dd");
 const monthKey = (date: string) => date.slice(0, 7);
@@ -153,7 +153,11 @@ type DashboardTx = {
   descriptionRaw: string;
 };
 
-export async function getDashboard(db: Db, householdId: string, userId: string, scope: Scope, period: Period, locale = "en") {
+/**
+ * Everything the dashboard shows for a scope and period. With `view = "avg"` the flows (KPIs, categories, merchants)
+ * are divided by the number of months with data in the range; net worth stays the latest balance.
+ */
+export async function getDashboard(db: Db, householdId: string, userId: string, scope: Scope, period: Period, locale = "en", view: DashboardView = "total") {
   const visible = await getVisibleAccounts(db, householdId, userId);
   const inScope = scopeAccounts(visible, scope);
   const shareBy = new Map(inScope.map((s) => [s.account.id, s.sharePct]));
@@ -198,9 +202,21 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
     net: income - expenses,
     savingsRate: income > 0 ? (income - expenses) / income : null,
   });
+  // Months that have any transaction (incl. transfers), so gaps without imported statements don't dilute the average.
+  const monthsWithData = (from: string, to: string) => new Set(txs.filter((tx) => tx.bookedAt >= from && tx.bookedAt <= to).map((tx) => monthKey(tx.bookedAt))).size;
+  const averageMonths = monthsWithData(start, end);
+  // Only for ranges long enough to chart month by month, so a rolling month spanning two calendar months isn't halved.
+  const averageAvailable = averageMonths > 1 && differenceInCalendarDays(range.end, range.start) + 1 > 62;
+  const averaged = view === "avg" && averageAvailable;
+  const perMonth = (value: number, n = averageMonths) => (averaged && n > 0 ? Math.round(value / n) : value);
+  const countPerMonth = (value: number) => (averaged ? Math.round((value * 10) / averageMonths) / 10 : value);
+  const perMonthSummary = (s: ReturnType<typeof summarize>, n = averageMonths) => ({ ...s, income: perMonth(s.income, n), expenses: perMonth(s.expenses, n), net: perMonth(s.net, n) });
+
   const currentFlows = netFlows(inRange(start, end));
   const current = summarize(currentFlows);
-  const previous = txs.length && prevEnd >= iso(first) ? summarize(netFlows(inRange(prevStart, prevEnd))) : null;
+  const previousTotals = txs.length && prevEnd >= iso(first) ? summarize(netFlows(inRange(prevStart, prevEnd))) : null;
+  // Both periods are averaged the same way, so the deltas stay like-for-like.
+  const previous = previousTotals && perMonthSummary(previousTotals, monthsWithData(prevStart, prevEnd));
 
   // Income / expenses / net per day (up to two weeks), per week (starting Monday, clamped to the range; up to ~two months) or per month.
   const rangeDays = differenceInCalendarDays(range.end, range.start) + 1;
@@ -229,6 +245,12 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
     buckets.set(key, { income, expenses });
   }
   const months = [...buckets.entries()].map(([time, v]) => ({ month: monthKey(time), time, ...v, net: v.income - v.expenses }));
+  // Reference line for the cash-flow chart: average per bucket that has data (shown in both views).
+  const bucketsWithData = new Set(txs.filter((tx) => tx.bookedAt >= start && tx.bookedAt <= end).map((tx) => bucketKey(tx.bookedAt))).size;
+  const cashFlowAverage =
+    bucketsWithData > 1
+      ? { income: Math.round(current.income / bucketsWithData), expenses: Math.round(current.expenses / bucketsWithData), net: Math.round(current.net / bucketsWithData) }
+      : null;
 
   // Daily balances per account (forward-filled), then net worth = Σ balance × share.
   const lastBalanceByDay = new Map<string, Map<string, number>>();
@@ -284,22 +306,33 @@ export async function getDashboard(db: Db, householdId: string, userId: string, 
         icon: cat?.icon ?? "circle-help",
         ...v,
         pct: v.cents / expenseTotal,
+        cents: perMonth(v.cents),
+        spent: perMonth(v.spent),
+        reimbursed: perMonth(v.reimbursed),
+        count: countPerMonth(v.count),
       };
     })
     .sort((a, b) => b.cents - a.cents);
   const topMerchants = [...byMerchant.entries()]
-    .map(([name, v]) => ({ name, ...v }))
-    .sort((a, b) => b.cents - a.cents)
-    .slice(0, 8);
+    .sort(([, a], [, b]) => b.cents - a.cents)
+    .slice(0, 8)
+    .map(([name, v]) => ({ name, cents: perMonth(v.cents), count: countPerMonth(v.count) }));
 
   return {
     accounts: inScope.map((s) => ({ ...s.account, sharePct: s.sharePct })),
     range: { start, end, hasData: txs.length > 0 },
     /** Months with data, newest first (`yyyy-MM`), for the single-month picker. */
     availableMonths: txs.length ? monthsBetween(first, latest).reverse() : [],
-    kpis: { ...current, netWorth: netWorthNow, netWorthChange: netWorthNow !== null && netWorthStart !== null ? netWorthNow - netWorthStart : null },
+    /** `months`: months with data in the range (the divisor); `active`: flows below are per-month averages. */
+    average: { months: averageMonths, available: averageAvailable, active: averaged },
+    kpis: {
+      ...perMonthSummary(current),
+      netWorth: netWorthNow,
+      netWorthChange: netWorthNow !== null && netWorthStart !== null ? perMonth(netWorthNow - netWorthStart) : null,
+    },
     previous,
     months,
+    cashFlowAverage,
     cashFlowGranularity,
     netWorth,
     accountSeries,

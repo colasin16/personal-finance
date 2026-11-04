@@ -7,7 +7,8 @@ import { SAMPLE_ACCOUNTS, SAMPLE_MONTHS, buildSampleStatements, renderSampleStat
 import { acceptInvite, createAccount, createHousehold, createInvite, ensureAuthUser, findOrCreateUser, getMembership } from "@/lib/households";
 import { processStatement, confirmStatement, ibanHash, legacyIbanHash, upgradeLegacyIbanHashes } from "@/lib/pipeline/process-statement";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
-import { listTransactions } from "@/lib/queries";
+import { getDashboard, listTransactions } from "@/lib/queries";
+import { ensureDemoHousehold } from "@/lib/dev/demo";
 import { applyAllRules, applyRuleRetroactively, autoLinkTransfers, categorizeTransactions, previewRule } from "@/lib/pipeline/categorize";
 import type { FileStorage } from "@/lib/services/storage";
 import { accounts, categoryRules, transactionChanges } from "@/lib/db/schema";
@@ -329,5 +330,42 @@ describe("household security", () => {
     expect(await upgradeLegacyIbanHashes(db, household.id, [iban])).toBe(1);
     const [row] = await db.select().from(accounts).where(eq(accounts.id, account.id));
     expect(row!.ibanHash).toBe(ibanHash(household.id, iban));
+  });
+});
+
+describe("dashboard monthly average", () => {
+  it("divides flows by the months with data and keeps net worth as the latest balance", async () => {
+    const db = await createDb({ dataDir: "memory", url: "" });
+    const { householdId, alex } = await ensureDemoHousehold(db, { storage: new MemoryStorage() });
+    const total = await getDashboard(db, householdId, alex.id, "household", "all");
+    const avg = await getDashboard(db, householdId, alex.id, "household", "all", "en", "avg");
+    const n = total.average.months;
+    expect(n).toBeGreaterThan(1);
+    expect(total.average).toEqual({ months: n, available: true, active: false });
+    expect(avg.average).toEqual({ months: n, available: true, active: true });
+    expect(avg.kpis.income).toBe(Math.round(total.kpis.income / n));
+    expect(avg.kpis.expenses).toBe(Math.round(total.kpis.expenses / n));
+    expect(avg.kpis.savingsRate).toBe(total.kpis.savingsRate);
+    expect(avg.kpis.netWorth).toBe(total.kpis.netWorth);
+    expect(avg.kpis.netWorthChange).toBe(Math.round(total.kpis.netWorthChange! / n));
+    const [topTotal, topAvg] = [total.categoryRanking[0]!, avg.categoryRanking[0]!];
+    expect(topAvg).toMatchObject({ categoryId: topTotal.categoryId, pct: topTotal.pct, cents: Math.round(topTotal.cents / n) });
+    expect(avg.topMerchants[0]!.cents).toBe(Math.round(total.topMerchants[0]!.cents / n));
+    // The chart keeps its per-month bars; the average line is the same in both views.
+    expect(avg.months).toEqual(total.months);
+    expect(avg.cashFlowAverage).toEqual(total.cashFlowAverage);
+    expect(total.cashFlowAverage!.expenses).toBe(Math.round(total.kpis.expenses / n));
+  });
+
+  it("ignores the average for ranges too short to chart by month", async () => {
+    const db = await createDb({ dataDir: "memory", url: "" });
+    const { householdId, alex } = await ensureDemoHousehold(db, { storage: new MemoryStorage() });
+    // A single month, and a range across two calendar months that both have data.
+    for (const period of ["2026-07", "2026-07-15_2026-08-14"] as const) {
+      const total = await getDashboard(db, householdId, alex.id, "household", period);
+      const avg = await getDashboard(db, householdId, alex.id, "household", period, "en", "avg");
+      expect(avg.average).toMatchObject({ available: false, active: false });
+      expect(avg.kpis).toEqual(total.kpis);
+    }
   });
 });

@@ -38,23 +38,33 @@ export function CashFlowCard({
   className,
   months,
   granularity = "month",
+  average = null,
 }: {
   className?: string;
   months: CashFlowMonth[];
   granularity?: "month" | "week" | "day";
+  /** Average income / spending per bucket with data, drawn as dashed reference lines. */
+  average?: CashFlowAverage | null;
 }) {
   const t = useTranslations("dashboard.cashFlow");
   const title = { month: t("title"), week: t("titleWeekly"), day: t("titleDaily") }[granularity];
+  const averageLabel = { month: t("averageMonth"), week: t("averageWeek"), day: t("averageDay") }[granularity];
+  const chart = (height?: string) => <CashFlowChart months={months} average={average} monthly={granularity === "month"} height={height} />;
   return (
     <ExpandableChartCard
       className={className}
       title={title}
-      description={t.rich("description", {
-        income: (c) => <span className="text-emerald-600">{c}</span>,
-        spending: (c) => <span className="text-red-500">{c}</span>,
-      })}
+      description={
+        <>
+          {t.rich("description", {
+            income: (c) => <span className="text-emerald-600">{c}</span>,
+            spending: (c) => <span className="text-red-500">{c}</span>,
+          })}
+          {average && ` · ${averageLabel}`}
+        </>
+      }
     >
-      {(expanded) => (expanded ? <div className="min-h-0 flex-1"><CashFlowChart months={months} monthly={granularity === "month"} height="100%" /></div> : <CashFlowChart months={months} monthly={granularity === "month"} />)}
+      {(expanded) => (expanded ? <div className="min-h-0 flex-1">{chart("100%")}</div> : chart())}
     </ExpandableChartCard>
   );
 }
@@ -131,8 +141,19 @@ const PALETTE = [
 ];
 
 type CashFlowMonth = { time: string; income: number; expenses: number; net: number };
+type CashFlowAverage = { income: number; expenses: number };
 
-function CashFlowChart({ months, monthly, height = 300 }: { months: CashFlowMonth[]; monthly: boolean; height?: number | string }) {
+function CashFlowChart({
+  months,
+  average,
+  monthly,
+  height = 300,
+}: {
+  months: CashFlowMonth[];
+  average: CashFlowAverage | null;
+  monthly: boolean;
+  height?: number | string;
+}) {
   const netColor = useTheme().resolvedTheme === "dark" ? "#f4f4f5" : "#18181b";
   const series = useMemo<ChartSeries[]>(
     () => [
@@ -152,8 +173,14 @@ function CashFlowChart({ months, monthly, height = 300 }: { months: CashFlowMont
         color: netColor,
         lineWidth: 2,
       },
+      ...(average
+        ? ([
+            { kind: "line", data: months.map((m) => ({ time: m.time, value: average.income })), color: "#047857", lineWidth: 2, dashed: true },
+            { kind: "line", data: months.map((m) => ({ time: m.time, value: -average.expenses })), color: "#b91c1c", lineWidth: 2, dashed: true },
+          ] satisfies ChartSeries[])
+        : []),
     ],
-    [months, netColor],
+    [months, average, netColor],
   );
   return <TimeChart series={series} height={height} monthly={monthly} />;
 }

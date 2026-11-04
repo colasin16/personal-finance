@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { getMembers } from "@/lib/households";
 import { formatDate } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
-import { getDashboard, parsePeriod, parseScope } from "@/lib/queries";
+import { getDashboard, parsePeriod, parseScope, parseView } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
@@ -44,15 +44,17 @@ function Delta({
   );
 }
 
-export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ scope?: string; period?: string }> }) {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ scope?: string; period?: string; view?: string }> }) {
   const params = await searchParams;
   const scope = parseScope(params.scope);
   const period = parsePeriod(params.period);
+  const view = parseView(params.view);
   const { db, user, household } = await requireContext();
   const locale = await getLocale();
   const [t, tc] = await Promise.all([getTranslations("dashboard"), getTranslations("common")]);
-  const [data, members] = await Promise.all([getDashboard(db, household.id, user.id, scope, period, locale), getMembers(db, household.id)]);
-  const { kpis, previous } = data;
+  const [data, members] = await Promise.all([getDashboard(db, household.id, user.id, scope, period, locale, view), getMembers(db, household.id)]);
+  const { kpis, previous, average } = data;
+  const avg = average.active;
   const scopes = [
     { value: "household", label: tc("household") },
     ...(members.length > 1 ? [{ value: "shared", label: tc("shared") }] : []),
@@ -63,7 +65,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   if (!data.range.hasData) {
     return (
       <>
-        <DashboardFilters scopes={scopes} months={data.availableMonths} range={data.range} />
+        <DashboardFilters scopes={scopes} months={data.availableMonths} range={data.range} average={average} />
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
             <FileUp className="size-12 text-emerald-600" />
@@ -92,18 +94,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       sub:
         kpis.netWorthChange === null ? null : (
           <span className={cn("text-xs font-medium", kpis.netWorthChange >= 0 ? "text-emerald-600" : "text-red-600")}>
-            {t("kpis.netWorthChange", { amount: formatMoney(kpis.netWorthChange, "EUR", { signed: true }) })}
+            {t(avg ? "kpis.netWorthChangeAvg" : "kpis.netWorthChange", { amount: formatMoney(kpis.netWorthChange, "EUR", { signed: true }) })}
           </span>
         ),
     },
-    { label: t("kpis.income"), value: formatMoney(kpis.income), sub: <Delta current={kpis.income} previous={previous?.income} label={deltaLabel} /> },
+    { label: t(avg ? "kpis.incomeAvg" : "kpis.income"), value: formatMoney(kpis.income), sub: <Delta current={kpis.income} previous={previous?.income} label={deltaLabel} /> },
     {
-      label: t("kpis.spending"),
+      label: t(avg ? "kpis.spendingAvg" : "kpis.spending"),
       value: formatMoney(kpis.expenses),
       sub: <Delta current={kpis.expenses} previous={previous?.expenses} invert label={deltaLabel} />,
     },
     {
-      label: t("kpis.saved"),
+      label: t(avg ? "kpis.savedAvg" : "kpis.saved"),
       value: formatMoney(kpis.net),
       sub: (
         <span className="text-xs text-muted-foreground">
@@ -129,9 +131,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <DashboardFilters scopes={scopes} months={data.availableMonths} range={data.range} />
+      <DashboardFilters scopes={scopes} months={data.availableMonths} range={data.range} average={average} />
       <p className="mb-4 text-xs text-muted-foreground">
         {t("range.period", { start: formatDate(data.range.start, locale), end: formatDate(data.range.end, locale) })} ·{" "}
+        {avg && <span className="font-medium text-emerald-700 dark:text-emerald-400">{t("range.average", { count: average.months })} · </span>}
         {tc("accountsCount", { count: data.accounts.length })}
         {scope.startsWith("member:") && ` · ${t("range.memberShare")}`} · {t("range.transfersExcluded")}
       </p>
@@ -150,17 +153,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         <NetWorthCard className="lg:col-span-3" netWorth={data.netWorth} accounts={data.accountSeries} />
-        <CashFlowCard className="lg:col-span-2" months={data.months} granularity={data.cashFlowGranularity} />
+        <CashFlowCard className="lg:col-span-2" months={data.months} granularity={data.cashFlowGranularity} average={data.cashFlowAverage} />
       </div>
 
-      <CategoryColumnsCard className="mt-6" items={categoryItems} />
+      <CategoryColumnsCard className="mt-6" items={categoryItems} average={avg} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
-        <CategoryBreakdown className="lg:col-span-3" items={categoryItems} />
+        <CategoryBreakdown className="lg:col-span-3" items={categoryItems} average={avg} />
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>{t("topMerchants.title")}</CardTitle>
-            <CardDescription>{t("topMerchants.description")}</CardDescription>
+            <CardDescription>{t(avg ? "topMerchants.descriptionAvg" : "topMerchants.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="divide-y">
@@ -169,7 +172,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                   <Link href={txHref({ q: m.name })} className="flex items-center gap-3 py-2 text-sm hover:text-emerald-700 dark:hover:text-emerald-400">
                     <span className="w-4 text-xs text-muted-foreground">{i + 1}</span>
                     <span className="min-w-0 flex-1 truncate">{m.name}</span>
-                    <span className="text-xs text-muted-foreground">{m.count}×</span>
+                    <span className="text-xs text-muted-foreground">{t(avg ? "topMerchants.countAvg" : "topMerchants.count", { count: m.count })}</span>
                     <Money cents={m.cents} className="font-medium" />
                   </Link>
                 </li>

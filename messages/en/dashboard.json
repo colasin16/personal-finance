@@ -2,6 +2,7 @@
   "title": "Dashboard",
   "periods": { "1w": "Last week", "1m": "Last month", "3m": "Last 3 months", "6m": "Last 6 months", "12m": "Last 12 months", "all": "All time", "month": "Month", "previousMonth": "Previous month", "nextMonth": "Next month", "label": "Period", "previousYear": "Previous year", "nextYear": "Next year", "custom": "Custom", "customYear": "Year", "customRange": "Date range", "from": "From", "to": "To", "apply": "Apply", "minRange": "Pick at least one week.", "noData": "No data" },
   "periodsShort": { "1w": "1W", "1m": "1M", "3m": "3M", "6m": "6M", "12m": "12M", "all": "All" },
+  "view": { "label": "Show as", "total": "Total", "average": "Monthly avg", "unavailable": "Pick a period longer than two months, with data in more than one, to see monthly averages." },
   "empty": {
     "title": "Your dashboard fills up as you import statements",
     "description": "Add your accounts, then drop last month's PDFs from each bank.",
@@ -11,7 +12,8 @@
   "range": {
     "period": "{start} – {end}",
     "memberShare": "shared accounts counted at this person's share",
-    "transfersExcluded": "transfers between your accounts are excluded"
+    "transfersExcluded": "transfers between your accounts are excluded",
+    "average": "Monthly average of {count, plural, one {# month} other {# months}} with data"
   },
   "kpis": {
     "netWorth": "Net worth",
@@ -20,7 +22,11 @@
     "spending": "Spending",
     "saved": "Saved",
     "savingsRate": "{pct}% of income",
-    "delta": "{pct}% vs previous period"
+    "delta": "{pct}% vs previous period",
+    "incomeAvg": "Avg. income / month",
+    "spendingAvg": "Avg. spending / month",
+    "savedAvg": "Avg. saved / month",
+    "netWorthChangeAvg": "{amount} per month"
   },
   "netWorth": {
     "title": "Net worth",
@@ -32,7 +38,10 @@
     "title": "Monthly cash flow",
     "titleWeekly": "Weekly cash flow",
     "titleDaily": "Daily cash flow",
-    "description": "<income>Income</income> vs <spending>spending</spending>, line = saved"
+    "description": "<income>Income</income> vs <spending>spending</spending>, line = saved",
+    "averageMonth": "dashed = monthly average",
+    "averageWeek": "dashed = weekly average",
+    "averageDay": "dashed = daily average"
   },
   "ranking": {
     "title": "Where the money goes",
@@ -47,14 +56,21 @@
     "reimbursedLabel": "reimbursed",
     "share": "{pct}% of spending",
     "legendNet": "Net spending",
-    "legendReimbursed": "Reimbursed"
+    "legendReimbursed": "Reimbursed",
+    "descriptionAvg": "Monthly average, net of reimbursements · click to see the period's transactions",
+    "countAvg": "{count} tx/mo",
+    "totalAvg": "Avg. monthly spending"
   },
   "categoryChart": {
     "title": "Spending by category",
-    "description": "Net spending in this period · click a bar to see its transactions"
+    "description": "Net spending in this period · click a bar to see its transactions",
+    "descriptionAvg": "Average net spending per month · click a bar to see its transactions"
   },
   "topMerchants": {
     "title": "Top merchants",
-    "description": "Where you spent the most"
+    "description": "Where you spent the most",
+    "descriptionAvg": "Where you spent the most, per month on average",
+    "count": "{count}×",
+    "countAvg": "{count}×/mo"
   }
 }

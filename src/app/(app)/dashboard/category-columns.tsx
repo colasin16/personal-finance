@@ -113,11 +113,11 @@ function Columns({ items, expanded }: { items: CategorySlice[]; expanded: boolea
 }
 
 /** Vertical bar per category (net spending; gross and reimbursed in the tooltip) to compare categories side by side. */
-export function CategoryColumnsCard({ items, className }: { items: CategorySlice[]; className?: string }) {
+export function CategoryColumnsCard({ items, average = false, className }: { items: CategorySlice[]; average?: boolean; className?: string }) {
   const t = useTranslations("dashboard.categoryChart");
   const tr = useTranslations("dashboard.ranking");
   return (
-    <ExpandableChartCard className={className} title={t("title")} description={t("description")}>
+    <ExpandableChartCard className={className} title={t("title")} description={t(average ? "descriptionAvg" : "description")}>
       {(expanded) => (items.length === 0 ? <p className="text-sm text-muted-foreground">{tr("empty")}</p> : <Columns items={items} expanded={expanded} />)}
     </ExpandableChartCard>
   );

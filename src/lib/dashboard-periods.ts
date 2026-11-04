@@ -36,6 +36,11 @@ export function parseRangePeriod(period: string): { from: string; to: string } |
   return { from, to };
 }
 
+/** How flows are shown: the period's totals, or the average per month with data (`view=avg`). */
+export type DashboardView = "total" | "avg";
+
+export const parseView = (value: string | undefined | null): DashboardView => (value === "avg" ? "avg" : "total");
+
 export function parsePeriod(value: string | undefined | null): Period {
   if (!value) return DEFAULT_PERIOD;
   if (isPresetPeriod(value) || isMonthPeriod(value) || isYearPeriod(value)) return value;

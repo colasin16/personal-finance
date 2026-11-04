@@ -24,7 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-/** Reads and updates the dashboard's URL params (`scope`, `period`), which the server uses to render every card. */
+/** Reads and updates the dashboard's URL params (`scope`, `period`, `view`), which the server uses to render every card. */
 export function useDashboardParams() {
   const router = useRouter();
   const pathname = usePathname();
@@ -33,7 +33,7 @@ export function useDashboardParams() {
   const period = parsePeriod(params.get("period"));
   // Reflect the clicked period straight away while the dashboard re-renders for it.
   const [optimisticPeriod, setOptimisticPeriod] = useOptimistic<string>(period);
-  const set = (key: "scope" | "period", value: string) =>
+  const set = (key: "scope" | "period" | "view", value: string) =>
     startTransition(() => {
       if (key === "period") setOptimisticPeriod(value);
       const next = new URLSearchParams(params);

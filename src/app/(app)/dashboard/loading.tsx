@@ -16,6 +16,7 @@ export default function DashboardLoading() {
         <div className="flex flex-wrap items-center gap-2">
           <Skeleton className="h-8 w-64 rounded-lg" />
           <Skeleton className="h-8 w-96 max-w-full rounded-md" />
+          <Skeleton className="h-8 w-52 rounded-lg" />
         </div>
       </div>
       <Skeleton className="mb-4 h-4 w-96 max-w-full" />

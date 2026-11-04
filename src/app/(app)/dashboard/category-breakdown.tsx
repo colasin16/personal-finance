@@ -36,7 +36,19 @@ const CIRCUMFERENCE = 2 * Math.PI * R;
 // Small visual gap between slices, skipped when there is only one slice.
 const GAP = 2;
 
-function Pie({ items, active, onActive, className }: { items: CategorySlice[]; active: number | null; onActive: (i: number | null) => void; className?: string }) {
+function Pie({
+  items,
+  active,
+  onActive,
+  average,
+  className,
+}: {
+  items: CategorySlice[];
+  active: number | null;
+  onActive: (i: number | null) => void;
+  average: boolean;
+  className?: string;
+}) {
   const t = useTranslations("dashboard.ranking");
   const router = useRouter();
   const total = items.reduce((sum, c) => sum + c.cents, 0);
@@ -73,7 +85,7 @@ function Pie({ items, active, onActive, className }: { items: CategorySlice[]; a
         })}
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-14 text-center">
-        <span className="line-clamp-2 text-xs text-muted-foreground">{focus ? focus.name : t("total")}</span>
+        <span className="line-clamp-2 text-xs text-muted-foreground">{focus ? focus.name : t(average ? "totalAvg" : "total")}</span>
         <Money cents={focus ? focus.cents : total} className="text-lg font-semibold" />
         {focus && <span className="text-xs text-muted-foreground">{Math.round(focus.pct * 100)}%</span>}
       </div>
@@ -99,7 +111,7 @@ function Reimbursed({ c, className }: { c: CategorySlice; className?: string }) 
   );
 }
 
-function CategoryBars({ items }: { items: CategorySlice[] }) {
+function CategoryBars({ items, average }: { items: CategorySlice[]; average: boolean }) {
   const t = useTranslations("dashboard.ranking");
   // Bars show the share of total net spending; the reimbursed segment uses the same scale.
   const total = items.reduce((sum, c) => sum + c.cents, 0) || 1;
@@ -120,7 +132,7 @@ function CategoryBars({ items }: { items: CategorySlice[] }) {
                 <span className="truncate">{c.name}</span>
               </p>
               <p className="mt-0.5 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
-                {t("count", { count: c.count })} · {t("share", { pct: Math.round(c.pct * 100) })}
+                {t(average ? "countAvg" : "count", { count: c.count })} · {t("share", { pct: Math.round(c.pct * 100) })}
               </p>
             </div>
             <div className="shrink-0 text-right">
@@ -186,7 +198,8 @@ function PieLegend({ items, active, onActive, className }: { items: CategorySlic
   );
 }
 
-export function CategoryBreakdown({ items, className }: { items: CategorySlice[]; className?: string }) {
+/** `average`: amounts and counts are per-month averages (dashboard `view=avg`). */
+export function CategoryBreakdown({ items, average = false, className }: { items: CategorySlice[]; average?: boolean; className?: string }) {
   const t = useTranslations("dashboard.ranking");
   const [view, setView] = useState<"list" | "pie">("list");
   const [active, setActive] = useState<number | null>(null);
@@ -195,7 +208,7 @@ export function CategoryBreakdown({ items, className }: { items: CategorySlice[]
     <ExpandableChartCard
       className={className}
       title={t("title")}
-      description={t("description")}
+      description={t(average ? "descriptionAvg" : "description")}
       actions={
         items.length > 0 && (
           <>
@@ -215,14 +228,14 @@ export function CategoryBreakdown({ items, className }: { items: CategorySlice[]
         if (expanded)
           return (
             <div className="grid min-h-0 flex-1 content-start items-center gap-6 overflow-y-auto lg:content-center lg:grid-cols-[auto_1fr] lg:overflow-visible">
-              <Pie items={items} active={active} onActive={setActive} className="size-[min(70vw,50vh,460px)]" />
+              <Pie items={items} active={active} onActive={setActive} average={average} className="size-[min(70vw,50vh,460px)]" />
               <PieLegend items={items} active={active} onActive={setActive} className="self-stretch lg:max-h-full lg:overflow-y-auto" />
             </div>
           );
-        if (view === "list") return <CategoryBars items={items} />;
+        if (view === "list") return <CategoryBars items={items} average={average} />;
         return (
           <div className="flex flex-col items-center gap-4">
-            <Pie items={items} active={active} onActive={setActive} />
+            <Pie items={items} active={active} onActive={setActive} average={average} />
             <PieLegend items={items} active={active} onActive={setActive} className="max-h-64" />
           </div>
         );
