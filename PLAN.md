@@ -44,7 +44,7 @@ A collaborative web app where my partner and I can:
 | Data fetching | **TanStack Query** + server actions | Caching and optimistic updates. |
 | Database | **Supabase Postgres** | Managed Postgres with Row Level Security. |
 | ORM / migrations | **Drizzle ORM** + drizzle-kit | Typed queries, SQL-first migrations. |
-| Auth | **Supabase Auth** (email magic link + Google) | Works natively with RLS. |
+| Auth | **Supabase Auth** (email-first one-time code, link as fallback + Google) | Works natively with RLS. |
 | File storage | **Supabase Storage** (private bucket) | Stores original PDFs. |
 | PDF text extraction | **unpdf / pdfjs-dist** | Text-based PDFs (most bank statements). |
 | OCR fallback | **AWS Textract** or **Google Document AI** | Only for scanned PDFs (phase 2+). |

@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { LOCALES, NAMESPACES, negotiateLocale } from "@/i18n/config";
+import { LOCALES, NAMESPACES, negotiateLocale, SERVER_NAMESPACES } from "@/i18n/config";
 import { localizeCategoryName } from "@/lib/i18n/categories";
 
 const dir = join(__dirname, "..", "messages");
@@ -11,11 +11,13 @@ const keys = (obj: Record<string, unknown>, prefix = ""): string[] =>
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\s*[,}]/g)].map((m) => m[1]).sort();
 
 describe("translations", () => {
+  const allNamespaces = [...NAMESPACES, ...SERVER_NAMESPACES];
+
   it("has a file per namespace and locale", () => {
-    for (const locale of LOCALES) expect(readdirSync(join(dir, locale)).sort()).toEqual(NAMESPACES.map((n) => `${n}.json`).sort());
+    for (const locale of LOCALES) expect(readdirSync(join(dir, locale)).sort()).toEqual(allNamespaces.map((n) => `${n}.json`).sort());
   });
 
-  for (const ns of NAMESPACES) {
+  for (const ns of allNamespaces) {
     it(`${ns}: every locale has the same keys and placeholders as English`, () => {
       const en = load("en", ns);
       const enKeys = keys(en).sort();

@@ -1,0 +1,18 @@
+{
+  "authCode": {
+    "subjectSignUp": "Confirma tu email para {appName}",
+    "subjectSignIn": "Tu código de acceso a {appName}",
+    "previewSignUp": "Introduce este código para terminar de crear tu cuenta.",
+    "previewSignIn": "Introduce este código para iniciar sesión.",
+    "headingSignUp": "Confirma tu email",
+    "headingSignIn": "Tu código de acceso",
+    "introSignUp": "¡Te damos la bienvenida a {appName}! Introduce este código para confirmar tu email y terminar de crear tu cuenta:",
+    "introSignIn": "Introduce este código para iniciar sesión en {appName}:",
+    "orButton": "O continúa en tu navegador:",
+    "buttonSignUp": "Confirmar mi email",
+    "buttonSignIn": "Entrar",
+    "expiry": "Por seguridad, el código y el botón caducan al poco tiempo y solo funcionan una vez.",
+    "ignore": "Si no lo has pedido tú, puedes ignorar este correo. Nadie puede entrar sin el código."
+  },
+  "footer": "{appName} · Enviado a {email}"
+}

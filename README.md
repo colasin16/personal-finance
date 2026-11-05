@@ -1,4 +1,4 @@
-# Household Finance
+# Personal Finance Space
 
 A shared personal-finance app for two people. Drop the monthly PDF statements from all your banks; the app extracts every transaction, categorizes them, finds transfers between your own accounts, and shows where the money goes, for the household, the shared accounts, or each person.
 
@@ -39,16 +39,19 @@ Production also requires `DATA_ENCRYPTION_KEY` (`openssl rand -base64 32`). Stat
 
 1. Set `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (Project Settings → API Keys; the legacy anon key also works as `SUPABASE_ANON_KEY`). Set `APP_URL` to the public URL of the app (e.g. `https://finance.example.com`) so email links point to it.
 2. In **Authentication → URL Configuration**, set the Site URL to `APP_URL` and add `APP_URL/auth/callback**` to the Redirect URLs.
-3. In **Authentication → Emails → Magic Link**, include the one-time code so sign-in also works when the email opens in another browser or app (the default link only works in the browser that asked for it):
+3. Auth emails are sent by the app, not by Supabase's dashboard templates. Supabase's [Send Email Hook](https://supabase.com/docs/guides/auth/auth-hooks/send-email-hook) calls `POST /api/auth/send-email`, which renders a [React Email](https://react.email) template from `src/emails/` in the user's language and sends it with [Resend](https://resend.com):
+   - **Resend:** add and verify your sending domain (SPF, DKIM, and ideally DMARC DNS records). Turn **off** click tracking for it, because tracking rewrites the sign-in link. Create an API key with "Sending access".
+   - **Environment variables** (Vercel → Settings → Environment Variables, plus `.env.local` to send for real locally): `RESEND_API_KEY`, `EMAIL_FROM` (e.g. `Personal Finance Space <auth@personal-finance.space>`, on the verified domain) and `SEND_EMAIL_HOOK_SECRET` (next step). Redeploy after adding them.
+   - **Supabase:** in **Authentication → Auth Hooks**, add a **Send Email** hook of type **HTTPS** with the URL `APP_URL/api/auth/send-email`. Generate a secret there and copy it into `SEND_EMAIL_HOOK_SECRET` as shown, i.e. `v1,whsec_…`. Once the hook is enabled, Supabase sends no auth emails itself (any SMTP settings are unused), and its email rate limits no longer apply.
+   - Vercel Deployment Protection must not cover the hook URL. Use the production domain, which isn't protected by default.
 
-   ```html
-   <h2>Sign in to Household Finance</h2>
-   <p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Sign in</a></p>
-   <p>Or enter this code: <strong>{{ .Token }}</strong></p>
-   ```
+   The email has the one-time code and a button. The sign-in form asks for the code, so the email can be read on any device. The button opens `/auth/confirm`, which works in any browser and asks for one click, so mail scanners that open links can't use it up. The form expects 8-digit codes (**Authentication → Providers → Email → Email OTP Length**); if you change the length, update `CODE_LENGTH` in `src/app/login/login-form.tsx`.
 
-   This link (`token_hash`) works in any browser. It relies on the Site URL being the app's public URL; in the browser that asked for the email, the user still lands where they started (e.g. an invite).
-4. Configure custom SMTP (**Authentication → Emails → SMTP Settings**, e.g. Resend or Postmark). Supabase's built-in sender only allows a few emails per hour and is meant for testing.
+   Emails use the language saved on the user (`users.locale`):
+   - New users get the language of the page they signed up from, sent to Supabase as sign-up metadata.
+   - Picking a language, in the app or on the sign-in page, saves it.
+
+   Copy lives in `messages/<locale>/emails.json`. Preview templates with `pnpm email:dev`. Without `RESEND_API_KEY`, development logs emails to the console instead of sending them.
 
 `src/proxy.ts` refreshes the session on every request. App users get the same id as their Supabase user, which is what `auth.uid()` in the Row Level Security policies expects.
 
@@ -62,6 +65,7 @@ Production also requires `DATA_ENCRYPTION_KEY` (`openssl rand -base64 32`). Stat
 | `pnpm samples` | Regenerate the sample bank statements in `samples/` |
 | `pnpm db:generate` | Generate a Drizzle migration after editing `src/lib/db/schema.ts` |
 | `pnpm db:migrate` | Apply migrations and seed banks on `DATABASE_URL`. Runs automatically on Vercel (`vercel-build`); on other hosts run it before `pnpm build`. The embedded PGlite database migrates itself on startup |
+| `pnpm email:dev` | React Email preview of the email templates in `src/emails` on http://localhost:3030 (`src/emails/previews` adds other languages and variants) |
 | `pnpm storybook` / `pnpm build-storybook` | Storybook on http://localhost:6006: components in isolation with fake data (`src/stories/fixtures.ts`), language and light/dark toolbar switches. Server actions are replaced by mocks in `.storybook/mocks/actions` |
 
 ## How sharing works
