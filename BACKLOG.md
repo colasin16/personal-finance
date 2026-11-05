@@ -26,4 +26,31 @@ Follow-ups from `SECURITY_PRIVACY_AUDIT.md`, in priority order. C1, C2, H1, H2, 
 - **Invite tokens (H4):** store only a hash of the token. Onboarding currently reads `pendingInvitesFor(email)` tokens, so it needs to accept invites by id for the signed-in email instead.
 - **MFA (M2):** TOTP or passkeys, plus re-authentication before inviting people or changing account owners.
 - **Hardening (M1, M3, M4, M6):** revocable server-side sessions for mock auth, security headers (CSP, `frame-ancestors`, `Referrer-Policy`), rate limiting on sign-in and upload, and scrubbing statement text and SQL from logs.
-- **Audit log and GDPR (M5, M7):** an access audit log, account and household deletion, data export, and consent before analytics and Brandfetch logos.
+- **Audit log and GDPR (M5, M7):** an access audit log, data export, and consent before analytics and Brandfetch logos. Account and household deletion is §3.
+
+## 3. Delete my account
+
+Deleting a user in the Supabase dashboard (Authentication → Users) only removes their login (`auth.users`). Nothing references `auth.users`, so all app data stays. If the same email signs up again, `ensureAuthUser` (`src/lib/households.ts`) matches the old `public.users` row by email and they get everything back. Users need a real way to delete their account and data (GDPR right to erasure).
+
+**What deleting cascades today** (`src/lib/db/schema.ts`):
+- Deleting a `users` row removes their `household_members` and `account_owners` rows. It sets `statements.uploaded_by`, `category_rules.created_by`, `household_invites.invited_by` and `transaction_changes.user_id` to null.
+- Deleting a `households` row removes accounts, statements, transactions, categories, rules, invites and dismissed suggestions.
+- Statement files in storage are **never** removed by the database. Delete them with `getStorage().remove(key)`.
+
+**Plan:**
+1. Add a "Delete account" danger-zone section in settings. The user confirms by typing their email or the household name. Re-authenticate first (send an email code) once MFA / re-auth (M2) exists.
+2. Add a server action `deleteAccount`. Use `getSystemDb()`, because it touches other members' rows and `auth.users`. In one transaction:
+   - **Sole member of the household:** collect the household's statement file keys, delete the household (cascade), then delete the `users` row.
+   - **Shared household:**
+     - Delete the accounts only this user owns, along with their statements and transactions. Collect those file keys first.
+     - Remove the user from co-owned accounts.
+     - If the user is the only owner of the household, either make the oldest remaining member owner or block deletion until ownership is transferred (decide which).
+     - Delete the `users` row.
+   - Decide what happens to private accounts and to shared data the user created; nulling the attribution columns is probably fine.
+3. After the commit:
+   - Remove the collected storage files. Make this best-effort and log failures so a retry job can clean up later.
+   - Delete the Supabase auth user through the Admin API (`auth.admin.deleteUser`, service-role key, server-only).
+   - Sign the user out and redirect to `/login` with a confirmation message.
+4. Optional: add a migration so deleting the auth user also deletes the app user, as a safety net for dashboard deletions. Use a foreign key `users.id → auth.users(id) ON DELETE CASCADE`, guarded like `auth.uid()` in `drizzle/0006` for non-Supabase databases. Also stop `ensureAuthUser` from silently re-linking an orphaned profile by email.
+5. Add an owner-only "Delete household" action that wipes everything, including the files of every member.
+6. Tests: cascade coverage for both the sole-member and shared-household cases; storage cleanup is called; the auth user is deleted; the last-owner rule.
