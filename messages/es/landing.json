@@ -1,0 +1,83 @@
+{
+  "metaTitle": "Todos tus bancos, una visión clara",
+  "nav": {
+    "signIn": "Iniciar sesión",
+    "getStarted": "Empezar"
+  },
+  "hero": {
+    "eyebrow": "Tus finanzas de todos tus bancos",
+    "title": "Todos tus bancos. Una visión clara.",
+    "description": "Reúne los extractos de todos los bancos que usas en un solo lugar y descubre a dónde va realmente tu dinero, para entender tus hábitos de gasto.",
+    "cta": "Empieza gratis",
+    "secondary": "Cómo funciona"
+  },
+  "preview": {
+    "label": "Panel de ejemplo",
+    "month": "Octubre",
+    "spent": "Gastado este mes",
+    "change": "Un {percent} % menos que en septiembre",
+    "byBank": "Por banco",
+    "byCategory": "Por categoría"
+  },
+  "banks": {
+    "title": "Funciona con los bancos que ya usas"
+  },
+  "how": {
+    "title": "Cómo funciona",
+    "description": "Tres pasos, una vez al mes.",
+    "steps": {
+      "upload": {
+        "title": "Sube tus extractos",
+        "description": "Descarga el extracto mensual en PDF de cada banco y súbelo. Sin contraseñas del banco."
+      },
+      "sort": {
+        "title": "Todo se ordena solo",
+        "description": "Cada movimiento se categoriza automáticamente, y las transferencias entre tus propias cuentas no cuentan como gasto."
+      },
+      "understand": {
+        "title": "Entiende tus hábitos",
+        "description": "Mira cuánto gastas en cada categoría, mes a mes, con todas tus cuentas juntas."
+      }
+    }
+  },
+  "features": {
+    "oneView": {
+      "title": "Una vista, todas tus cuentas",
+      "description": "¿La nómina en un banco, la tarjeta en otro y los ahorros en un tercero? Velos lado a lado y como un único total, sin entrar en tres apps."
+    },
+    "habits": {
+      "title": "Descubre a dónde va tu dinero",
+      "description": "Las tendencias mensuales por categoría muestran qué crece, qué se mantiene y dónde podrías recortar. Enséñale una vez y tus reglas se aplican a partir de entonces."
+    },
+    "together": {
+      "title": "Pensado para dos",
+      "description": "Invita a tu pareja a compartir un hogar. Las cuentas compartidas se reparten de forma justa y cualquier cuenta puede ser privada."
+    }
+  },
+  "security": {
+    "title": "Tus datos son tuyos",
+    "description": "Entender tus finanzas no debería significar entregarlas.",
+    "items": {
+      "noLogin": {
+        "title": "Sin acceso a tu banco",
+        "description": "Tú subes los extractos. Nunca pedimos tus credenciales bancarias ni podemos mover dinero."
+      },
+      "encrypted": {
+        "title": "Cifrado en reposo",
+        "description": "Los extractos se cifran antes de guardarse y los números de cuenta nunca se guardan en claro."
+      },
+      "private": {
+        "title": "Procesado en privado",
+        "description": "Nuestro propio código lee y categoriza los extractos. Nunca se envían a servicios de IA ni a terceros."
+      }
+    }
+  },
+  "finalCta": {
+    "title": "Ten la visión completa de tus finanzas",
+    "description": "Empieza con los extractos del mes pasado. Son unos minutos.",
+    "cta": "Empieza gratis"
+  },
+  "footer": {
+    "rights": "© {year} {appName}"
+  }
+}

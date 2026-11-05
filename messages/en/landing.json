@@ -1,0 +1,83 @@
+{
+  "metaTitle": "All your banks, one clear picture",
+  "nav": {
+    "signIn": "Sign in",
+    "getStarted": "Get started"
+  },
+  "hero": {
+    "eyebrow": "Personal finance across every bank",
+    "title": "All your banks. One clear picture.",
+    "description": "Bring the statements from every bank you use into one place and see where your money really goes, so you can understand your spending habits.",
+    "cta": "Get started for free",
+    "secondary": "See how it works"
+  },
+  "preview": {
+    "label": "Example dashboard",
+    "month": "October",
+    "spent": "Spent this month",
+    "change": "{percent}% less than September",
+    "byBank": "By bank",
+    "byCategory": "By category"
+  },
+  "banks": {
+    "title": "Works with the banks you already use"
+  },
+  "how": {
+    "title": "How it works",
+    "description": "Three steps, once a month.",
+    "steps": {
+      "upload": {
+        "title": "Upload your statements",
+        "description": "Download the monthly PDF statement from each bank and drop them in. No bank passwords needed."
+      },
+      "sort": {
+        "title": "Everything gets sorted",
+        "description": "Every transaction is categorized automatically, and transfers between your own accounts are left out of your spending."
+      },
+      "understand": {
+        "title": "Understand your habits",
+        "description": "See what you spend on each category, month after month, across all your accounts together."
+      }
+    }
+  },
+  "features": {
+    "oneView": {
+      "title": "One view, every account",
+      "description": "Salary in one bank, card in another, savings in a third? See them side by side and as a single total, instead of logging in to three apps."
+    },
+    "habits": {
+      "title": "Spot where your money goes",
+      "description": "Monthly trends by category show what's growing, what's steady and where you could cut back. Teach it once and your own rules apply from then on."
+    },
+    "together": {
+      "title": "Built for two",
+      "description": "Invite your partner to share a household. Shared accounts are split fairly, and any account can stay private."
+    }
+  },
+  "security": {
+    "title": "Your data stays yours",
+    "description": "Reading your finances shouldn't mean handing them over.",
+    "items": {
+      "noLogin": {
+        "title": "No bank logins",
+        "description": "You upload statements yourself. We never ask for your banking credentials and can't move money."
+      },
+      "encrypted": {
+        "title": "Encrypted at rest",
+        "description": "Statement files are encrypted before they're stored, and account numbers are never kept in plain text."
+      },
+      "private": {
+        "title": "Processed privately",
+        "description": "Statements are read and categorized by our own code. They're never sent to AI services or third parties."
+      }
+    }
+  },
+  "finalCta": {
+    "title": "Get the full picture of your finances",
+    "description": "Start with last month's statements. It takes a few minutes.",
+    "cta": "Get started for free"
+  },
+  "footer": {
+    "rights": "© {year} {appName}"
+  }
+}
