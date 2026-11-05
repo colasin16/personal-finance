@@ -3,18 +3,24 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db";
+import { isLocale, type Locale } from "@/i18n/config";
 import { accountOwners, accounts, householdInvites, householdMembers, households, users } from "@/lib/db/schema";
 import { seedHouseholdCategories } from "@/lib/db/seed";
 import { compactIban } from "@/lib/domain/redact";
 import { ibanHash } from "@/lib/pipeline/process-statement";
 
-export async function findOrCreateUser(db: Db, email: string, displayName?: string) {
+export async function userExists(db: Db, email: string) {
+  const [row] = await db.select({ id: users.id }).from(users).where(eq(users.email, email.trim().toLowerCase()));
+  return Boolean(row);
+}
+
+export async function findOrCreateUser(db: Db, email: string, displayName?: string, locale?: Locale) {
   const normalized = email.trim().toLowerCase();
   const [existing] = await db.select().from(users).where(eq(users.email, normalized));
   if (existing) return existing;
   const [created] = await db
     .insert(users)
-    .values({ email: normalized, displayName: displayName?.trim() || normalized.split("@")[0]! })
+    .values({ email: normalized, displayName: displayName?.trim() || normalized.split("@")[0]!, locale })
     .returning();
   return created!;
 }
@@ -22,8 +28,9 @@ export async function findOrCreateUser(db: Db, email: string, displayName?: stri
 /**
  * The app user for a Supabase Auth user. New users get the auth user's id so `auth.uid()` in
  * the Row Level Security policies match; a user created before Supabase Auth is found by email.
+ * `locale` (from the sign-up metadata) is only used for new users.
  */
-export async function ensureAuthUser(db: Db, authUser: { id: string; email: string; displayName?: string }) {
+export async function ensureAuthUser(db: Db, authUser: { id: string; email: string; displayName?: string; locale?: unknown }) {
   const [byId] = await db.select().from(users).where(eq(users.id, authUser.id));
   if (byId) return byId;
   const email = authUser.email.trim().toLowerCase();
@@ -31,7 +38,12 @@ export async function ensureAuthUser(db: Db, authUser: { id: string; email: stri
   if (byEmail) return byEmail;
   const [created] = await db
     .insert(users)
-    .values({ id: authUser.id, email, displayName: authUser.displayName?.trim() || email.split("@")[0]! })
+    .values({
+      id: authUser.id,
+      email,
+      displayName: authUser.displayName?.trim() || email.split("@")[0]!,
+      locale: isLocale(authUser.locale) ? authUser.locale : undefined,
+    })
     .onConflictDoNothing()
     .returning();
   if (created) return created;

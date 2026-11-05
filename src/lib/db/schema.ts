@@ -41,6 +41,8 @@ export const users = pgTable("users", {
   id: id(),
   email: text("email").notNull().unique(),
   displayName: text("display_name").notNull(),
+  /** Language for emails; the UI follows the `locale` cookie. */
+  locale: text("locale").notNull().default("en"),
   createdAt: createdAt(),
 });
 

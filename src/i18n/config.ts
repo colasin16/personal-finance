@@ -19,6 +19,9 @@ export const NAMESPACES = [
   "errors",
 ] as const;
 
+/** Message files that only the server uses (email templates in src/emails), so they aren't sent to the browser. */
+export const SERVER_NAMESPACES = ["emails"] as const;
+
 export const isLocale = (value: unknown): value is Locale => LOCALES.includes(value as Locale);
 
 /** BCP-47 tag used for Intl date/number formatting. Money is always formatted es-ES (EUR). */

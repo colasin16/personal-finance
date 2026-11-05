@@ -66,6 +66,7 @@ export const getCurrentUser = cache(async () => {
       id: claims.sub,
       email: claims.email,
       displayName: typeof name === "string" ? name : undefined,
+      locale: claims.user_metadata?.locale,
     });
   }
   if (authMode() !== "mock") return null;
