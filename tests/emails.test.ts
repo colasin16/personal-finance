@@ -12,7 +12,7 @@ describe("auth emails (Supabase Send Email Hook)", () => {
   it("sends the code and a link that works in any browser, keeping the next page", async () => {
     const email = authEmailFor(payload("magiclink"), "en", "https://app.test")!;
     expect(email.to).toBe("alex@example.com");
-    expect(email.subject).toBe("Your Household Finance sign-in code");
+    expect(email.subject).toBe("Your Personal Finance Space sign-in code");
     const html = await render(email.react);
     expect(html).toContain("12345678");
     expect(html).toContain("https://app.test/auth/confirm?token_hash=hash123&amp;type=email&amp;next=%2Finvite%2Fabc");
@@ -21,7 +21,7 @@ describe("auth emails (Supabase Send Email Hook)", () => {
 
   it("sends a localized sign-up confirmation", async () => {
     const email = authEmailFor(payload("signup"), "es", "https://app.test")!;
-    expect(email.subject).toBe("Confirma tu email para Finanzas del Hogar");
+    expect(email.subject).toBe("Confirma tu email para Personal Finance Space");
     const html = await render(email.react);
     expect(html).toContain("Confirmar mi email");
     expect(html).toContain('lang="es"');
