@@ -4,7 +4,17 @@ import { asUser, createDb, schema, type Db } from "@/lib/db";
 import { ensureDemoHousehold } from "@/lib/dev/demo";
 import { createAccount, createHousehold, createInvite, findOrCreateUser, getMembership, updateAccount } from "@/lib/households";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
-import { getCompleteness, getDashboard, getIssues, getVisibleAccounts, listStatements, listTransactions } from "@/lib/queries";
+import {
+  decodeTransactionCursor,
+  encodeTransactionCursor,
+  getCompleteness,
+  getDashboard,
+  getIssues,
+  getVisibleAccounts,
+  listStatements,
+  listTransactions,
+  type TransactionCursor,
+} from "@/lib/queries";
 import type { FileStorage } from "@/lib/services/storage";
 
 class MemoryStorage implements FileStorage {
@@ -70,6 +80,23 @@ describe("row level security", () => {
       expect(await getIssues(userDb, householdId, userId)).toEqual(await getIssues(db, householdId, userId));
       expect(await getMembership(userDb, userId)).toEqual(await getMembership(db, userId));
     }
+  });
+
+  it("pages through transactions with a cursor in the same order as offset paging", async () => {
+    const ids = (await getVisibleAccounts(db, householdId, alex, { includeArchived: true })).map((a) => a.id);
+    const userDb = asUser(db, alex);
+    const all = (await listTransactions(userDb, householdId, ids, { pageSize: 2000 })).rows.map((r) => r.tx.id);
+    const walked: string[] = [];
+    let after: TransactionCursor | undefined;
+    for (;;) {
+      const { rows, total } = await listTransactions(userDb, householdId, ids, { pageSize: 37, after });
+      expect(total).toBe(all.length);
+      walked.push(...rows.map((r) => r.tx.id));
+      if (rows.length < 37) break;
+      after = decodeTransactionCursor(encodeTransactionCursor(rows.at(-1)!.tx))!;
+    }
+    expect(all.length).toBeGreaterThan(37);
+    expect(walked).toEqual(all);
   });
 
   it("stops a member from taking over a partner's private account", async () => {

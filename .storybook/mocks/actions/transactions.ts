@@ -1,7 +1,8 @@
 import { fn } from "storybook/test";
 import type * as real from "@/lib/actions/transactions";
 
-export type { RuleInput } from "@/lib/actions/transactions";
+export type { RuleInput, TransactionListFilters } from "@/lib/actions/transactions";
+import { transactions as fixtureRows } from "../../../src/stories/fixtures";
 
 const done = { ok: true as const, data: undefined };
 
@@ -47,3 +48,16 @@ export const findTransferMatchesAction = fn<typeof real.findTransferMatchesActio
     },
   ],
 })).mockName("findTransferMatchesAction");
+/** Stories pass cursor "batch:1": three more batches of the fixture rows, a month earlier each time, then the end. */
+export const loadMoreTransactionsAction = fn<typeof real.loadMoreTransactionsAction>(async (_filters, cursor) => {
+  await new Promise((r) => setTimeout(r, 600));
+  const batch = Number(cursor.split(":")[1] ?? 1);
+  const month = String(9 - batch).padStart(2, "0");
+  return {
+    ok: true,
+    data: {
+      rows: fixtureRows.map((t) => ({ ...t, id: `${t.id}-b${batch}`, bookedAt: `2026-${month}${t.bookedAt.slice(7)}` })),
+      cursor: batch < 3 ? `batch:${batch + 1}` : null,
+    },
+  };
+}).mockName("loadMoreTransactionsAction");

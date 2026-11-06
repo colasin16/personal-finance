@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { getCategories, getVisibleAccounts, listTransactions } from "@/lib/queries";
+import Link from "next/link";
+import { encodeTransactionCursor, getCategories, getVisibleAccounts, listTransactions } from "@/lib/queries";
 import { parsePageSize } from "@/lib/pagination";
 import { requireContext } from "@/lib/server/auth";
 import { toAccountRef } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
 import { PageHeader } from "@/components/page-header";
 import { Pagination } from "@/components/pagination";
+import { FiltersDialogProvider } from "@/components/transactions/filters-dialog-context";
 import { TransactionTable } from "@/components/transactions/transaction-table";
 import { toTxItem } from "@/components/transactions/tx-item";
 import { TransactionFilters } from "./filters";
@@ -51,8 +53,17 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
     ({ rows, total, sumCents } = await listTransactions(db, household.id, visibleIds, { ...filters, page, pageSize }));
   }
 
+  const shown = (page - 1) * pageSize + rows.length;
+  const last = rows.at(-1);
+  const loadMore = {
+    filters: { ...filters, pageSize },
+    cursor: shown < total && last ? encodeTransactionCursor(last.tx) : null,
+    remaining: Math.max(0, total - shown),
+  };
+  const newest = new URLSearchParams(Object.entries(params).filter(([k, v]) => k !== "page" && typeof v === "string") as [string, string][]);
+
   return (
-    <>
+    <FiltersDialogProvider>
       <PageHeader title={t("title")} description={t("description")} />
       <TransactionFilters
         accounts={accounts.map((a) => ({ id: a.id, ...toAccountRef(a) }))}
@@ -66,14 +77,20 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
             money: () => <Money cents={sumCents} signed className="font-medium text-foreground" />,
           })}
         </span>
-        <Pagination page={page} pages={pages} pageSize={pageSize} total={total} showRange={false} className="ml-auto" />
+        <Pagination page={page} pages={pages} pageSize={pageSize} total={total} showRange={false} className="ml-auto hidden md:flex" />
+        {page > 1 && (
+          <Link href={`/transactions?${newest}`} className="font-medium text-foreground underline underline-offset-4 md:hidden">
+            {t("table.backToNewest")}
+          </Link>
+        )}
       </div>
       <TransactionTable
         key={JSON.stringify({ ...filters, page, pageSize })}
         rows={rows.map(toTxItem)}
         categories={cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }))}
+        loadMore={loadMore}
       />
-      <Pagination page={page} pages={pages} pageSize={pageSize} total={total} className="mt-4" />
-    </>
+      <Pagination page={page} pages={pages} pageSize={pageSize} total={total} className="mt-4 hidden md:flex" />
+    </FiltersDialogProvider>
   );
 }

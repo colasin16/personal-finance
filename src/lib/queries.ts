@@ -437,9 +437,21 @@ export type TransactionFilters = {
   excluded?: boolean;
   page?: number;
   pageSize?: number;
+  /** Keyset pagination: only rows after this one in list order (replaces `page`). */
+  after?: TransactionCursor;
 };
 
 export const PAGE_SIZE = DEFAULT_PAGE_SIZE;
+
+/** Position of a row in transaction list order (newest first), as used by `after`. */
+export type TransactionCursor = { bookedAt: string; position: number; id: string };
+
+export const encodeTransactionCursor = ({ bookedAt, position, id }: TransactionCursor) => `${bookedAt}_${position}_${id}`;
+
+export function decodeTransactionCursor(cursor: string): TransactionCursor | null {
+  const m = cursor.match(/^(\d{4}-\d{2}-\d{2})_(-?\d{1,9})_([0-9a-f-]{36})$/);
+  return m ? { bookedAt: m[1]!, position: Number(m[2]), id: m[3]! } : null;
+}
 
 export async function listTransactions(db: Db, householdId: string, visibleIds: string[], filters: TransactionFilters) {
   if (visibleIds.length === 0) return { rows: [], total: 0, sumCents: 0 };
@@ -457,6 +469,10 @@ export async function listTransactions(db: Db, householdId: string, visibleIds: 
     conditions.push(or(ilike(transactions.descriptionRaw, like), ilike(transactions.merchant, like), ilike(transactions.notes, like)));
   }
   const where = and(...conditions);
+  const { after } = filters;
+  const pageWhere = after
+    ? and(where, sql`(${transactions.bookedAt}, ${transactions.position}, ${transactions.id}) < (${after.bookedAt}::date, ${after.position}, ${after.id}::uuid)`)
+    : where;
   const page = Math.max(1, filters.page ?? 1);
   const size = Math.min(filters.pageSize ?? PAGE_SIZE, 2000);
 
@@ -478,10 +494,10 @@ export async function listTransactions(db: Db, householdId: string, visibleIds: 
       .innerJoin(banks, eq(banks.id, accounts.bankId))
       .leftJoin(categories, eq(categories.id, transactions.categoryId))
       .leftJoin(categoryRules, eq(categoryRules.id, transactions.ruleId))
-      .where(where)
-      .orderBy(desc(transactions.bookedAt), desc(transactions.position))
+      .where(pageWhere)
+      .orderBy(desc(transactions.bookedAt), desc(transactions.position), desc(transactions.id))
       .limit(size)
-      .offset((page - 1) * size),
+      .offset(after ? 0 : (page - 1) * size),
     db
       .select({ total: count(), sum: sql<string>`coalesce(sum(${transactions.amountCents}), 0)` })
       .from(transactions)

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { CategoryPicker, type CategoryOption } from "./category-picker";
 import { SourceIcon } from "./source-icon";
-import { TransactionCards } from "./transaction-card";
+import { TransactionCards, type LoadMore } from "./transaction-card";
 import { useTransactionList } from "./use-transaction-list";
 import type { TxItem } from "./tx-item";
 
@@ -28,12 +28,15 @@ export function TransactionTable({
   showAccount = true,
   showBalance = false,
   emptyMessage,
+  loadMore,
 }: {
   rows: TxItem[];
   categories: CategoryOption[];
   showAccount?: boolean;
   showBalance?: boolean;
   emptyMessage?: string;
+  /** Lets the mobile cards keep loading past `rows`; the desktop table stays paginated. */
+  loadMore?: LoadMore;
 }) {
   const t = useTranslations("transactions.table");
   const locale = useLocale();
@@ -51,6 +54,7 @@ export function TransactionTable({
           showAccount={showAccount}
           showBalance={showBalance}
           emptyMessage={emptyMessage}
+          loadMore={loadMore}
         />
       </div>
 
@@ -92,7 +96,7 @@ export function TransactionTable({
                 </TableCell>
               </TableRow>
             )}
-            {list.rows.map((r) => (
+            {list.rows.slice(0, list.serverCount).map((r) => (
               <TableRow
                 key={r.id}
                 data-state={selected.has(r.id) ? "selected" : undefined}

@@ -9,7 +9,9 @@ import { isValidRegex } from "@/lib/domain/rules";
 import { rankTransferMatches } from "@/lib/domain/transfers";
 import { applyAllRules, applyRuleRetroactively, linkTransfer, previewRule, unlinkTransfer } from "@/lib/pipeline/categorize";
 import { getSystemDb } from "@/lib/db";
-import { getVisibleAccounts } from "@/lib/queries";
+import { decodeTransactionCursor, encodeTransactionCursor, getVisibleAccounts, listTransactions } from "@/lib/queries";
+import { PAGE_SIZES } from "@/lib/pagination";
+import { toTxItem, type TxItem } from "@/components/transactions/tx-item";
 import type { AccountRefData } from "@/components/accounts/account-ref";
 import { requireContext } from "@/lib/server/auth";
 import { fail, ok, type ActionResult } from "./result";
@@ -347,5 +349,41 @@ export async function dismissSuggestionAction(key: string): Promise<ActionResult
     return ok();
   } catch (error) {
     return fail(error);
+  }
+}
+
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const listFiltersSchema = z.object({
+  q: z.string().max(100).optional(),
+  accountId: uuid.optional(),
+  categoryId: z.union([uuid, z.literal("none")]).optional(),
+  from: date.optional(),
+  to: date.optional(),
+  flagged: z.boolean().optional(),
+  excluded: z.boolean().optional(),
+  statementId: uuid.optional(),
+  pageSize: z.number().refine((n) => (PAGE_SIZES as readonly number[]).includes(n)),
+});
+export type TransactionListFilters = z.infer<typeof listFiltersSchema>;
+
+/** The next batch of the transaction list after `cursor`, for the mobile infinite scroll. */
+export async function loadMoreTransactionsAction(
+  filters: TransactionListFilters,
+  cursor: string,
+): Promise<ActionResult<{ rows: TxItem[]; cursor: string | null }>> {
+  try {
+    const { db, household, user } = await requireContext();
+    const parsed = listFiltersSchema.parse(filters);
+    const after = decodeTransactionCursor(cursor);
+    if (!after) throw new UserError("invalid_input");
+    const visible = await getVisibleAccounts(db, household.id, user.id, { includeArchived: true });
+    const { rows } = await listTransactions(db, household.id, visible.map((a) => a.id), { ...parsed, after });
+    const last = rows.at(-1);
+    return ok({
+      rows: rows.map(toTxItem),
+      cursor: rows.length === parsed.pageSize && last ? encodeTransactionCursor(last.tx) : null,
+    });
+  } catch (e) {
+    return fail(e);
   }
 }

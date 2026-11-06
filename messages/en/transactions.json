@@ -11,7 +11,6 @@
     "to": "To",
     "needsAttention": "Needs attention",
     "reset": "Reset",
-    "removed": "Removed",
     "filters": "Filters",
     "filtersDescription": "Narrow down the transactions shown.",
     "account": "Account",
@@ -22,7 +21,9 @@
     "removeFilter": "Remove filter",
     "clear": "Clear",
     "clearAll": "Clear all",
-    "showResults": "{count, plural, =0 {No transactions} one {Show # transaction} other {Show # transactions}}"
+    "showResults": "{count, plural, =0 {No transactions} one {Show # transaction} other {Show # transactions}}",
+    "filtersActive": "Active filters: {count}",
+    "removed": "Removed"
   },
   "picker": {
     "search": "Search categories…",
@@ -57,6 +58,13 @@
     "suggestRule": "Always categorize “{merchant}” as {category}?",
     "createRule": "Create rule",
     "updated": "{count, plural, one {# transaction updated} other {# transactions updated}}",
+    "loadMore": "Show {count} more · {remaining} left",
+    "loading": "Loading…",
+    "loadMoreFailed": "Couldn't load more transactions.",
+    "retry": "Try again",
+    "end": "You've reached the oldest transaction",
+    "backToTop": "Back to top",
+    "backToNewest": "Back to the newest",
     "remove": "Remove",
     "restore": "Restore",
     "removed": "{count, plural, one {# transaction removed} other {# transactions removed}}",

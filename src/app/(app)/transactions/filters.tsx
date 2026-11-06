@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AccountRef, type AccountRefData } from "@/components/accounts/account-ref";
 import { CategoryLabel, UNCATEGORIZED_COLOR, UNCATEGORIZED_ICON } from "@/components/transactions/category-label";
 import { CategoryPicker, type CategoryOption } from "@/components/transactions/category-picker";
+import { activeFilterCount, useFiltersDialog } from "@/components/transactions/filters-dialog-context";
 import { formatDate } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +30,8 @@ export function TransactionFilters({ accounts, categories, total }: { accounts: 
   const pathname = usePathname();
   const params = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? "");
-  const [open, setOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
+  const { open, setOpen } = useFiltersDialog() ?? { open: localOpen, setOpen: setLocalOpen };
 
   const update: Update = (changes) => {
     const next = new URLSearchParams(params);
@@ -113,9 +115,6 @@ function MobileFilterButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-/** From/to count as one filter, as they are shown as a single date range. */
-const activeFilterCount = (params: URLSearchParams) =>
-  ["account", "category", "flagged", "removed", "statement"].filter((k) => params.get(k)).length + (params.get("from") || params.get("to") ? 1 : 0);
 
 function FilterControls({ accounts, categories, update, stacked = false }: { accounts: Account[]; categories: CategoryOption[]; update: Update; stacked?: boolean }) {
   const t = useTranslations("transactions.filters");

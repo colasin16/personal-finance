@@ -19,15 +19,21 @@ import type { TxItem } from "./tx-item";
 /**
  * State and actions shared by every transaction list view (table, mobile cards):
  * selection, optimistic category changes, remove/restore, the bulk action bar and the detail/rule dialogs.
+ * `rows` come from the server; `append` adds batches loaded on the client (infinite scroll), which are kept
+ * in sync locally because a server refresh only re-renders the first batch.
  */
 export function useTransactionList(rows: TxItem[], categories: CategoryOption[]) {
   const t = useTranslations("transactions.table");
+  const [loaded, setLoaded] = useState<TxItem[]>([]);
+  const serverIds = new Set(rows.map((r) => r.id));
+  // A refresh can shift rows into the first batch that were already loaded; show them once.
+  const all = [...rows, ...loaded.filter((r) => !serverIds.has(r.id))];
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [rule, setRule] = useState<Partial<RuleInput> | null>(null);
   const [detail, setDetail] = useState<TxItem | null>(null);
   const [pending, start] = useTransition();
   const [optimistic, setOptimistic] = useOptimistic(
-    rows,
+    all,
     (state, update: { ids: string[]; categoryId: string | null }) =>
       state.map((r) =>
         update.ids.includes(r.id)
@@ -47,8 +53,13 @@ export function useTransactionList(rows: TxItem[], categories: CategoryOption[])
       setOptimistic({ ids, categoryId });
       const result = await setCategoryAction(ids, categoryId);
       if (!result.ok) return void toast.error(result.error);
+      setLoaded((prev) =>
+        prev.map((r) =>
+          ids.includes(r.id) ? { ...r, categoryId, categorizedBy: "user", flagged: false } : r,
+        ),
+      );
       setSelected(new Set());
-      const source = rows.find((r) => r.id === ids[0]);
+      const source = all.find((r) => r.id === ids[0]);
       const merchant = source?.merchant;
       const category = categoryId ? catBy.get(categoryId) : null;
       if (ids.length === 1 && merchant && category) {
@@ -76,6 +87,8 @@ export function useTransactionList(rows: TxItem[], categories: CategoryOption[])
         ? excludeTransactionsAction(ids)
         : restoreTransactionsAction(ids));
       if (!result.ok) return void toast.error(result.error);
+      // Removing or restoring takes a row out of the current (removed or not removed) list.
+      setLoaded((prev) => prev.filter((r) => !ids.includes(r.id)));
       setSelected(new Set());
       setDetail(null);
       toast.success(
@@ -98,33 +111,36 @@ export function useTransactionList(rows: TxItem[], categories: CategoryOption[])
     setSelected(on ? new Set(optimistic.map((r) => r.id)) : new Set());
 
   const bulkBar = selected.size > 0 && (
-    <div className="sticky top-16 z-10 mb-3 flex flex-wrap items-center gap-3 rounded-xl border bg-background p-2 pl-4 shadow-md">
+    <div className="fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 flex flex-wrap items-center gap-3 rounded-xl border bg-background p-2 pl-4 shadow-lg animate-in fade-in slide-in-from-bottom-4 md:sticky md:inset-x-auto md:top-16 md:bottom-auto md:z-10 md:mb-3 md:shadow-md md:animate-none">
       <span className="text-sm font-medium">
         {t("selected", { count: selected.size })}
       </span>
-      <CategoryPicker
-        categories={categories}
-        value={null}
-        onChange={(categoryId) => setCategory([...selected], categoryId)}
-        placeholder={t("setCategory")}
-        variant="outline"
-        allowNone
-        disabled={pending}
-      />
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={pending}
-        onClick={() => setExcluded([...selected], !allExcluded)}
-      >
-        {allExcluded ? <RotateCcw /> : <Trash2 />}{" "}
-        {allExcluded ? t("restore") : t("remove")}
-      </Button>
-      {pending && <Loader2 className="size-4 animate-spin" />}
+      {/* Mobile: count and Clear on top, actions on their own row; from md everything sits on one row. */}
+      <div className="order-2 flex w-full items-center gap-2 md:order-none md:contents">
+        <CategoryPicker
+          categories={categories}
+          value={null}
+          onChange={(categoryId) => setCategory([...selected], categoryId)}
+          placeholder={t("setCategory")}
+          variant="outline"
+          allowNone
+          disabled={pending}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={pending}
+          onClick={() => setExcluded([...selected], !allExcluded)}
+        >
+          {allExcluded ? <RotateCcw /> : <Trash2 />}{" "}
+          {allExcluded ? t("restore") : t("remove")}
+        </Button>
+        {pending && <Loader2 className="size-4 animate-spin" />}
+      </div>
       <Button
         variant="ghost"
         size="sm"
-        className="ml-auto"
+        className="order-1 ml-auto md:order-none"
         onClick={() => setSelected(new Set())}
       >
         <X /> {t("clear")}
@@ -164,8 +180,16 @@ export function useTransactionList(rows: TxItem[], categories: CategoryOption[])
     </>
   );
 
+  const append = (more: TxItem[]) =>
+    setLoaded((prev) => {
+      const seen = new Set([...rows, ...prev].map((r) => r.id));
+      return [...prev, ...more.filter((r) => !seen.has(r.id))];
+    });
+
   return {
     rows: optimistic,
+    serverCount: rows.length,
+    append,
     selected,
     allSelected,
     toggle,

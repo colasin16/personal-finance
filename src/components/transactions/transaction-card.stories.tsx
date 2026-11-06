@@ -43,6 +43,13 @@ export const LongDescriptions: Story = {
   },
 };
 
+/** Scroll down: the next batch loads automatically (mocked, three batches); the button is the fallback. */
+export const InfiniteScroll: Story = {
+  args: {
+    loadMore: { filters: { pageSize: 25 }, cursor: "batch:1", remaining: transactions.length * 3 },
+  },
+};
+
 /** A single card on its own, with its callbacks logged in the Actions panel. */
 export const SingleCard: StoryObj<typeof TransactionCard> = {
   render: (args) => <TransactionCard {...args} />,

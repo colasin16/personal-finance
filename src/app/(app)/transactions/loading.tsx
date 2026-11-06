@@ -22,10 +22,10 @@ export default function TransactionsLoading() {
       </div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <Skeleton className="h-4 w-56" />
-        <Skeleton className="ml-auto h-8 w-72 max-w-full" />
+        <Skeleton className="ml-auto hidden h-8 w-72 max-w-full md:block" />
       </div>
       <TransactionTableSkeleton rows={12} />
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div className="mt-4 hidden flex-wrap items-center justify-between gap-x-4 gap-y-2 md:flex">
         <Skeleton className="h-4 w-48" />
         <Skeleton className="ml-auto h-8 w-72 max-w-full" />
       </div>
