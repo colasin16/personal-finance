@@ -53,7 +53,14 @@ export function CategoryPicker({
           <ChevronDown className="size-3 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="start">
+      <PopoverContent
+        className="w-60 p-0"
+        align="start"
+        onOpenAutoFocus={(e) => {
+          // Focusing the search box on touch devices pops up the on-screen keyboard, which hides the list.
+          if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault();
+        }}
+      >
         <Command>
           <CommandInput placeholder={t("search")} />
           <CommandList>
