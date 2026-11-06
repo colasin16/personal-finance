@@ -24,9 +24,10 @@ export function selectAccountText(text: string, matches: (iban: string) => boole
   const lines = text.split(/\r?\n/);
   const headers = lines.flatMap((line, index) => (IBAN_HEADER_RE.test(line) && findIbans(line).length > 0 ? [index] : []));
   if (headers.length === 0) return text;
-  // The same account repeated as a per-page header is a single-product statement.
+  // A single account (even repeated as a per-page header) is a single-product statement: keep the
+  // lines above its header too, e.g. BBVA's "Fecha de emisión", which dates its year-less rows.
   const headerIbans = new Set(headers.map((index) => findIbans(lines[index]!)[0]));
-  if (headers.length > 1 && headerIbans.size === 1) return text;
+  if (headerIbans.size === 1) return text;
 
   const selected = new Set<number>();
   const sections = headers.map((start) => {

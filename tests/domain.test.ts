@@ -234,6 +234,13 @@ describe("statement with an issue date and detail lines under each row", () => {
     expect(selectAccountText(repeated, () => true)).toBe(repeated);
     expect(findSectionIbans(repeated)).toEqual(["ES7614650100912345678901"]);
   });
+
+  it("keeps the issue date above a single-page statement's only IBAN", () => {
+    const onePage = text.split("\n").slice(0, 11).join("\n");
+    const section = selectAccountText(onePage, () => true);
+    expect(section).toBe(onePage);
+    expect(parseStatement(section, "bbva").transactions).toHaveLength(2);
+  });
 });
 
 describe("selectParser", () => {
