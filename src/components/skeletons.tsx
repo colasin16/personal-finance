@@ -57,7 +57,7 @@ export function StatCardSkeleton({ label, size = "lg" }: { label: string; size?:
   );
 }
 
-/** Mirrors <TransactionTable>: real column headers, placeholder rows. */
+/** Mirrors <TransactionTable>: cards with real field labels on mobile, a table with real column headers from `md` up. */
 export function TransactionTableSkeleton({
   rows = 10,
   showAccount = true,
@@ -69,57 +69,107 @@ export function TransactionTableSkeleton({
 }) {
   const t = useTranslations("transactions.table");
   return (
-    <div className="overflow-x-auto rounded-xl border bg-background">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-10">
-              <Skeleton className="size-4 rounded-[4px]" />
-            </TableHead>
-            <TableHead className="w-28">{t("date")}</TableHead>
-            <TableHead>{t("description")}</TableHead>
-            {showAccount && <TableHead className="hidden lg:table-cell">{t("account")}</TableHead>}
-            <TableHead className="w-52">{t("category")}</TableHead>
-            <TableHead className="text-right">{t("amount")}</TableHead>
-            {showBalance && <TableHead className="hidden text-right md:table-cell">{t("balance")}</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: rows }, (_, i) => (
-            <TableRow key={i} className="h-[53px]">
-              <TableCell>
+    <>
+      <TransactionCardsSkeleton rows={Math.min(rows, 4)} showAccount={showAccount} showBalance={showBalance} />
+      <div className="hidden overflow-x-auto rounded-xl border bg-background md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10">
                 <Skeleton className="size-4 rounded-[4px]" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-20" />
-              </TableCell>
-              <TableCell className="w-full max-w-0">
-                <Skeleton className={cn("h-4", pick(["w-40", "w-32", "w-48", "w-36"], i))} />
-                <Skeleton className={cn("mt-1.5 h-3 max-w-full", pick(["w-64", "w-56", "w-72", "w-48"], i))} />
-              </TableCell>
-              {showAccount && (
-                <TableCell className="hidden lg:table-cell">
-                  <div className="flex items-center gap-1.5">
-                    <Skeleton className="size-4 rounded-[3px]" />
-                    <Skeleton className={cn("h-4", pick(["w-36", "w-32", "w-40"], i))} />
-                  </div>
-                </TableCell>
-              )}
-              <TableCell>
-                <Skeleton className={cn("h-6 rounded-md", pick(["w-28", "w-24", "w-32", "w-28", "w-20"], i))} />
-              </TableCell>
-              <TableCell>
-                <Skeleton className={cn("ml-auto h-4", pick(["w-16", "w-14", "w-20"], i))} />
-              </TableCell>
-              {showBalance && (
-                <TableCell className="hidden md:table-cell">
-                  <Skeleton className="ml-auto h-4 w-16" />
-                </TableCell>
-              )}
+              </TableHead>
+              <TableHead className="w-28">{t("date")}</TableHead>
+              <TableHead>{t("description")}</TableHead>
+              {showAccount && <TableHead className="hidden lg:table-cell">{t("account")}</TableHead>}
+              <TableHead className="w-52">{t("category")}</TableHead>
+              <TableHead className="text-right">{t("amount")}</TableHead>
+              {showBalance && <TableHead className="hidden text-right md:table-cell">{t("balance")}</TableHead>}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: rows }, (_, i) => (
+              <TableRow key={i} className="h-[53px]">
+                <TableCell>
+                  <Skeleton className="size-4 rounded-[4px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+                <TableCell className="w-full max-w-0">
+                  <Skeleton className={cn("h-4", pick(["w-40", "w-32", "w-48", "w-36"], i))} />
+                  <Skeleton className={cn("mt-1.5 h-3 max-w-full", pick(["w-64", "w-56", "w-72", "w-48"], i))} />
+                </TableCell>
+                {showAccount && (
+                  <TableCell className="hidden lg:table-cell">
+                    <div className="flex items-center gap-1.5">
+                      <Skeleton className="size-4 rounded-[3px]" />
+                      <Skeleton className={cn("h-4", pick(["w-36", "w-32", "w-40"], i))} />
+                    </div>
+                  </TableCell>
+                )}
+                <TableCell>
+                  <Skeleton className={cn("h-6 rounded-md", pick(["w-28", "w-24", "w-32", "w-28", "w-20"], i))} />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className={cn("ml-auto h-4", pick(["w-16", "w-14", "w-20"], i))} />
+                </TableCell>
+                {showBalance && (
+                  <TableCell className="hidden md:table-cell">
+                    <Skeleton className="ml-auto h-4 w-16" />
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
+  );
+}
+
+function TransactionCardsSkeleton({
+  rows,
+  showAccount,
+  showBalance,
+}: {
+  rows: number;
+  showAccount: boolean;
+  showBalance: boolean;
+}) {
+  const t = useTranslations("transactions.table");
+  const fields = [
+    { label: t("date"), width: "w-24" },
+    { label: t("description"), width: "w-40" },
+    ...(showAccount ? [{ label: t("account"), width: "w-36" }] : []),
+    { label: t("category"), width: "h-6 w-28 rounded-md" },
+    { label: t("amount"), width: "w-16" },
+    ...(showBalance ? [{ label: t("balance"), width: "w-16" }] : []),
+  ];
+  return (
+    <div className="md:hidden">
+      <div className="mb-3 flex items-center gap-3 pl-4 text-sm text-muted-foreground">
+        <Skeleton className="size-4 rounded-[4px]" />
+        {t("selectAll")}
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: rows }, (_, i) => (
+          <div key={i} className="overflow-hidden rounded-xl border bg-background shadow-sm">
+            <div className="flex h-[53px] items-center gap-3 border-b pr-4 pl-4">
+              <Skeleton className="size-4 rounded-[4px]" />
+              <Skeleton className={cn("h-4", pick(["w-40", "w-32", "w-48", "w-36"], i))} />
+              <Skeleton className="ml-auto size-5 rounded-full" />
+            </div>
+            <div className="divide-y px-4 text-sm">
+              {fields.map((f) => (
+                <div key={f.label} className="grid h-[41px] grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-3">
+                  <span className="text-muted-foreground">{f.label}</span>
+                  <Skeleton className={cn("h-4", f.width)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
