@@ -13,6 +13,7 @@ import {
   Link2,
   Link2Off,
   Loader2,
+  Pencil,
   RotateCcw,
   Sparkles,
   StickyNote,
@@ -423,6 +424,7 @@ function TransactionDetail({
   const locale = useLocale();
   const flagReason = useFlagReason();
   const [notes, setNotes] = useState(tx.notes ?? "");
+  const [editingNotes, setEditingNotes] = useState(false);
   const [history, setHistory] = useState<Change[] | null>(null);
   const [linking, setLinking] = useState(false);
   const [pending, start] = useTransition();
@@ -554,19 +556,43 @@ function TransactionDetail({
               {flagReason(tx.flagReason)}
             </p>
           )}
-          <div className="space-y-1.5">
-            <label htmlFor="tx-notes" className="text-xs text-muted-foreground">
-              {t("notes")}
-            </label>
-            <Textarea
-              id="tx-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              maxLength={500}
-              rows={2}
-              placeholder={t("notesPlaceholder")}
-            />
-          </div>
+          {(editingNotes || tx.notes) && (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                <label
+                  htmlFor="tx-notes"
+                  className="text-xs text-muted-foreground"
+                >
+                  {t("notes")}
+                </label>
+                {!editingNotes && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-6"
+                    aria-label={t("editNote")}
+                    title={t("editNote")}
+                    onClick={() => setEditingNotes(true)}
+                  >
+                    <Pencil className="size-3" />
+                  </Button>
+                )}
+              </div>
+              {editingNotes ? (
+                <Textarea
+                  id="tx-notes"
+                  autoFocus
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  maxLength={500}
+                  rows={2}
+                  placeholder={t("notesPlaceholder")}
+                />
+              ) : (
+                <p className="break-words whitespace-pre-wrap">{tx.notes}</p>
+              )}
+            </div>
+          )}
           {history === null ? (
             <Button
               variant="link"
@@ -643,22 +669,33 @@ function TransactionDetail({
                 <Link2Off /> {t("unlinkTransfer")}
               </Button>
             )}
+            {!tx.notes && !editingNotes && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingNotes(true)}
+              >
+                <StickyNote /> {t("addNote")}
+              </Button>
+            )}
           </div>
-          <Button
-            size="sm"
-            disabled={pending || notes === (tx.notes ?? "")}
-            onClick={() =>
-              start(async () => {
-                const r = await setNotesAction(tx.id, notes);
-                if (r.ok) {
-                  toast.success(t("notesSaved"));
-                  onClose();
-                } else toast.error(r.error);
-              })
-            }
-          >
-            {pending && <Loader2 className="animate-spin" />} {t("saveNotes")}
-          </Button>
+          {editingNotes && (
+            <Button
+              size="sm"
+              disabled={pending || notes === (tx.notes ?? "")}
+              onClick={() =>
+                start(async () => {
+                  const r = await setNotesAction(tx.id, notes);
+                  if (r.ok) {
+                    toast.success(t("notesSaved"));
+                    onClose();
+                  } else toast.error(r.error);
+                })
+              }
+            >
+              {pending && <Loader2 className="animate-spin" />} {t("saveNotes")}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -73,6 +73,8 @@
     "linkTransfer": "Link transfer",
     "unlinkTransfer": "Unlink transfer",
     "transferUnlinked": "Transfer unlinked",
+    "addNote": "Add a note",
+    "editNote": "Edit note",
     "saveNotes": "Save notes",
     "notesSaved": "Notes saved",
     "remove": "Remove",

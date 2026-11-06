@@ -73,6 +73,8 @@
     "linkTransfer": "Vincular traspaso",
     "unlinkTransfer": "Desvincular traspaso",
     "transferUnlinked": "Traspaso desvinculado",
+    "addNote": "Añadir una nota",
+    "editNote": "Editar nota",
     "saveNotes": "Guardar notas",
     "notesSaved": "Notas guardadas",
     "remove": "Eliminar",
