@@ -11,7 +11,18 @@
     "to": "Hasta",
     "needsAttention": "Requiere atención",
     "reset": "Restablecer",
-    "removed": "Eliminados"
+    "removed": "Eliminados",
+    "filters": "Filtros",
+    "filtersDescription": "Acota los movimientos que se muestran.",
+    "account": "Cuenta",
+    "category": "Categoría",
+    "dates": "Fechas",
+    "status": "Estado",
+    "statement": "De un extracto",
+    "removeFilter": "Quitar filtro",
+    "clear": "Limpiar",
+    "clearAll": "Limpiar todo",
+    "showResults": "{count, plural, =0 {Sin movimientos} one {Ver # movimiento} other {Ver # movimientos}}"
   },
   "picker": {
     "search": "Buscar categorías…",

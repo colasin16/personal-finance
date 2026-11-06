@@ -11,7 +11,18 @@
     "to": "To",
     "needsAttention": "Needs attention",
     "reset": "Reset",
-    "removed": "Removed"
+    "removed": "Removed",
+    "filters": "Filters",
+    "filtersDescription": "Narrow down the transactions shown.",
+    "account": "Account",
+    "category": "Category",
+    "dates": "Dates",
+    "status": "Status",
+    "statement": "From one statement",
+    "removeFilter": "Remove filter",
+    "clear": "Clear",
+    "clearAll": "Clear all",
+    "showResults": "{count, plural, =0 {No transactions} one {Show # transaction} other {Show # transactions}}"
   },
   "picker": {
     "search": "Search categories…",

@@ -9,13 +9,16 @@ export default function TransactionsLoading() {
     <LoadingPage>
       <PageHeader title={t("title")} description={t("description")} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Skeleton className="h-9 w-full sm:w-64" />
-        <Skeleton className="h-9 w-56" />
-        <Skeleton className="h-9 w-28" />
-        <Skeleton className="h-9 w-36" />
-        <Skeleton className="h-9 w-36" />
-        <Skeleton className="h-8 w-36" />
-        <Skeleton className="h-8 w-24" />
+        <Skeleton className="h-9 w-full md:w-64" />
+        <Skeleton className="h-9 w-28 md:hidden" />
+        <div className="hidden md:contents">
+          <Skeleton className="h-9 w-56" />
+          <Skeleton className="h-9 w-28" />
+          <Skeleton className="h-9 w-36" />
+          <Skeleton className="h-9 w-36" />
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-8 w-24" />
+        </div>
       </div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <Skeleton className="h-4 w-56" />

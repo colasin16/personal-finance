@@ -57,6 +57,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
       <TransactionFilters
         accounts={accounts.map((a) => ({ id: a.id, ...toAccountRef(a) }))}
         categories={cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }))}
+        total={total}
       />
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted-foreground">
         <span>
