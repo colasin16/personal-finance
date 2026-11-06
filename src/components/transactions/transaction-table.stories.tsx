@@ -16,10 +16,6 @@ export const Default: Story = {};
 
 export const Empty: Story = { args: { rows: [], emptyMessage: "No transactions match these filters" } };
 
-export const RemovedTransactions: Story = {
-  args: { rows: transactions.slice(0, 2).map((t) => ({ ...t, excluded: true })) },
-};
-
 export const LongDescriptions: Story = {
   args: {
     rows: [

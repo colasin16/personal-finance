@@ -22,8 +22,7 @@
     "clear": "Clear",
     "clearAll": "Clear all",
     "showResults": "{count, plural, =0 {No transactions} one {Show # transaction} other {Show # transactions}}",
-    "filtersActive": "Active filters: {count}",
-    "removed": "Removed"
+    "filtersActive": "Active filters: {count}"
   },
   "picker": {
     "search": "Search categories…",
@@ -64,11 +63,7 @@
     "retry": "Try again",
     "end": "You've reached the oldest transaction",
     "backToTop": "Back to top",
-    "backToNewest": "Back to the newest",
-    "remove": "Remove",
-    "restore": "Restore",
-    "removed": "{count, plural, one {# transaction removed} other {# transactions removed}}",
-    "restored": "{count, plural, one {# transaction restored} other {# transactions restored}}"
+    "backToNewest": "Back to the newest"
   },
   "detail": {
     "originalDescription": "Original description",
@@ -96,9 +91,7 @@
     "addNote": "Add a note",
     "editNote": "Edit note",
     "saveNotes": "Save notes",
-    "notesSaved": "Notes saved",
-    "remove": "Remove",
-    "restore": "Restore"
+    "notesSaved": "Notes saved"
   },
   "rule": {
     "editTitle": "Edit rule",

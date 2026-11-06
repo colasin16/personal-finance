@@ -17,4 +17,4 @@ export const useFiltersDialog = () => useContext(FiltersDialogContext);
 
 /** From/to count as one filter, as they are shown as a single date range. */
 export const activeFilterCount = (params: URLSearchParams) =>
-  ["account", "category", "flagged", "removed", "statement"].filter((k) => params.get(k)).length + (params.get("from") || params.get("to") ? 1 : 0);
+  ["account", "category", "flagged", "statement"].filter((k) => params.get(k)).length + (params.get("from") || params.get("to") ? 1 : 0);

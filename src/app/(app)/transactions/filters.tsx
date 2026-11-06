@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Flag, ListFilter, Search, Trash2, X } from "lucide-react";
+import { Flag, ListFilter, Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 const ALL = "all";
 /** Everything but the free-text search, which stays visible on its own. */
-const FILTER_KEYS = ["account", "category", "from", "to", "flagged", "removed", "statement"];
+const FILTER_KEYS = ["account", "category", "from", "to", "flagged", "statement"];
 
 type Account = AccountRefData & { id: string };
 type Update = (changes: Record<string, string | null>) => void;
@@ -121,7 +121,6 @@ function FilterControls({ accounts, categories, update, stacked = false }: { acc
   const params = useSearchParams();
   const category = params.get("category");
   const flagged = params.get("flagged") === "1";
-  const removed = params.get("removed") === "1";
 
   const account = (
     <Select value={params.get("account") ?? ALL} onValueChange={(v) => update({ account: v === ALL ? null : v })}>
@@ -162,9 +161,6 @@ function FilterControls({ accounts, categories, update, stacked = false }: { acc
     <>
       <Button variant={flagged ? "default" : "outline"} size={stacked ? "default" : "sm"} onClick={() => update({ flagged: flagged ? null : "1" })} aria-pressed={flagged}>
         <Flag /> {t("needsAttention")}
-      </Button>
-      <Button variant={removed ? "default" : "outline"} size={stacked ? "default" : "sm"} onClick={() => update({ removed: removed ? null : "1" })} aria-pressed={removed}>
-        <Trash2 /> {t("removed")}
       </Button>
     </>
   );
@@ -250,8 +246,6 @@ function ActiveFilters({ accounts, categories, update, onClear }: { accounts: Ac
   }
   if (params.get("flagged") === "1")
     chips.push({ key: "flagged", label: <><Flag className="size-3.5" /> {t("needsAttention")}</>, clear: { flagged: null } });
-  if (params.get("removed") === "1")
-    chips.push({ key: "removed", label: <><Trash2 className="size-3.5" /> {t("removed")}</>, clear: { removed: null } });
   if (params.get("statement")) chips.push({ key: "statement", label: t("statement"), clear: { statement: null } });
 
   if (chips.length === 0) return null;

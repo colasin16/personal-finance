@@ -77,7 +77,7 @@ export function TransactionCard({
           onCheckedChange={(c) => onSelectedChange(c === true)}
           aria-label={t("selectRow")}
         />
-        <h3 className={cn("flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold", tx.excluded && "line-through opacity-60")}>
+        <h3 className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold">
           <span className="truncate" title={title}>
             {title}
           </span>
@@ -105,7 +105,7 @@ export function TransactionCard({
           <Eye className="size-5" />
         </Button>
       </header>
-      <dl className={cn("divide-y px-4 text-sm", tx.excluded && "line-through opacity-60")}>
+      <dl className="divide-y px-4 text-sm">
         <Field label={t("date")}>{formatDate(tx.bookedAt, locale)}</Field>
         {tx.merchant && (
           <Field label={t("description")}>

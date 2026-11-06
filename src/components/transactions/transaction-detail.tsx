@@ -12,9 +12,7 @@ import {
   Link2Off,
   Loader2,
   Pencil,
-  RotateCcw,
   StickyNote,
-  Trash2,
   Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -51,14 +49,12 @@ export function TransactionDetail({
   category,
   categories,
   onClose,
-  onToggleExcluded,
   onCreateRule,
 }: {
   tx: TxItem;
   category?: CategoryOption;
   categories: CategoryOption[];
   onClose: () => void;
-  onToggleExcluded: () => void;
   onCreateRule: () => void;
 }) {
   const t = useTranslations("transactions.detail");
@@ -160,7 +156,7 @@ export function TransactionDetail({
                         className="size-7 shrink-0"
                       >
                         <Link
-                          href={`/transactions?${new URLSearchParams({ account: l.accountId, from: l.bookedAt, to: l.bookedAt, ...(l.removed ? { removed: "1" } : {}) })}`}
+                          href={`/transactions?${new URLSearchParams({ account: l.accountId, from: l.bookedAt, to: l.bookedAt })}`}
                           aria-label={t("viewLinked")}
                           title={t("viewLinked")}
                           onClick={onClose}
@@ -277,15 +273,6 @@ export function TransactionDetail({
                 </a>
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pending}
-              onClick={onToggleExcluded}
-            >
-              {tx.excluded ? <RotateCcw /> : <Trash2 />}{" "}
-              {tx.excluded ? t("restore") : t("remove")}
-            </Button>
             <Button variant="outline" size="sm" onClick={onCreateRule}>
               <Wand2 /> {t("rule")}
             </Button>

@@ -102,7 +102,6 @@ export function TransactionTable({
                 data-state={selected.has(r.id) ? "selected" : undefined}
                 className={cn(
                   r.flagged && "bg-amber-50/60 dark:bg-amber-950/20",
-                  r.excluded && "opacity-60 line-through",
                 )}
               >
                 <TableCell>

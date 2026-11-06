@@ -2,14 +2,9 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, RotateCcw, Trash2, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
-import {
-  excludeTransactionsAction,
-  restoreTransactionsAction,
-  setCategoryAction,
-  type RuleInput,
-} from "@/lib/actions/transactions";
+import { setCategoryAction, type RuleInput } from "@/lib/actions/transactions";
 import { Button } from "@/components/ui/button";
 import { CategoryPicker, type CategoryOption } from "./category-picker";
 import { RuleDialog } from "./rule-dialog";
@@ -18,7 +13,7 @@ import type { TxItem } from "./tx-item";
 
 /**
  * State and actions shared by every transaction list view (table, mobile cards):
- * selection, optimistic category changes, remove/restore, the bulk action bar and the detail/rule dialogs.
+ * selection, optimistic category changes, the bulk action bar and the detail/rule dialogs.
  * `rows` come from the server; `append` adds batches loaded on the client (infinite scroll), which are kept
  * in sync locally because a server refresh only re-renders the first batch.
  */
@@ -81,26 +76,8 @@ export function useTransactionList(rows: TxItem[], categories: CategoryOption[])
       }
     });
 
-  const setExcluded = (ids: string[], excluded: boolean) =>
-    start(async () => {
-      const result = await (excluded
-        ? excludeTransactionsAction(ids)
-        : restoreTransactionsAction(ids));
-      if (!result.ok) return void toast.error(result.error);
-      // Removing or restoring takes a row out of the current (removed or not removed) list.
-      setLoaded((prev) => prev.filter((r) => !ids.includes(r.id)));
-      setSelected(new Set());
-      setDetail(null);
-      toast.success(
-        t(excluded ? "removed" : "restored", { count: result.data.updated }),
-      );
-    });
-
   const allSelected =
     optimistic.length > 0 && optimistic.every((r) => selected.has(r.id));
-  const allExcluded =
-    selected.size > 0 &&
-    optimistic.filter((r) => selected.has(r.id)).every((r) => r.excluded);
   const toggle = (id: string, on: boolean) => {
     const next = new Set(selected);
     if (on) next.add(id);
@@ -126,15 +103,6 @@ export function useTransactionList(rows: TxItem[], categories: CategoryOption[])
           allowNone
           disabled={pending}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={pending}
-          onClick={() => setExcluded([...selected], !allExcluded)}
-        >
-          {allExcluded ? <RotateCcw /> : <Trash2 />}{" "}
-          {allExcluded ? t("restore") : t("remove")}
-        </Button>
         {pending && <Loader2 className="size-4 animate-spin" />}
       </div>
       <Button
@@ -166,7 +134,6 @@ export function useTransactionList(rows: TxItem[], categories: CategoryOption[])
           }
           categories={categories}
           onClose={() => setDetail(null)}
-          onToggleExcluded={() => setExcluded([detail.id], !detail.excluded)}
           onCreateRule={() => {
             setRule({
               matchType: "merchant",

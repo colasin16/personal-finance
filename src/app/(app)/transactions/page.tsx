@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-type Search = { q?: string; account?: string; category?: string; from?: string; to?: string; flagged?: string; removed?: string; page?: string; size?: string; statement?: string };
+type Search = { q?: string; account?: string; category?: string; from?: string; to?: string; flagged?: string; page?: string; size?: string; statement?: string };
 
 const dateParam = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
 const uuidParam = (v?: string) => (v && /^[0-9a-f-]{36}$/.test(v) ? v : undefined);
@@ -40,7 +40,6 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
     from: dateParam(params.from),
     to: dateParam(params.to),
     flagged: params.flagged === "1",
-    excluded: params.removed === "1",
     statementId: uuidParam(params.statement),
   };
   const visibleIds = accounts.map((a) => a.id);

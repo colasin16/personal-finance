@@ -22,8 +22,7 @@
     "clear": "Limpiar",
     "clearAll": "Limpiar todo",
     "showResults": "{count, plural, =0 {Sin movimientos} one {Ver # movimiento} other {Ver # movimientos}}",
-    "filtersActive": "Filtros activos: {count}",
-    "removed": "Eliminados"
+    "filtersActive": "Filtros activos: {count}"
   },
   "picker": {
     "search": "Buscar categorías…",
@@ -64,11 +63,7 @@
     "retry": "Reintentar",
     "end": "Has llegado al movimiento más antiguo",
     "backToTop": "Volver arriba",
-    "backToNewest": "Volver a los más recientes",
-    "remove": "Eliminar",
-    "restore": "Restaurar",
-    "removed": "{count, plural, one {# movimiento eliminado} other {# movimientos eliminados}}",
-    "restored": "{count, plural, one {# movimiento restaurado} other {# movimientos restaurados}}"
+    "backToNewest": "Volver a los más recientes"
   },
   "detail": {
     "originalDescription": "Descripción original",
@@ -96,9 +91,7 @@
     "addNote": "Añadir una nota",
     "editNote": "Editar nota",
     "saveNotes": "Guardar notas",
-    "notesSaved": "Notas guardadas",
-    "remove": "Eliminar",
-    "restore": "Restaurar"
+    "notesSaved": "Notas guardadas"
   },
   "rule": {
     "editTitle": "Editar regla",
