@@ -20,7 +20,10 @@
     "byCategory": "Por categoría"
   },
   "banks": {
-    "title": "Funciona con los bancos que ya usas"
+    "title": "Funciona con los bancos que ya usas",
+    "supported": "Bancos con soporte específico de extractos",
+    "others": "Otros bancos",
+    "legend": "Los logos grandes tienen un lector de extractos específico; el resto se leen con el genérico."
   },
   "how": {
     "title": "Cómo funciona",

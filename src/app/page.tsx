@@ -10,6 +10,7 @@ import { LanguageSwitch } from "@/components/theme/language-switch";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { BANKS } from "@/lib/db/seed";
+import { SUPPORTED_BANK_IDS } from "@/lib/parsers";
 import { getCurrentUser } from "@/lib/server/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,6 +41,8 @@ export default async function Home() {
   const t = await getTranslations("landing");
   const appName = (await getTranslations("common"))("appName");
   const banks = BANKS.filter((b) => b.id !== "other");
+  const supportedBanks = banks.filter((b) => SUPPORTED_BANK_IDS.has(b.id));
+  const otherBanks = banks.filter((b) => !SUPPORTED_BANK_IDS.has(b.id));
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -81,14 +84,21 @@ export default async function Home() {
         <section className="border-y bg-muted/40">
           <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
             <h2 className="text-center text-sm font-medium text-muted-foreground">{t("banks.title")}</h2>
-            <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
-              {banks.map((b) => (
-                <li key={b.id} className="flex items-center gap-2 text-sm font-medium">
-                  <BankLogo bankId={b.id} name={b.name} color={b.color} size={24} />
-                  {b.name}
+            <ul className="flex flex-wrap items-center justify-center gap-6" aria-label={t("banks.supported")}>
+              {supportedBanks.map((b) => (
+                <li key={b.id} title={b.name}>
+                  <BankLogo bankId={b.id} name={b.name} color={b.color} size={48} className="rounded-xl shadow-sm" />
                 </li>
               ))}
             </ul>
+            <ul className="flex flex-wrap items-center justify-center gap-4" aria-label={t("banks.others")}>
+              {otherBanks.map((b) => (
+                <li key={b.id} title={b.name}>
+                  <BankLogo bankId={b.id} name={b.name} color={b.color} size={28} className="opacity-70 grayscale" />
+                </li>
+              ))}
+            </ul>
+            <p className="text-center text-xs text-muted-foreground">{t("banks.legend")}</p>
           </div>
         </section>
 

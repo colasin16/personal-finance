@@ -12,6 +12,9 @@ export type { ExtractedStatement, ExtractedTransaction } from "./types";
 /** Bank-specific parsers. Add a new bank by writing a parser module and listing it here. */
 const PARSERS: StatementParser[] = [ingParser, bbvaParser, n26Parser];
 
+/** Banks whose statements have a dedicated parser (the rest go through the generic one). */
+export const SUPPORTED_BANK_IDS: ReadonlySet<string> = new Set(PARSERS.map((p) => p.bankId));
+
 /**
  * The parser for a statement: the detected bank's, if the text has its layout; else any parser whose
  * layout matches (bank detection by keyword can be fooled by a transfer to another bank); else none.

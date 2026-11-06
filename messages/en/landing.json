@@ -20,7 +20,10 @@
     "byCategory": "By category"
   },
   "banks": {
-    "title": "Works with the banks you already use"
+    "title": "Works with the banks you already use",
+    "supported": "Banks with dedicated statement support",
+    "others": "Other banks",
+    "legend": "Larger logos have a dedicated statement reader; the rest are read with the generic one."
   },
   "how": {
     "title": "How it works",
