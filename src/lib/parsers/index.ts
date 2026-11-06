@@ -4,13 +4,14 @@ import type { StatementParser } from "./common";
 import { parseGenericStatement } from "./generic";
 import { ingParser } from "./ing";
 import { n26Parser } from "./n26";
+import { sabadellParser } from "./sabadell";
 
 export { parseDate } from "./common";
 export type { StatementParser } from "./common";
 export type { ExtractedStatement, ExtractedTransaction } from "./types";
 
 /** Bank-specific parsers. Add a new bank by writing a parser module and listing it here. */
-const PARSERS: StatementParser[] = [ingParser, bbvaParser, n26Parser];
+const PARSERS: StatementParser[] = [ingParser, bbvaParser, n26Parser, sabadellParser];
 
 /** Banks whose statements have a dedicated parser (the rest go through the generic one). */
 export const SUPPORTED_BANK_IDS: ReadonlySet<string> = new Set(PARSERS.map((p) => p.bankId));

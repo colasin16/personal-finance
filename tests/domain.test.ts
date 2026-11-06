@@ -296,6 +296,50 @@ describe("N26 statement", () => {
   });
 });
 
+describe("Sabadell statement", () => {
+  const header = [
+    "EXTRACTE DE COMPTE CORRENT",
+    "PERÍODE DES DE 15.12.25 FINS A 14.01.26",
+    "EL COMPTE   PÀG 1",
+    "ES91 0081 0001 1998 7654 3210 ANA GARCIA LOPEZ   EUR",
+    "Data Clau concepte   Càrrec (-) / Abonament (+) Valor Saldo   Núm Document",
+    "OP VL",
+  ];
+  const footer = "Banc de Sabadell, S.A.   www.bancsabadell.com";
+  const text = [
+    ...header,
+    "1512 SALDO ANTERIOR   1512 +   1.000,00",
+    "2012 TRANSFERENCIA / PEPE PEREZ   -   50,00 2012 +   950,00",
+    "2912 COMPRA TARJ. 4176XXXXXXXX1234 MERCADONA-VALENCIA -   12,34 2912 + 937,66",
+    "3112 NOMINA EMPRESA, S.A.   +   1.234,56 0201 +   2.172,22   1   12,34 A",
+    footer,
+    "",
+    ...header,
+    "0301 COMPRA TARJ. 4176XXXXXXXX1234 CAFE - BAR SOL   -   2.200,00 0301 -   27,78   9-   999,99-A",
+    footer,
+  ].join("\n");
+
+  it("reads signed rows across a year boundary, ignoring extra columns and repeated headers", () => {
+    expect(selectParser(text, "santander")?.bankId).toBe("sabadell");
+    const parsed = parseStatement(text, "sabadell");
+    expect(parsed.parser).toBe("sabadell");
+    expect(parsed.periodStart).toBe("2025-12-15");
+    expect(parsed.periodEnd).toBe("2026-01-14");
+    expect(parsed.openingBalance).toBe(1000);
+    expect(parsed.closingBalance).toBe(-27.78);
+    expect(parsed.transactions.map((t) => [t.date, t.valueDate, t.description, t.amount, t.balanceAfter])).toEqual([
+      ["2025-12-20", "2025-12-20", "TRANSFERENCIA / PEPE PEREZ", -50, 950],
+      ["2025-12-29", "2025-12-29", "COMPRA TARJ. MERCADONA-VALENCIA", -12.34, 937.66],
+      ["2025-12-31", "2026-01-02", "NOMINA EMPRESA, S.A.", 1234.56, 2172.22],
+      ["2026-01-03", "2026-01-03", "COMPRA TARJ. CAFE - BAR SOL", -2200, -27.78],
+    ]);
+  });
+
+  it("finds the account's own IBAN", () => {
+    expect(selectParser(text, "sabadell")?.accountIbans?.(text)).toEqual(["ES9100810001199876543210"]);
+  });
+});
+
 describe("findMentionedAccount", () => {
   const accounts = [
     { id: "main", name: "Cuenta Principal" },
