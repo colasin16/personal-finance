@@ -9,11 +9,35 @@ import { setLocaleAction } from "@/lib/actions/preferences";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-export function LanguageSwitch({ className }: { className?: string }) {
-  const t = useTranslations("common");
+function useLocaleChange() {
   const locale = useLocale();
   const router = useRouter();
   const [pending, start] = useTransition();
+  const change = (value: string) =>
+    start(async () => {
+      await setLocaleAction(value);
+      router.refresh();
+    });
+  return { locale, pending, change };
+}
+
+/** Locale radio options, for embedding in another dropdown menu. */
+export function LanguageRadioGroup() {
+  const { locale, change } = useLocaleChange();
+  return (
+    <DropdownMenuRadioGroup value={locale} onValueChange={change}>
+      {LOCALES.map((l) => (
+        <DropdownMenuRadioItem key={l} value={l} lang={l}>
+          {LOCALE_NAMES[l]}
+        </DropdownMenuRadioItem>
+      ))}
+    </DropdownMenuRadioGroup>
+  );
+}
+
+export function LanguageSwitch({ className }: { className?: string }) {
+  const t = useTranslations("common");
+  const { locale, pending, change } = useLocaleChange();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,15 +47,7 @@ export function LanguageSwitch({ className }: { className?: string }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuRadioGroup
-          value={locale}
-          onValueChange={(value) =>
-            start(async () => {
-              await setLocaleAction(value);
-              router.refresh();
-            })
-          }
-        >
+        <DropdownMenuRadioGroup value={locale} onValueChange={change}>
           {LOCALES.map((l) => (
             <DropdownMenuRadioItem key={l} value={l} lang={l}>
               {LOCALE_NAMES[l]}

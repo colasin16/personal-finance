@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -34,8 +35,8 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { LanguageSwitch } from "@/components/theme/language-switch";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { LanguageRadioGroup, LanguageSwitch } from "@/components/theme/language-switch";
+import { ThemeRadioGroup, ThemeToggle } from "@/components/theme/theme-toggle";
 import { AmountsToggle } from "@/components/privacy/amounts-visibility";
 import type { ServiceMode } from "@/lib/services/modes";
 import { SIDEBAR_COOKIE, type SidebarState } from "./sidebar-state";
@@ -231,8 +232,8 @@ export function AppShell({ user, household, members, issuesCount, modes, sidebar
             </div>
             <div className="ml-auto flex items-center gap-1">
               <AmountsToggle />
-              <LanguageSwitch />
-              <ThemeToggle />
+              <LanguageSwitch className="hidden md:inline-flex" />
+              <ThemeToggle className="hidden md:inline-flex" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2 px-2">
@@ -248,6 +249,14 @@ export function AppShell({ user, household, members, issuesCount, modes, sidebar
                     <div className="text-xs text-muted-foreground">{user.email}</div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {/* On mobile the header has no room for these, so they live in this menu instead. */}
+                  <DropdownMenuGroup className="md:hidden">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">{tc("language")}</DropdownMenuLabel>
+                    <LanguageRadioGroup />
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">{tc("theme.title")}</DropdownMenuLabel>
+                    <ThemeRadioGroup />
+                    <DropdownMenuSeparator />
+                  </DropdownMenuGroup>
                   <DropdownMenuItem asChild>
                     <Link href="/settings/household">
                       <Settings /> {t("nav.settings")}
