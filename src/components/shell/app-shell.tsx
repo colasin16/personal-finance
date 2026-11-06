@@ -36,6 +36,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { LanguageSwitch } from "@/components/theme/language-switch";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { AmountsToggle } from "@/components/privacy/amounts-visibility";
 import type { ServiceMode } from "@/lib/services/modes";
 import { SIDEBAR_COOKIE, type SidebarState } from "./sidebar-state";
 import { UploadProvider } from "./upload-provider";
@@ -229,6 +230,7 @@ export function AppShell({ user, household, members, issuesCount, modes, sidebar
               </div>
             </div>
             <div className="ml-auto flex items-center gap-1">
+              <AmountsToggle />
               <LanguageSwitch />
               <ThemeToggle />
               <DropdownMenu>

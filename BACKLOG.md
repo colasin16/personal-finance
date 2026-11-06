@@ -54,34 +54,3 @@ Deleting a user in the Supabase dashboard (Authentication → Users) only remove
 4. Optional: add a migration so deleting the auth user also deletes the app user, as a safety net for dashboard deletions. Use a foreign key `users.id → auth.users(id) ON DELETE CASCADE`, guarded like `auth.uid()` in `drizzle/0006` for non-Supabase databases. Also stop `ensureAuthUser` from silently re-linking an orphaned profile by email.
 5. Add an owner-only "Delete household" action that wipes everything, including the files of every member.
 6. Tests: cascade coverage for both the sole-member and shared-household cases; storage cleanup is called; the auth user is deleted; the last-owner rule.
-
-## 4. Incognito mode (hide amounts)
-
-A toggle that hides every amount, so the app can be used in public, on a shared screen or in a screenshot without revealing balances. Banking apps do the same: Revolut's "Hide balances", N26 and BBVA's eye icon, and Monzo's shake-to-hide. The amount becomes `•••• €` and everything else stays the same (names, dates, categories, chart shapes).
-
-**Where amounts are rendered today:**
-- `formatMoney()` in `src/lib/money.ts` and `<Money>` in `src/components/money.tsx` cover most of them: dashboard KPIs and category breakdown/columns, transactions, accounts, statements, issues and suggestion cards, the transfer link picker, and AccountRef stories.
-- Not covered by those two helpers:
-  - `src/components/charts/time-chart.tsx`: its own `Intl.NumberFormat` for the price scale and tooltip.
-  - `src/app/(app)/dashboard/category-columns.tsx`: its own `wholeEuros` formatter.
-  - Amounts inside translated strings, `title`s, `aria-label`s and toasts (e.g. `netOf`, `kpis.netWorthChange`).
-- `src/components/landing/dashboard-preview.tsx` shows sample data and should stay unaffected.
-
-**Plan:**
-1. **State:** store the preference in a `privacy` cookie (`hidden`/`shown`), following the `sidebar` cookie pattern (`src/components/shell/sidebar-state.ts`, read in `src/app/(app)/layout.tsx`). Expose it through a small client context (`useAmountsHidden()`) and a server helper (`amountsHidden()`, reading `cookies()`). Because it's a cookie, server-rendered pages come out masked from the first paint with no flash. Optionally sync it to `users` later so it follows the user across devices.
-2. **Masking at render, not with CSS:** a blur or `color: transparent` still leaves the numbers in the DOM, copy-paste, screen readers and browser translation. Instead:
-   - `formatMoney()` takes a `hidden` option that returns `•••• €`, keeping the currency symbol, sign and colour.
-   - `<Money>` reads the context, so most of the UI is covered automatically.
-   - Server components call `amountsHidden()` and pass `hidden` along.
-   - Route the chart formatters and the `wholeEuros` formatter through the same helper. In charts, hide the price-scale labels and tooltip values but keep the lines.
-   - Masked values get `aria-label="Hidden amount"`, translated.
-3. **Toggle UI:** an eye / eye-off button in the app shell header (also in the mobile header), with tooltip text "Hide amounts" / "Show amounts". Add a keyboard shortcut (e.g. `Shift+H`) and a settings entry.
-4. **Decisions to make:**
-   - Keep percentages and deltas ("+12% vs last month")? Probably yes, since they don't reveal absolute amounts.
-   - Edit fields (e.g. editing an amount) show the real value while focused.
-   - CSV export and statement PDF previews are unaffected (explicit actions).
-   - Optionally allow tap-to-reveal on a single amount.
-5. **Tests and stories:**
-   - Unit-test `formatMoney(…, { hidden: true })`.
-   - Add a Storybook story with the context set to hidden for `Money`, the transaction table and the dashboard KPIs.
-   - Grep check: no remaining `Intl.NumberFormat(… style: "currency")` outside `src/lib/money.ts` (except the landing preview), so new amounts can't skip the mask.

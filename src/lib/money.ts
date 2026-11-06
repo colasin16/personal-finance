@@ -2,12 +2,26 @@ export type Cents = number;
 
 const formatters = new Map<string, Intl.NumberFormat>();
 
+/** What a hidden amount shows in place of its digits (incognito mode). */
+export const MASKED_DIGITS = "••••";
+
+export type MoneyFormat = {
+  locale?: string;
+  signed?: boolean;
+  /** No decimals ("1.234 €"), for chart labels. */
+  whole?: boolean;
+  /** Short notation ("1,2 mil €"), for chart axes. */
+  compact?: boolean;
+  /** Incognito mode: keep the sign and currency, mask the digits ("-•••• €"). */
+  hidden?: boolean;
+};
+
 export function formatMoney(
   cents: Cents,
   currency = "EUR",
-  { locale = "es-ES", signed = false }: { locale?: string; signed?: boolean } = {},
+  { locale = "es-ES", signed = false, whole = false, compact = false, hidden = false }: MoneyFormat = {},
 ): string {
-  const key = `${locale}:${currency}:${signed}`;
+  const key = `${locale}:${currency}:${signed}:${whole}:${compact}`;
   let fmt = formatters.get(key);
   if (!fmt) {
     fmt = new Intl.NumberFormat(locale, {
@@ -16,10 +30,24 @@ export function formatMoney(
       signDisplay: signed ? "exceptZero" : "auto",
       // es-ES only groups from 10.000 by default ("1000,00 €"); always group so every amount reads the same.
       useGrouping: "always",
+      ...(whole && { maximumFractionDigits: 0 }),
+      ...(compact && { notation: "compact", maximumFractionDigits: 1 }),
     });
     formatters.set(key, fmt);
   }
-  return fmt.format(cents / 100);
+  if (!hidden) return fmt.format(cents / 100);
+  // Replace the whole number (digits, separators, compact suffix) with one mask, keeping sign and currency in place.
+  let masked = false;
+  return fmt
+    .formatToParts(cents / 100)
+    .map((part) => {
+      if (!["integer", "group", "decimal", "fraction", "compact"].includes(part.type)) return part.value;
+      if (masked) return "";
+      masked = true;
+      return MASKED_DIGITS;
+    })
+    .join("")
+    .replace(/(\s)\s+/g, "$1");
 }
 
 /**

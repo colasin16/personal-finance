@@ -85,5 +85,10 @@
     "page": "Page {page}",
     "pageOf": "Page {page} of {total}",
     "goTo": "Go to page"
+  },
+  "privacy": {
+    "hide": "Hide amounts",
+    "show": "Show amounts",
+    "hiddenAmount": "Hidden amount"
   }
 }

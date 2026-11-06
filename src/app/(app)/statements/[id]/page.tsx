@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
 import { getCategories, getVisibleAccounts, listTransactions } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
+import { amountsHidden } from "@/lib/server/privacy";
 import { AccountRef, toAccountRef } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
 import { PageHeader } from "@/components/page-header";
@@ -37,7 +38,7 @@ export default async function StatementPage({ params }: { params: Promise<{ id: 
   const accounts = await getVisibleAccounts(db, household.id, user.id, { includeArchived: true });
   const account = accounts.find((a) => a.id === statement?.accountId);
   if (!statement || !account) notFound();
-  const [t, locale] = await Promise.all([getTranslations("statements"), getLocale()]);
+  const [t, locale, hidden] = await Promise.all([getTranslations("statements"), getLocale(), amountsHidden()]);
 
   const [cats, { rows }] = await Promise.all([
     getCategories(db, household.id, locale),
@@ -51,7 +52,7 @@ export default async function StatementPage({ params }: { params: Promise<{ id: 
   const flagged = all.filter((r) => r.tx.flagged).length;
   const income = all.filter((r) => r.tx.amountCents > 0).reduce((s, r) => s + r.tx.amountCents, 0);
   const spending = all.filter((r) => r.tx.amountCents < 0).reduce((s, r) => s + r.tx.amountCents, 0);
-  const fmt = (c: number) => formatMoney(c, statement.currency ?? account.currency);
+  const fmt = (c: number) => formatMoney(c, statement.currency ?? account.currency, { hidden });
   const describeIssue = (issue: StatementIssue) => {
     switch (issue.kind) {
       case "balance_mismatch":

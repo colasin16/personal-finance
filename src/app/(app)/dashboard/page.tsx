@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
 import { getDashboard, parsePeriod, parseScope, parseView } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
+import { amountsHidden } from "@/lib/server/privacy";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,7 +51,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const period = parsePeriod(params.period);
   const view = parseView(params.view);
   const { db, user, household } = await requireContext();
-  const locale = await getLocale();
+  const [locale, hidden] = await Promise.all([getLocale(), amountsHidden()]);
   const [t, tc] = await Promise.all([getTranslations("dashboard"), getTranslations("common")]);
   const [data, members] = await Promise.all([getDashboard(db, household.id, user.id, scope, period, locale, view), getMembers(db, household.id)]);
   const { kpis, previous, average } = data;
@@ -90,23 +91,23 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const kpiCards = [
     {
       label: t("kpis.netWorth"),
-      value: kpis.netWorth === null ? "—" : formatMoney(kpis.netWorth),
+      value: kpis.netWorth === null ? "—" : formatMoney(kpis.netWorth, "EUR", { hidden }),
       sub:
         kpis.netWorthChange === null ? null : (
           <span className={cn("text-xs font-medium", kpis.netWorthChange >= 0 ? "text-emerald-600" : "text-red-600")}>
-            {t(avg ? "kpis.netWorthChangeAvg" : "kpis.netWorthChange", { amount: formatMoney(kpis.netWorthChange, "EUR", { signed: true }) })}
+            {t(avg ? "kpis.netWorthChangeAvg" : "kpis.netWorthChange", { amount: formatMoney(kpis.netWorthChange, "EUR", { signed: true, hidden }) })}
           </span>
         ),
     },
-    { label: t(avg ? "kpis.incomeAvg" : "kpis.income"), value: formatMoney(kpis.income), sub: <Delta current={kpis.income} previous={previous?.income} label={deltaLabel} /> },
+    { label: t(avg ? "kpis.incomeAvg" : "kpis.income"), value: formatMoney(kpis.income, "EUR", { hidden }), sub: <Delta current={kpis.income} previous={previous?.income} label={deltaLabel} /> },
     {
       label: t(avg ? "kpis.spendingAvg" : "kpis.spending"),
-      value: formatMoney(kpis.expenses),
+      value: formatMoney(kpis.expenses, "EUR", { hidden }),
       sub: <Delta current={kpis.expenses} previous={previous?.expenses} invert label={deltaLabel} />,
     },
     {
       label: t(avg ? "kpis.savedAvg" : "kpis.saved"),
-      value: formatMoney(kpis.net),
+      value: formatMoney(kpis.net, "EUR", { hidden }),
       sub: (
         <span className="text-xs text-muted-foreground">
           {kpis.savingsRate === null ? "—" : t("kpis.savingsRate", { pct: Math.round(kpis.savingsRate * 100) })}

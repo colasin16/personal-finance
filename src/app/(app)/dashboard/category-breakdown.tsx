@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { CATEGORY_TEXT, CategoryIcon, categoryTint } from "@/components/transactions/category-label";
 import { Money } from "@/components/money";
 import { formatMoney } from "@/lib/money";
+import { useAmountsVisibility } from "@/components/privacy/amounts-visibility";
 import { Button } from "@/components/ui/button";
 import { ExpandableChartCard } from "@/components/charts/expandable-chart-card";
 import { cn } from "@/lib/utils";
@@ -99,13 +100,14 @@ export const HATCH = { backgroundImage: "repeating-linear-gradient(-45deg, curre
 
 function Reimbursed({ c, className }: { c: CategorySlice; className?: string }) {
   const t = useTranslations("dashboard.ranking");
+  const { hidden } = useAmountsVisibility();
   return (
     <span
       className={cn("inline-flex items-center gap-1 tabular-nums", REIMBURSED_TEXT, className)}
-      title={t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) })}
+      title={t("netOf", { spent: formatMoney(c.spent, "EUR", { hidden }), reimbursed: formatMoney(c.reimbursed, "EUR", { hidden }) })}
     >
       <Undo2 className="size-3 shrink-0" aria-hidden />
-      {formatMoney(-c.reimbursed, "EUR", { signed: true })}
+      {formatMoney(-c.reimbursed, "EUR", { signed: true, hidden })}
       <span className="sr-only sm:not-sr-only">{t("reimbursedLabel")}</span>
     </span>
   );
@@ -169,6 +171,7 @@ function CategoryBars({ items, average }: { items: CategorySlice[]; average: boo
 
 function PieLegend({ items, active, onActive, className }: { items: CategorySlice[]; active: number | null; onActive: (i: number | null) => void; className?: string }) {
   const t = useTranslations("dashboard.ranking");
+  const { hidden } = useAmountsVisibility();
   return (
     <ul className={cn("w-full space-y-1 overflow-y-auto pr-1", className)}>
       {items.map((c, i) => (
@@ -185,7 +188,7 @@ function PieLegend({ items, active, onActive, className }: { items: CategorySlic
             <CategoryIcon icon={c.icon} className={CATEGORY_TEXT} />
             <span className={cn("min-w-0 flex-1 truncate font-medium", CATEGORY_TEXT)}>{c.name}</span>
             {c.reimbursed > 0 && (
-              <span title={t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) })}>
+              <span title={t("netOf", { spent: formatMoney(c.spent, "EUR", { hidden }), reimbursed: formatMoney(c.reimbursed, "EUR", { hidden }) })}>
                 <Undo2 className={cn("size-3.5", REIMBURSED_TEXT)} aria-label={t("legendReimbursed")} />
               </span>
             )}

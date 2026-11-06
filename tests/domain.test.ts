@@ -42,6 +42,21 @@ describe("money", () => {
     expect(formatMoney(12345678).replace(/\s/g, " ")).toBe("123.456,78 €");
     expect(formatMoney(-500, "EUR", { signed: true }).replace(/\s/g, " ")).toBe("-5,00 €");
   });
+  it("masks the digits of hidden amounts, keeping sign and currency", () => {
+    const hidden = (cents: number, options = {}) => formatMoney(cents, "EUR", { hidden: true, ...options }).replace(/\s/g, " ");
+    expect(hidden(123456)).toBe("•••• €");
+    expect(hidden(-123456)).toBe("-•••• €");
+    expect(hidden(500, { signed: true })).toBe("+•••• €");
+    expect(hidden(123456789, { compact: true })).toBe("•••• €");
+    expect(formatMoney(-500, "USD", { locale: "en-US", hidden: true })).toBe("-$••••");
+  });
+  it("formats amounts only through formatMoney, so incognito mode can't be skipped", async () => {
+    const { readdirSync, readFileSync } = await import("node:fs");
+    const offenders = readdirSync("src", { recursive: true, encoding: "utf8" })
+      .filter((file) => /\.tsx?$/.test(file) && file !== "lib/money.ts")
+      .filter((file) => /style:\s*["']currency["']/.test(readFileSync(`src/${file}`, "utf8")));
+    expect(offenders).toEqual([]);
+  });
   it("applies ownership share", () => expect(applyShare(-10001, 50)).toBe(-5001));
 });
 

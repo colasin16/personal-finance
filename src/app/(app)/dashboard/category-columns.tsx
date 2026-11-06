@@ -7,10 +7,10 @@ import { ExpandableChartCard } from "@/components/charts/expandable-chart-card";
 import { CATEGORY_TEXT, CategoryIcon, categoryTint } from "@/components/transactions/category-label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatMoney } from "@/lib/money";
+import { useAmountsVisibility } from "@/components/privacy/amounts-visibility";
 import { cn } from "@/lib/utils";
 import type { CategorySlice } from "./category-breakdown";
 
-const wholeEuros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0, useGrouping: "always" });
 
 /** Round axis maximum and step (1/2/2.5/5 × 10ⁿ) so there are about four gridlines. */
 function axisScale(maxCents: number, lines = 4) {
@@ -30,6 +30,7 @@ function tooltipTint(color: string) {
 
 function Column({ c, top }: { c: CategorySlice; top: number }) {
   const t = useTranslations("dashboard.ranking");
+  const { hidden } = useAmountsVisibility();
   // The whole column is the hover/focus target, but the tooltip is anchored to the bar so it
   // sits just above its tip (past the value label) instead of at the top of the plot.
   const [open, setOpen] = useState(false);
@@ -38,7 +39,7 @@ function Column({ c, top }: { c: CategorySlice; top: number }) {
       <Link
         href={c.href}
         className="group relative h-full min-w-9 flex-1"
-        aria-label={`${c.name}: ${formatMoney(c.cents)}`}
+        aria-label={`${c.name}: ${formatMoney(c.cents, "EUR", { hidden })}`}
         onPointerEnter={() => setOpen(true)}
         onPointerLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)}
@@ -46,7 +47,7 @@ function Column({ c, top }: { c: CategorySlice; top: number }) {
       >
         <TooltipTrigger asChild>
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-14" style={{ height: `${(c.cents / top) * 100}%` }}>
-            <span className="absolute inset-x-0 -top-5 text-center text-[11px] font-medium whitespace-nowrap tabular-nums">{wholeEuros.format(c.cents / 100)}</span>
+            <span className="absolute inset-x-0 -top-5 text-center text-[11px] font-medium whitespace-nowrap tabular-nums">{formatMoney(c.cents, "EUR", { whole: true, hidden })}</span>
             <div className="h-full min-h-px rounded-t-md border border-b-0 transition-[filter] group-hover:brightness-125" style={categoryTint(c.color)} />
           </div>
         </TooltipTrigger>
@@ -60,15 +61,16 @@ function Column({ c, top }: { c: CategorySlice; top: number }) {
       >
         <span className={cn("font-medium", CATEGORY_TEXT)}>{c.name}</span>
         <span className="tabular-nums">
-          {formatMoney(c.cents)} · {Math.round(c.pct * 100)}%
+          {formatMoney(c.cents, "EUR", { hidden })} · {Math.round(c.pct * 100)}%
         </span>
-        {c.reimbursed > 0 && <span className="tabular-nums opacity-80">{t("netOf", { spent: formatMoney(c.spent), reimbursed: formatMoney(c.reimbursed) })}</span>}
+        {c.reimbursed > 0 && <span className="tabular-nums opacity-80">{t("netOf", { spent: formatMoney(c.spent, "EUR", { hidden }), reimbursed: formatMoney(c.reimbursed, "EUR", { hidden }) })}</span>}
       </TooltipContent>
     </Tooltip>
   );
 }
 
 function Columns({ items, expanded }: { items: CategorySlice[]; expanded: boolean }) {
+  const { hidden } = useAmountsVisibility();
   const { top, ticks } = axisScale(Math.max(...items.map((c) => c.cents)));
 
   return (
@@ -79,7 +81,7 @@ function Columns({ items, expanded }: { items: CategorySlice[]; expanded: boolea
           <div className="relative h-full">
             {ticks.map((v) => (
               <span key={v} className="absolute right-2 translate-y-1/2 text-[11px] text-muted-foreground tabular-nums" style={{ bottom: `${(v / top) * 100}%` }}>
-                {wholeEuros.format(v / 100)}
+                {formatMoney(v, "EUR", { whole: true, hidden })}
               </span>
             ))}
           </div>

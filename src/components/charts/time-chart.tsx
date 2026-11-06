@@ -19,6 +19,8 @@ import {
   type Time,
 } from "lightweight-charts";
 import { intlLocale } from "@/i18n/config";
+import { formatMoney } from "@/lib/money";
+import { useAmountsVisibility } from "@/components/privacy/amounts-visibility";
 
 /** Values are integer cents; dates are "YYYY-MM-DD". */
 export type ChartPoint = { time: string; value: number; color?: string };
@@ -58,12 +60,14 @@ export function TimeChart({
   const container = useRef<HTMLDivElement>(null);
   const dark = useTheme().resolvedTheme === "dark";
   const dateLocale = intlLocale(useLocale());
+  const { hidden } = useAmountsVisibility();
 
   useEffect(() => {
     const el = container.current;
     if (!el) return;
-    const money = new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0, useGrouping: "always" });
-    const compact = new Intl.NumberFormat(locale, { style: "currency", currency, notation: "compact", maximumFractionDigits: 1 });
+    // Chart values are euros, formatMoney takes cents. Hidden amounts keep the lines but mask the scale and tooltip.
+    const money = (v: number) => formatMoney(Math.round(v * 100), currency, { locale, whole: true, hidden });
+    const compact = (v: number) => formatMoney(Math.round(v * 100), currency, { locale, compact: true, hidden });
     const monthFmt = new Intl.DateTimeFormat(dateLocale, { month: "short", year: "2-digit" });
     const dayFmt = new Intl.DateTimeFormat(dateLocale, { day: "numeric", month: "short", year: "numeric" });
     const tickYear = new Intl.DateTimeFormat(dateLocale, { year: "numeric" });
@@ -102,7 +106,7 @@ export function TimeChart({
       handleScroll: false,
       handleScale: false,
       localization: {
-        priceFormatter: (v: number) => money.format(v),
+        priceFormatter: money,
         timeFormatter: (t: Time) => (monthly ? monthFmt : dayFmt).format(asDate(t)),
       },
     });
@@ -110,7 +114,7 @@ export function TimeChart({
     let first: ISeriesApi<SeriesType> | null = null;
     for (const s of series) {
       let api: ISeriesApi<SeriesType>;
-      const common = { title: s.title ?? "", lastValueVisible: false, priceLineVisible: false, priceFormat: { type: "custom" as const, formatter: (v: number) => compact.format(v) } };
+      const common = { title: s.title ?? "", lastValueVisible: false, priceLineVisible: false, priceFormat: { type: "custom" as const, formatter: compact } };
       if (s.kind === "area") {
         api = chart.addSeries(AreaSeries, { ...common, lineColor: s.color, topColor: `${s.color}55`, bottomColor: `${s.color}05`, lineWidth: 2 });
       } else if (s.kind === "line") {
@@ -146,7 +150,7 @@ export function TimeChart({
     }
     chart.timeScale().fitContent();
     return () => chart.remove();
-  }, [series, markers, currency, locale, dateLocale, monthly, dark]);
+  }, [series, markers, currency, locale, dateLocale, monthly, dark, hidden]);
 
   return <div ref={container} style={{ height }} className="w-full" />;
 }

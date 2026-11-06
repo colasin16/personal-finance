@@ -2,6 +2,7 @@ import type { Decorator, Preview } from "@storybook/nextjs-vite";
 import { withThemeByClassName } from "@storybook/addon-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
+import { AmountsVisibilityProvider } from "../src/components/privacy/amounts-visibility";
 import { Toaster } from "../src/components/ui/sonner";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { DEFAULT_LOCALE, LOCALES, LOCALE_NAMES, type Locale } from "../src/i18n/config";
@@ -21,11 +22,14 @@ for (const [file, mod] of Object.entries(files)) {
 
 const withIntl: Decorator = (Story, { globals }) => {
   const locale = (globals.locale as Locale | undefined) ?? DEFAULT_LOCALE;
+  const hidden = globals.amounts === "hidden";
   return (
     <NextIntlClientProvider locale={locale} messages={messages[locale]} timeZone="Europe/Madrid">
-      <TooltipProvider delayDuration={200}>
-        <Story />
-      </TooltipProvider>
+      <AmountsVisibilityProvider key={String(hidden)} initialHidden={hidden}>
+        <TooltipProvider delayDuration={200}>
+          <Story />
+        </TooltipProvider>
+      </AmountsVisibilityProvider>
       <Toaster richColors position="bottom-right" />
     </NextIntlClientProvider>
   );
@@ -42,8 +46,19 @@ const preview: Preview = {
       description: "Language",
       toolbar: { icon: "globe", items: LOCALES.map((value) => ({ value, title: LOCALE_NAMES[value] })), dynamicTitle: true },
     },
+    amounts: {
+      description: "Incognito mode (hide amounts)",
+      toolbar: {
+        icon: "eye",
+        items: [
+          { value: "shown", title: "Amounts shown", icon: "eye" },
+          { value: "hidden", title: "Amounts hidden", icon: "eyeclose" },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
-  initialGlobals: { locale: DEFAULT_LOCALE },
+  initialGlobals: { locale: DEFAULT_LOCALE, amounts: "shown" },
   decorators: [withIntl, withThemeByClassName({ themes: { light: "", dark: "dark" }, defaultTheme: "light" })],
 };
 
