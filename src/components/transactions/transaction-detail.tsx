@@ -21,8 +21,8 @@ import {
   setNotesAction,
   unlinkTransferAction,
 } from "@/lib/actions/transactions";
+import { format } from "date-fns";
 import { formatDate, isCategorizedBy } from "@/lib/labels";
-import { intlLocale } from "@/i18n/config";
 import { AccountRef } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
 import { Badge } from "@/components/ui/badge";
@@ -260,14 +260,18 @@ export function TransactionDetail({
             <ul className="space-y-1.5 text-xs text-muted-foreground">
               {history.map((h) => (
                 <li key={h.id} className="flex flex-wrap items-center gap-1">
-                  {new Date(h.createdAt).toLocaleString(intlLocale(locale))} —{" "}
+                  {formatDate(format(h.createdAt, "yyyy-MM-dd"), locale)} —{" "}
                   {fieldLabel(h.field)}:{" "}
                   {h.field === "category" ? (
                     <>
                       {categoryChip(h.oldValue)} → {categoryChip(h.newValue)}
                     </>
+                  ) : !h.oldValue ? (
+                    `“${h.newValue ?? ""}”`
+                  ) : !h.newValue ? (
+                    <span className="line-through">“{h.oldValue}”</span>
                   ) : (
-                    `“${h.oldValue ?? ""}” → “${h.newValue ?? ""}”`
+                    `“${h.oldValue}” → “${h.newValue}”`
                   )}
                 </li>
               ))}
