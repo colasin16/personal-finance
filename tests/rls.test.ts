@@ -128,7 +128,10 @@ describe("row level security", () => {
     const [tx] = await asSam.select().from(schema.transactions).where(eq(schema.transactions.accountId, samPrivateId)).limit(1);
     const [category] = await asSam.insert(schema.categories).values({ householdId, slug: "rls-test", name: "RLS test", kind: "expense" }).returning();
     await asSam.update(schema.transactions).set({ categoryId: category!.id, categorizedBy: "user" }).where(eq(schema.transactions.id, tx!.id));
+    const listed = async () => (await listTransactions(asSam, householdId, [samPrivateId], { pageSize: 2000 })).rows.find((r) => r.tx.id === tx!.id)!;
+    expect((await listed()).hasHistory).toBe(false);
     await asSam.insert(schema.transactionChanges).values({ transactionId: tx!.id, userId: sam, field: "category", oldValue: tx!.categoryId, newValue: category!.id });
+    expect((await listed()).hasHistory).toBe(true);
     await asSam.insert(schema.categoryRules).values({ householdId, matchType: "merchant", pattern: "rls", categoryId: category!.id }).returning();
     await asSam.insert(schema.dismissedSuggestions).values({ householdId, key: "merchant:rls" }).onConflictDoNothing();
     await asSam.update(schema.households).set({ name: "Renamed" }).where(eq(schema.households.id, householdId));

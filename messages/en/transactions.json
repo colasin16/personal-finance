@@ -67,7 +67,7 @@
   },
   "detail": {
     "originalDescription": "Original description",
-    "notes": "Notes (visible to your household)",
+    "notes": "Notes",
     "notesPlaceholder": "e.g. Dinner with friends — they paid back half",
     "showHistory": "Show change history",
     "noHistory": "No manual changes yet.",

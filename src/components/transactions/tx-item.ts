@@ -26,6 +26,8 @@ export type TxItem = {
   excluded: boolean;
   /** The rule that set the category, when it still exists. */
   rule: AppliedRule | null;
+  /** Whether any change was recorded, so the detail dialog only offers history when there is some. */
+  hasHistory: boolean;
 };
 
 export function toTxItem(row: {
@@ -55,6 +57,7 @@ export function toTxItem(row: {
   bankColor: string;
   rule?: AppliedRule | null;
   linked?: LinkedTransaction[];
+  hasHistory?: boolean;
 }): TxItem {
   const { tx } = row;
   return {
@@ -78,5 +81,6 @@ export function toTxItem(row: {
     isConfirmed: tx.isConfirmed,
     excluded: tx.excludedAt !== null,
     rule: tx.categorizedBy === "rule" ? (row.rule ?? null) : null,
+    hasHistory: row.hasHistory ?? false,
   };
 }

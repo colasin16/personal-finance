@@ -33,6 +33,7 @@ const base: TxItem = {
   isConfirmed: false,
   excluded: false,
   rule: null,
+  hasHistory: false,
 };
 
 export const tx = (overrides: Partial<TxItem>): TxItem => ({ ...base, ...overrides });
@@ -101,6 +102,7 @@ export const transactions: TxItem[] = [
     categoryConfidence: 1,
     isConfirmed: true,
     notes: "September payroll",
+    hasHistory: true,
   }),
 ];
 

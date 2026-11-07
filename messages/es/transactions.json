@@ -67,7 +67,7 @@
   },
   "detail": {
     "originalDescription": "Descripción original",
-    "notes": "Notas (visibles para tu hogar)",
+    "notes": "Notas",
     "notesPlaceholder": "p. ej. Cena con amigos — me devolvieron la mitad",
     "showHistory": "Ver historial de cambios",
     "noHistory": "Todavía no hay cambios manuales.",
@@ -88,7 +88,7 @@
     "linkTransfer": "Vincular traspaso",
     "unlinkTransfer": "Desvincular traspaso",
     "transferUnlinked": "Traspaso desvinculado",
-    "addNote": "Añadir una nota",
+    "addNote": "Añadir nota",
     "editNote": "Editar nota",
     "saveNotes": "Guardar notas",
     "notesSaved": "Notas guardadas"

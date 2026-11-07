@@ -42,6 +42,8 @@ import { LinkTransferPicker } from "./link-transfer-picker";
 import { useFlagReason } from "./source-icon";
 import type { TxItem } from "./tx-item";
 
+const DELETED_CATEGORY_COLOR = "#94a3b8";
+
 type Change = Awaited<ReturnType<typeof getTransactionHistoryAction>>[number];
 
 export function TransactionDetail({
@@ -67,10 +69,15 @@ export function TransactionDetail({
   const [history, setHistory] = useState<Change[] | null>(null);
   const [linking, setLinking] = useState(false);
   const [pending, start] = useTransition();
-  const catName = (id: string | null) =>
-    id
-      ? (categories.find((c) => c.id === id)?.name ?? t("deletedCategory"))
-      : tc("uncategorized");
+  const categoryChip = (id: string | null) => {
+    const c = id ? categories.find((c) => c.id === id) : undefined;
+    if (c) return <CategoryLabel name={c.name} icon={c.icon} color={c.color} className="align-middle" />;
+    return id ? (
+      <CategoryLabel name={t("deletedCategory")} icon="circle-help" color={DELETED_CATEGORY_COLOR} className="align-middle" />
+    ) : (
+      <CategoryLabel name={tc("uncategorized")} color={UNCATEGORIZED_COLOR} className="align-middle" />
+    );
+  };
   const fieldLabel = (field: string) =>
     field === "category" || field === "notes" || field === "excluded"
       ? t(`fields.${field}`)
@@ -180,10 +187,13 @@ export function TransactionDetail({
             <div>
               <p className="text-xs text-muted-foreground">{t("appliedRule")}</p>
               {tx.rule ? (
-                <a href="/settings/rules" className="hover:underline">
+                <a
+                  href="/settings/rules"
+                  className="inline-flex max-w-full flex-wrap items-center gap-1 hover:underline"
+                >
                   {tr(`matchTypes.${tx.rule.matchType}`)}{" "}
                   <span className="font-mono text-xs">“{tx.rule.pattern}”</span> →{" "}
-                  {catName(tx.rule.categoryId)}
+                  {categoryChip(tx.rule.categoryId)}
                 </a>
               ) : (
                 <p className="text-muted-foreground">{t("ruleUnknown")}</p>
@@ -232,7 +242,7 @@ export function TransactionDetail({
               )}
             </div>
           )}
-          {history === null ? (
+          {!tx.hasHistory ? null : history === null ? (
             <Button
               variant="link"
               className="h-auto p-0 text-xs"
@@ -247,14 +257,18 @@ export function TransactionDetail({
           ) : history.length === 0 ? (
             <p className="text-xs text-muted-foreground">{t("noHistory")}</p>
           ) : (
-            <ul className="space-y-1 text-xs text-muted-foreground">
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
               {history.map((h) => (
-                <li key={h.id}>
+                <li key={h.id} className="flex flex-wrap items-center gap-1">
                   {new Date(h.createdAt).toLocaleString(intlLocale(locale))} —{" "}
                   {fieldLabel(h.field)}:{" "}
-                  {h.field === "category"
-                    ? `${catName(h.oldValue)} → ${catName(h.newValue)}`
-                    : `“${h.oldValue ?? ""}” → “${h.newValue ?? ""}”`}
+                  {h.field === "category" ? (
+                    <>
+                      {categoryChip(h.oldValue)} → {categoryChip(h.newValue)}
+                    </>
+                  ) : (
+                    `“${h.oldValue ?? ""}” → “${h.newValue ?? ""}”`
+                  )}
                 </li>
               ))}
             </ul>

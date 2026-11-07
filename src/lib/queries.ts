@@ -10,6 +10,7 @@ import {
   categoryRules,
   dismissedSuggestions,
   statements,
+  transactionChanges,
   transactions,
   users,
   type Category,
@@ -503,8 +504,25 @@ export async function listTransactions(db: Db, householdId: string, visibleIds: 
       .from(transactions)
       .where(where),
   ]);
-  const linked = await getLinkedTransactions(db, householdId, visibleIds, rows.map((r) => r.tx));
-  return { rows: rows.map((r) => ({ ...r, linked: linked(r.tx) })), total: agg?.total ?? 0, sumCents: Number(agg?.sum ?? 0) };
+  const [linked, withHistory] = await Promise.all([
+    getLinkedTransactions(db, householdId, visibleIds, rows.map((r) => r.tx)),
+    getTransactionsWithHistory(db, rows.map((r) => r.tx.id)),
+  ]);
+  return {
+    rows: rows.map((r) => ({ ...r, linked: linked(r.tx), hasHistory: withHistory.has(r.tx.id) })),
+    total: agg?.total ?? 0,
+    sumCents: Number(agg?.sum ?? 0),
+  };
+}
+
+/** Ids among `ids` that have recorded changes — one indexed lookup per page instead of one per row. */
+async function getTransactionsWithHistory(db: Db, ids: string[]) {
+  if (ids.length === 0) return new Set<string>();
+  const rows = await db
+    .selectDistinct({ id: transactionChanges.transactionId })
+    .from(transactionChanges)
+    .where(inArray(transactionChanges.transactionId, ids));
+  return new Set(rows.map((r) => r.id));
 }
 
 /** The other side of a linked transfer; only its existence is revealed when its account isn't visible to the user. */
