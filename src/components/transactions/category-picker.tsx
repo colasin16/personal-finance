@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,6 @@ export function CategoryPicker({
   allowNone?: boolean;
   variant?: "ghost" | "outline";
 }) {
-  const t = useTranslations("transactions.picker");
   const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
   const current = categories.find((c) => c.id === value);
@@ -61,45 +60,70 @@ export function CategoryPicker({
           if (window.matchMedia("(pointer: coarse)").matches) e.preventDefault();
         }}
       >
-        <Command>
-          <CommandInput placeholder={t("search")} />
-          <CommandList>
-            <CommandEmpty>{t("empty")}</CommandEmpty>
-            {allowNone && (
-              <CommandGroup>
-                <CommandItem
-                  value="uncategorized"
-                  onSelect={() => {
-                    onChange(null);
-                    setOpen(false);
-                  }}
-                >
-                  <CategoryLabel name={tc("uncategorized")} icon={UNCATEGORIZED_ICON} color={UNCATEGORIZED_COLOR} />
-                </CommandItem>
-              </CommandGroup>
-            )}
-            {(["expense", "income", "transfer"] as const).map((kind) => (
-              <CommandGroup key={kind} heading={t(`kinds.${kind}`)}>
-                {categories
-                  .filter((c) => c.kind === kind)
-                  .map((c) => (
-                    <CommandItem
-                      key={c.id}
-                      value={`${c.name} ${kind}`}
-                      onSelect={() => {
-                        onChange(c.id);
-                        setOpen(false);
-                      }}
-                    >
-                      <CategoryLabel name={c.name} icon={c.icon} color={c.color} />
-                      {c.id === value && <Check className="ml-auto" />}
-                    </CommandItem>
-                  ))}
-              </CommandGroup>
-            ))}
-          </CommandList>
-        </Command>
+        <CategoryCommand
+          categories={categories}
+          value={value}
+          allowNone={allowNone}
+          onSelect={(id) => {
+            onChange(id);
+            setOpen(false);
+          }}
+        />
       </PopoverContent>
     </Popover>
+  );
+}
+
+/**
+ * Searchable category list grouped by kind, shared by CategoryPicker and the category column filter.
+ * `null` stands for "Uncategorized"; `noneSelected` checks it, `leading` renders extra items above it.
+ */
+export function CategoryCommand({
+  categories,
+  value,
+  onSelect,
+  allowNone = false,
+  noneSelected = false,
+  leading,
+}: {
+  categories: CategoryOption[];
+  value: string | null;
+  onSelect: (categoryId: string | null) => void;
+  allowNone?: boolean;
+  noneSelected?: boolean;
+  leading?: ReactNode;
+}) {
+  const t = useTranslations("transactions.picker");
+  const tc = useTranslations("common");
+  return (
+    <Command>
+      <CommandInput placeholder={t("search")} />
+      <CommandList>
+        <CommandEmpty>{t("empty")}</CommandEmpty>
+        {(leading || allowNone) && (
+          <CommandGroup>
+            {leading}
+            {allowNone && (
+              <CommandItem value="uncategorized" onSelect={() => onSelect(null)}>
+                <CategoryLabel name={tc("uncategorized")} icon={UNCATEGORIZED_ICON} color={UNCATEGORIZED_COLOR} />
+                {noneSelected && <Check className="ml-auto" />}
+              </CommandItem>
+            )}
+          </CommandGroup>
+        )}
+        {(["expense", "income", "transfer"] as const).map((kind) => (
+          <CommandGroup key={kind} heading={t(`kinds.${kind}`)}>
+            {categories
+              .filter((c) => c.kind === kind)
+              .map((c) => (
+                <CommandItem key={c.id} value={`${c.name} ${kind}`} onSelect={() => onSelect(c.id)}>
+                  <CategoryLabel name={c.name} icon={c.icon} color={c.color} />
+                  {c.id === value && <Check className="ml-auto" />}
+                </CommandItem>
+              ))}
+          </CommandGroup>
+        ))}
+      </CommandList>
+    </Command>
   );
 }

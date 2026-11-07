@@ -8,6 +8,7 @@ import { toAccountRef } from "@/components/accounts/account-ref";
 import { Money } from "@/components/money";
 import { PageHeader } from "@/components/page-header";
 import { Pagination } from "@/components/pagination";
+import { AccountColumnFilter, CategoryColumnFilter, DateColumnFilter } from "@/components/transactions/column-filters";
 import { FiltersDialogProvider } from "@/components/transactions/filters-dialog-context";
 import { TransactionTable } from "@/components/transactions/transaction-table";
 import { toTxItem } from "@/components/transactions/tx-item";
@@ -61,33 +62,32 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   };
   const newest = new URLSearchParams(Object.entries(params).filter(([k, v]) => k !== "page" && typeof v === "string") as [string, string][]);
 
+  const accountOptions = accounts.map((a) => ({ id: a.id, ...toAccountRef(a) }));
+  const categoryOptions = cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }));
+  const summary = t.rich("summary", {
+    count: total,
+    money: () => <Money cents={sumCents} signed className="font-medium text-foreground" />,
+  });
+
   return (
     <FiltersDialogProvider>
-      <PageHeader title={t("title")} description={t("description")} />
-      <TransactionFilters
-        accounts={accounts.map((a) => ({ id: a.id, ...toAccountRef(a) }))}
-        categories={cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }))}
-        total={total}
-      />
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted-foreground">
-        <span>
-          {t.rich("summary", {
-            count: total,
-            money: () => <Money cents={sumCents} signed className="font-medium text-foreground" />,
-          })}
-        </span>
-        <Pagination page={page} pages={pages} pageSize={pageSize} total={total} showRange={false} className="ml-auto hidden md:flex" />
-        {page > 1 && (
-          <Link href={`/transactions?${newest}`} className="font-medium text-foreground underline underline-offset-4 md:hidden">
-            {t("table.backToNewest")}
-          </Link>
-        )}
-      </div>
+      <PageHeader title={t("title")} description={summary} />
+      <TransactionFilters accounts={accountOptions} categories={categoryOptions} total={total} />
+      {page > 1 && (
+        <Link href={`/transactions?${newest}`} className="mb-3 inline-block text-sm font-medium underline underline-offset-4 md:hidden">
+          {t("table.backToNewest")}
+        </Link>
+      )}
       <TransactionTable
         key={JSON.stringify({ ...filters, page, pageSize })}
         rows={rows.map(toTxItem)}
-        categories={cats.map((c) => ({ id: c.id, name: c.name, icon: c.icon, color: c.color, kind: c.kind }))}
+        categories={categoryOptions}
         loadMore={loadMore}
+        columnFilters={{
+          date: <DateColumnFilter key="date" />,
+          account: <AccountColumnFilter key="account" accounts={accountOptions} />,
+          category: <CategoryColumnFilter key="category" categories={categoryOptions} />,
+        }}
       />
       <Pagination page={page} pages={pages} pageSize={pageSize} total={total} className="mt-4 hidden md:flex" />
     </FiltersDialogProvider>

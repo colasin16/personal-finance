@@ -7,24 +7,16 @@ export default function TransactionsLoading() {
   const t = useTranslations("transactions");
   return (
     <LoadingPage>
-      <PageHeader title={t("title")} description={t("description")} />
+      <PageHeader title={t("title")} description={<span className="inline-block h-4 w-56 animate-pulse rounded-md bg-muted align-middle" />} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Skeleton className="h-9 w-full md:w-64" />
         <Skeleton className="h-9 w-28 md:hidden" />
         <div className="hidden md:contents">
-          <Skeleton className="h-9 w-56" />
-          <Skeleton className="h-9 w-28" />
-          <Skeleton className="h-9 w-36" />
-          <Skeleton className="h-9 w-36" />
+          <Skeleton className="h-9 w-56 lg:hidden" />
           <Skeleton className="h-8 w-36" />
-          <Skeleton className="h-8 w-24" />
         </div>
       </div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <Skeleton className="h-4 w-56" />
-        <Skeleton className="ml-auto hidden h-8 w-72 max-w-full md:block" />
-      </div>
-      <TransactionTableSkeleton rows={12} />
+      <TransactionTableSkeleton rows={12} columnFilters />
       <div className="mt-4 hidden flex-wrap items-center justify-between gap-x-4 gap-y-2 md:flex">
         <Skeleton className="h-4 w-48" />
         <Skeleton className="ml-auto h-8 w-72 max-w-full" />

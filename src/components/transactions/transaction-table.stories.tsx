@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { categories, transactions, tx } from "@/stories/fixtures";
+import { AccountColumnFilter, CategoryColumnFilter, DateColumnFilter } from "./column-filters";
 import { TransactionTable } from "./transaction-table";
 
 const meta = {
@@ -26,4 +27,21 @@ export const LongDescriptions: Story = {
       }),
     ],
   },
+};
+
+const accounts = [
+  { id: "account-ing", ...transactions[0]!.account },
+  { id: "account-shared", name: "Cuenta Común", bankId: "bbva", bankName: "BBVA", bankColor: "#004481", ibanLast4: "7890" },
+];
+
+/** As on /transactions: filter icons in the Date, Account and Category headers; the category filter is applied here. */
+export const WithColumnFilters: Story = {
+  args: {
+    columnFilters: {
+      date: <DateColumnFilter />,
+      account: <AccountColumnFilter accounts={accounts} />,
+      category: <CategoryColumnFilter categories={categories} />,
+    },
+  },
+  parameters: { nextjs: { navigation: { pathname: "/transactions", query: { category: "cat-groceries" } } } },
 };

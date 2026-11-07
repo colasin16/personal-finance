@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowLeftRight, StickyNote } from "lucide-react";
 import { AccountRef } from "@/components/accounts/account-ref";
@@ -29,6 +30,7 @@ export function TransactionTable({
   showBalance = false,
   emptyMessage,
   loadMore,
+  columnFilters,
 }: {
   rows: TxItem[];
   categories: CategoryOption[];
@@ -37,6 +39,8 @@ export function TransactionTable({
   emptyMessage?: string;
   /** Lets the mobile cards keep loading past `rows`; the desktop table stays paginated. */
   loadMore?: LoadMore;
+  /** Filter controls rendered next to the Account and Category headers of the desktop table. */
+  columnFilters?: { date?: ReactNode; account?: ReactNode; category?: ReactNode };
 }) {
   const t = useTranslations("transactions.table");
   const locale = useLocale();
@@ -69,14 +73,22 @@ export function TransactionTable({
                   aria-label={t("selectAll")}
                 />
               </TableHead>
-              <TableHead className="w-28">{t("date")}</TableHead>
+              <TableHead className="w-28">
+                <HeaderWithFilter filter={columnFilters?.date}>{t("date")}</HeaderWithFilter>
+              </TableHead>
               <TableHead>{t("description")}</TableHead>
               {showAccount && (
                 <TableHead className="hidden lg:table-cell">
-                  {t("account")}
+                  <HeaderWithFilter filter={columnFilters?.account}>
+                    {t("account")}
+                  </HeaderWithFilter>
                 </TableHead>
               )}
-              <TableHead className="w-52">{t("category")}</TableHead>
+              <TableHead className="w-52">
+                <HeaderWithFilter filter={columnFilters?.category}>
+                  {t("category")}
+                </HeaderWithFilter>
+              </TableHead>
               <TableHead className="text-right">{t("amount")}</TableHead>
               {showBalance && (
                 <TableHead className="hidden text-right md:table-cell">
@@ -178,5 +190,15 @@ export function TransactionTable({
 
       {list.dialogs}
     </div>
+  );
+}
+
+function HeaderWithFilter({ filter, children }: { filter?: ReactNode; children: ReactNode }) {
+  if (!filter) return children;
+  return (
+    <span className="inline-flex items-center gap-1">
+      {children}
+      {filter}
+    </span>
   );
 }

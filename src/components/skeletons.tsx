@@ -62,12 +62,24 @@ export function TransactionTableSkeleton({
   rows = 10,
   showAccount = true,
   showBalance = false,
+  columnFilters = false,
 }: {
   rows?: number;
   showAccount?: boolean;
   showBalance?: boolean;
+  /** Filter icons next to the Date, Account and Category headers, as on the transactions page. */
+  columnFilters?: boolean;
 }) {
   const t = useTranslations("transactions.table");
+  const header = (label: string) =>
+    columnFilters ? (
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <Skeleton className="size-6" />
+      </span>
+    ) : (
+      label
+    );
   return (
     <>
       <TransactionCardsSkeleton rows={Math.min(rows, 4)} showAccount={showAccount} showBalance={showBalance} />
@@ -78,10 +90,10 @@ export function TransactionTableSkeleton({
               <TableHead className="w-10">
                 <Skeleton className="size-4 rounded-[4px]" />
               </TableHead>
-              <TableHead className="w-28">{t("date")}</TableHead>
+              <TableHead className="w-28">{header(t("date"))}</TableHead>
               <TableHead>{t("description")}</TableHead>
-              {showAccount && <TableHead className="hidden lg:table-cell">{t("account")}</TableHead>}
-              <TableHead className="w-52">{t("category")}</TableHead>
+              {showAccount && <TableHead className="hidden lg:table-cell">{header(t("account"))}</TableHead>}
+              <TableHead className="w-52">{header(t("category"))}</TableHead>
               <TableHead className="text-right">{t("amount")}</TableHead>
               {showBalance && <TableHead className="hidden text-right md:table-cell">{t("balance")}</TableHead>}
             </TableRow>
