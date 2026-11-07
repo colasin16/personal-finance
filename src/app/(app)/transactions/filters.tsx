@@ -311,11 +311,11 @@ function FilterControls({
       <Field label={t("category")}>{categoryPicker}</Field>
       <Field label={t("dates")}>
         <div className="grid gap-2">
-          <label className="space-y-1 text-xs text-muted-foreground">
+          <label className="flex min-w-0 flex-col gap-1.5 text-xs text-muted-foreground">
             <span>{t("from")}</span>
             {dateInput("from")}
           </label>
-          <label className="space-y-1 text-xs text-muted-foreground">
+          <label className="flex min-w-0 flex-col gap-1.5 text-xs text-muted-foreground">
             <span>{t("to")}</span>
             {dateInput("to")}
           </label>
