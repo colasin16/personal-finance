@@ -362,6 +362,58 @@ describe("Sabadell statement", () => {
   });
 });
 
+describe("Sabadell monthly statement", () => {
+  const page = (rows: string[], n: number) => [
+    "Detall d'operacions de compte a la Vista",
+    `EN SABADELL,02.01.26   2025/   ${n} DE 2`,
+    "NIF.123456789 NIF.987654321   O1234",
+    "Data   Concepte   Valor   Import   Saldo",
+    ...rows,
+    "IBAN",
+    "ES91 0081 0001 1998 7654 3210   08001 BARCELONA (BARCELONA )",
+    "Codi BIC: BSABESBB",
+    "www.bancsabadell.com",
+  ];
+  const text = [
+    ...page(
+      [
+        "0112 SALDO ANTERIOR   1.000,00H",
+        "0212 TRANSFERENCIA / PEPE PEREZ   0212   50,00H   1.050,00H",
+        "0512 COMPRA TARJ. 4176XXXXXXXX1234 MERCADONA VLC MERCADONA-VALENCIA 0612   12,34 D   1.037,66H",
+      ],
+      1,
+    ),
+    "",
+    ...page(
+      [
+        "3012 NOMINA EMPRESA, S.A.   0101   1.234,56H   2.272,22H",
+        "3112 COMPRA TARJ. 4176XXXXXXXX1234 CAFE BAR SOL   3112   2.300,00 D   27,78 D",
+      ],
+      2,
+    ),
+  ].join("\n");
+
+  it("reads D/H-marked rows over the calendar month, anchoring years on the issue date", () => {
+    expect(selectParser(text, "santander")?.bankId).toBe("sabadell");
+    const parsed = parseStatement(text, "sabadell");
+    expect(parsed.parser).toBe("sabadell");
+    expect(parsed.periodStart).toBe("2025-12-01");
+    expect(parsed.periodEnd).toBe("2025-12-31");
+    expect(parsed.openingBalance).toBe(1000);
+    expect(parsed.closingBalance).toBe(-27.78);
+    expect(parsed.transactions.map((t) => [t.date, t.valueDate, t.description, t.amount, t.balanceAfter])).toEqual([
+      ["2025-12-02", "2025-12-02", "TRANSFERENCIA / PEPE PEREZ", 50, 1050],
+      ["2025-12-05", "2025-12-06", "COMPRA TARJ. MERCADONA VLC MERCADONA-VALENCIA", -12.34, 1037.66],
+      ["2025-12-30", "2026-01-01", "NOMINA EMPRESA, S.A.", 1234.56, 2272.22],
+      ["2025-12-31", "2025-12-31", "COMPRA TARJ. CAFE BAR SOL", -2300, -27.78],
+    ]);
+  });
+
+  it("finds the account's own IBAN", () => {
+    expect(selectParser(text, "sabadell")?.accountIbans?.(text)).toEqual(["ES9100810001199876543210"]);
+  });
+});
+
 describe("findMentionedAccount", () => {
   const accounts = [
     { id: "main", name: "Cuenta Principal" },
