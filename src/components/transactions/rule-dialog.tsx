@@ -74,7 +74,7 @@ export function RuleDialog({
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid gap-2 sm:grid-cols-[180px_1fr]">
+          <div className="space-y-2">
             <Select value={matchType} onValueChange={(v) => setMatchType(v as RuleInput["matchType"])}>
               <SelectTrigger className="w-full">
                 <SelectValue />
