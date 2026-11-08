@@ -86,7 +86,8 @@ function NetWorthChart({
             color: PALETTE[i % PALETTE.length]!,
             title: a.account.ibanLast4 ? `${a.account.name} *${a.account.ibanLast4}` : a.account.name,
           }))
-        : [{ kind: "area", data: netWorth, color: "#059669" }],
+        : // Red when net worth ended the period lower than it started.
+          [{ kind: "area", data: netWorth, color: (netWorth.at(-1)?.value ?? 0) < (netWorth[0]?.value ?? 0) ? "#dc2626" : "#059669" }],
     [split, accounts, netWorth],
   );
   return (

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowDownRight, ArrowUpRight, FileUp, Minus } from "lucide-react";
+import { FileUp } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { getMembers } from "@/lib/households";
 import { formatDate } from "@/lib/labels";
@@ -16,33 +16,11 @@ import { CategoryBreakdown } from "./category-breakdown";
 import { CategoryColumnsCard } from "./category-columns";
 import { CashFlowCard, NetWorthCard } from "./charts";
 import { DashboardFilters } from "./filters";
+import { changeTrend, Delta, KpiCard, trend } from "./kpi-card";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("dashboard");
   return { title: t("title") };
-}
-
-function Delta({
-  current,
-  previous,
-  invert = false,
-  label,
-}: {
-  current: number;
-  previous: number | undefined | null;
-  invert?: boolean;
-  label: (pct: string) => string;
-}) {
-  if (previous === undefined || previous === null || previous === 0) return null;
-  const change = (current - previous) / Math.abs(previous);
-  const good = invert ? change < 0 : change > 0;
-  const Icon = Math.abs(change) < 0.005 ? Minus : change > 0 ? ArrowUpRight : ArrowDownRight;
-  return (
-    <span className={cn("inline-flex items-center text-xs font-medium", Math.abs(change) < 0.005 ? "text-muted-foreground" : good ? "text-emerald-600" : "text-red-600")}>
-      <Icon className="size-3.5" />
-      {label(Math.abs(change * 100).toFixed(0))}
-    </span>
-  );
 }
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ scope?: string; period?: string; view?: string }> }) {
@@ -98,12 +76,19 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {t(avg ? "kpis.netWorthChangeAvg" : "kpis.netWorthChange", { amount: formatMoney(kpis.netWorthChange, "EUR", { signed: true, hidden }) })}
           </span>
         ),
+      trend: changeTrend(kpis.netWorthChange),
     },
-    { label: t(avg ? "kpis.incomeAvg" : "kpis.income"), value: formatMoney(kpis.income, "EUR", { hidden }), sub: <Delta current={kpis.income} previous={previous?.income} label={deltaLabel} /> },
+    {
+      label: t(avg ? "kpis.incomeAvg" : "kpis.income"),
+      value: formatMoney(kpis.income, "EUR", { hidden }),
+      sub: <Delta current={kpis.income} previous={previous?.income} label={deltaLabel} />,
+      trend: trend(kpis.income, previous?.income)?.trend,
+    },
     {
       label: t(avg ? "kpis.spendingAvg" : "kpis.spending"),
       value: formatMoney(kpis.expenses, "EUR", { hidden }),
       sub: <Delta current={kpis.expenses} previous={previous?.expenses} invert label={deltaLabel} />,
+      trend: trend(kpis.expenses, previous?.expenses, true)?.trend,
     },
     {
       label: t(avg ? "kpis.savedAvg" : "kpis.saved"),
@@ -113,6 +98,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           {kpis.savingsRate === null ? "—" : t("kpis.savingsRate", { pct: Math.round(kpis.savingsRate * 100) })}
         </span>
       ),
+      trend: trend(kpis.net, previous?.net)?.trend,
     },
   ];
 
@@ -144,13 +130,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpiCards.map((k) => (
-          <Card key={k.label} className="gap-1 py-4">
-            <CardContent className="space-y-1 px-4">
-              <p className="text-sm text-muted-foreground">{k.label}</p>
-              <p className="text-2xl font-semibold tracking-tight tabular-nums">{k.value}</p>
-              <div className="h-4">{k.sub}</div>
-            </CardContent>
-          </Card>
+          <KpiCard key={k.label} {...k} />
         ))}
       </div>
 
