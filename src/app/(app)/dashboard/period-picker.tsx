@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { addDays, differenceInCalendarDays, format, parseISO } from "date-fns";
@@ -53,12 +53,20 @@ const pillClass = (active: boolean) =>
  * Segmented period switcher (1W … All). It always drives the dashboard-wide `period`, so every card shows the same
  * range. Pass `months` to add the "Custom" picker for a specific month, year or date range.
  */
-export function PeriodPresets({ months, range }: { months?: string[]; range?: { start: string; end: string } }) {
+export function PeriodPresets({ months, range, className }: { months?: string[]; range?: { start: string; end: string }; className?: string }) {
   const t = useTranslations("dashboard.periods");
   const ts = useTranslations("dashboard.periodsShort");
   const { period, set } = useDashboardParams();
+  const ref = useRef<HTMLDivElement>(null);
+  // When the strip scrolls sideways (see `className`), keep the selected period in view.
+  useEffect(() => {
+    const strip = ref.current;
+    const active = strip?.querySelector<HTMLElement>("[aria-pressed=true]");
+    if (!strip || !active || strip.scrollWidth <= strip.clientWidth) return;
+    strip.scrollTo({ left: active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2, behavior: "smooth" });
+  }, [period]);
   return (
-    <div role="group" aria-label={t("label")} className="flex flex-wrap items-center gap-0.5 rounded-md bg-muted p-0.5">
+    <div ref={ref} role="group" aria-label={t("label")} className={cn("flex flex-wrap items-center gap-0.5 rounded-md bg-muted p-0.5", className)}>
       {PERIODS.map((p) => (
         <Button
           key={p}
@@ -117,7 +125,7 @@ function CustomPeriod({
   };
 
   return (
-    <div className={cn("flex items-center rounded-md", active && "bg-background shadow-sm")}>
+    <div className={cn("flex shrink-0 items-center rounded-md", active && "bg-background shadow-sm")}>
       {steps && (
         <Button
           size="icon"

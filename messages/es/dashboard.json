@@ -3,6 +3,8 @@
   "periods": { "1w": "Última semana", "1m": "Último mes", "3m": "Últimos 3 meses", "6m": "Últimos 6 meses", "12m": "Últimos 12 meses", "all": "Todo", "month": "Mes", "previousMonth": "Mes anterior", "nextMonth": "Mes siguiente", "label": "Periodo", "previousYear": "Año anterior", "nextYear": "Año siguiente", "custom": "Personalizado", "customYear": "Año", "customRange": "Rango de fechas", "from": "Desde", "to": "Hasta", "apply": "Aplicar", "minRange": "Elige al menos una semana.", "noData": "Sin datos" },
   "periodsShort": { "1w": "1S", "1m": "1M", "3m": "3M", "6m": "6M", "12m": "12M", "all": "Todo" },
   "view": { "label": "Mostrar", "total": "Total", "average": "Media mensual", "unavailable": "Elige un periodo de más de dos meses, con datos en más de uno, para ver medias mensuales." },
+  "scope": { "label": "Mostrar datos de" },
+  "options": { "title": "Opciones de vista", "description": "Elige de quién son los datos y cómo resumir el periodo.", "done": "Listo" },
   "empty": {
     "title": "Tu panel se irá llenando a medida que importes extractos",
     "description": "Añade tus cuentas y sube los PDF del mes pasado de cada banco.",

@@ -137,7 +137,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         {t("range.period", { start: formatDate(data.range.start, locale), end: formatDate(data.range.end, locale) })} ·{" "}
         {avg && <span className="font-medium text-emerald-700 dark:text-emerald-400">{t("range.average", { count: average.months })} · </span>}
         {tc("accountsCount", { count: data.accounts.length })}
-        {scope.startsWith("member:") && ` · ${t("range.memberShare")}`} · {t("range.transfersExcluded")}
+        {scope.startsWith("member:") && ` · ${t("range.memberShare")}`}
+        {/* A standing footnote, so phones skip it to keep the caption short. */}
+        <span className="hidden md:inline"> · {t("range.transfersExcluded")}</span>
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

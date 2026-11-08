@@ -11,12 +11,16 @@ export default function DashboardLoading() {
   const t = useTranslations("dashboard");
   return (
     <LoadingPage>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <Skeleton className="h-8 w-64 rounded-lg" />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 md:gap-y-4">
+        <div className="flex w-full items-center justify-between gap-4 xl:w-auto">
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+          <Skeleton className="h-8 w-32 rounded-md md:hidden" />
+          <Skeleton className="hidden h-8 w-64 rounded-lg md:block xl:hidden" />
+        </div>
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+          <Skeleton className="hidden h-8 w-64 rounded-lg xl:block" />
           <Skeleton className="h-8 w-96 max-w-full rounded-md" />
-          <Skeleton className="h-8 w-52 rounded-lg" />
+          <Skeleton className="hidden h-8 w-52 rounded-lg md:block" />
         </div>
       </div>
       <Skeleton className="mb-4 h-4 w-96 max-w-full" />
