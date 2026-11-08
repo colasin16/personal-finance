@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState, useTransition } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, FilePlus, FileText, FileUp, Loader2, MoreHorizontal, Plus, RotateCw, Trash2, Upload } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, FilePlus, FileText, FileUp, Loader2, Plus, RotateCw, Trash2, Upload } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { DetectedStatementInfo } from "@/lib/db/schema";
@@ -20,7 +20,6 @@ import { StatusBadge } from "@/components/statements/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type StatementItem = {
@@ -320,91 +319,156 @@ function StatementRow({
   const assign = (accountId: string) => run(() => assignStatementAccountAction(s.id, accountId), t("toasts.assigned"));
   const detectedBank = banks.find((b) => b.id === s.detected?.bankId);
 
+  const source = s.account ? (
+    <AccountRef account={s.account} />
+  ) : (
+    <span>
+      {detectedBank ? t("row.detected", { bank: detectedBank.name }) : t("row.notDetected")}
+      {s.detected?.ibanLast4 && ` · ${t("row.iban", { last4: s.detected.ibanLast4 })}`}
+    </span>
+  );
+  const period = s.periodStart && s.periodEnd ? `${formatDate(s.periodStart, locale)} – ${formatDate(s.periodEnd, locale)}` : null;
+  const notes = (
+    <>
+      {s.status === "failed" && s.error && <p className="text-xs text-red-600">{translateError(te, s.error)}</p>}
+      {stuck && <p className="text-xs text-amber-700 dark:text-amber-400">{t("row.stuck")}</p>}
+      {s.status === "needs_review" && s.issues > 0 && (
+        <p className="text-xs text-amber-700 dark:text-amber-400">{t("row.balanceIssues", { count: s.issues })}</p>
+      )}
+    </>
+  );
+  const hasNotes = (s.status === "failed" && !!s.error) || stuck || (s.status === "needs_review" && s.issues > 0);
+  const accountPicker = s.status === "needs_account" && (
+    <>
+      <Select onValueChange={assign} disabled={pending}>
+        <SelectTrigger className="w-full min-w-0 md:w-56 [&>span]:min-w-0" size="sm">
+          <SelectValue placeholder={t("row.whichAccount")} />
+        </SelectTrigger>
+        <SelectContent>
+          {accounts.map((a) => (
+            <SelectItem key={a.id} value={a.id}>
+              <AccountRef account={a} />
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button size="sm" variant="outline" onClick={() => setCreating(true)}>
+        <Plus /> {t("row.new")}
+      </Button>
+    </>
+  );
+  const primary = (
+    <>
+      {(s.status === "needs_review" || s.status === "confirmed") && (
+        <Button asChild size="sm" variant={s.status === "needs_review" ? "default" : "outline"}>
+          <Link href={`/statements/${s.id}`}>
+            {s.status === "needs_review" ? tc("actions.review") : tc("actions.open")} <ArrowRight />
+          </Link>
+        </Button>
+      )}
+      {(s.status === "failed" || stuck) && (
+        <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => retryStatementAction(s.id), t("toasts.retrying"))}>
+          {pending ? <Loader2 className="animate-spin" /> : <RotateCw />} {tc("actions.retry")}
+        </Button>
+      )}
+    </>
+  );
+  const secondary = (
+    <>
+      <Button asChild size="sm" variant="outline">
+        <a href={`/api/statements/${s.id}/file`} target="_blank" rel="noreferrer">
+          <FileText /> {t("row.viewPdf")}
+        </a>
+      </Button>
+      {s.status !== "confirmed" && s.status !== "needs_account" && !(s.status === "failed" || stuck) && (
+        <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => retryStatementAction(s.id), t("toasts.reprocessing"))}>
+          <RotateCw /> {t("row.reprocess")}
+        </Button>
+      )}
+      <Button
+        size="sm"
+        variant="outline"
+        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+        disabled={pending}
+        onClick={() => setConfirmingDelete(true)}
+      >
+        <Trash2 /> {tc("actions.delete")}
+      </Button>
+    </>
+  );
+
   return (
-    <li className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-      <div className="flex min-w-0 flex-1 items-start gap-3">
-        <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{s.fileName}</p>
-          <p className="flex min-w-0 flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
-            {s.account ? (
-              <AccountRef account={s.account} />
-            ) : (
-              <span>
-                {detectedBank ? t("row.detected", { bank: detectedBank.name }) : t("row.notDetected")}
-                {s.detected?.ibanLast4 && ` · ${t("row.iban", { last4: s.detected.ibanLast4 })}`}
-              </span>
-            )}
-            {s.periodStart && s.periodEnd && <span>· {formatDate(s.periodStart, locale)} – {formatDate(s.periodEnd, locale)}</span>}
+    <li>
+      {/* Mobile: a card of label/value rows (like TransactionCard), with every action as a full-width button. */}
+      <article className="md:hidden">
+        <header className="flex items-start gap-3 px-4 pt-4 pb-2">
+          <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+          <h3 className="min-w-0 flex-1 text-sm font-semibold break-all">{s.fileName}</h3>
+        </header>
+        <dl className="divide-y px-4 text-sm">
+          <Field label={t("row.status")}>
+            {s.status === "needs_account" ? <span className="text-muted-foreground">{t("row.whichAccount")}</span> : <StatusBadge status={s.status} progress={s.progress} />}
+          </Field>
+          <Field label={t("row.account")}>
+            <span className="flex min-w-0">{source}</span>
+          </Field>
+          {period && <Field label={t("row.period")}>{period}</Field>}
+        </dl>
+        {hasNotes && <div className="space-y-1 px-4 pb-1">{notes}</div>}
+        <div className="grid gap-2 px-4 pt-2 pb-4">
+          {s.status === "needs_account" && <div className="flex gap-2">{accountPicker}</div>}
+          {primary}
+          <div className="grid grid-cols-2 gap-2 [&>*:last-child:nth-child(odd)]:col-span-2">{secondary}</div>
+        </div>
+      </article>
+
+      {/* Tablet: name | status, then account · period | actions. */}
+      <div className="hidden space-y-2 p-4 md:block xl:hidden">
+        <div className="flex items-center gap-4">
+          <p className="flex min-w-0 flex-1 items-center gap-2 text-base font-medium">
+            <FileText className="size-5 shrink-0 text-muted-foreground" />
+            <span className="truncate" title={s.fileName}>
+              {s.fileName}
+            </span>
           </p>
-          {s.status === "failed" && s.error && <p className="mt-1 text-xs text-red-600">{translateError(te, s.error)}</p>}
-          {stuck && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t("row.stuck")}</p>}
-          {s.status === "needs_review" && s.issues > 0 && (
-            <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t("row.balanceIssues", { count: s.issues })}</p>
-          )}
+          <StatusBadge status={s.status} progress={s.progress} />
+        </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pl-7">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="flex min-w-0 flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
+              {source}
+              {period && <span>· {period}</span>}
+            </p>
+            {hasNotes && notes}
+          </div>
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            {accountPicker}
+            {primary}
+            {secondary}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:justify-end">
-        {s.status === "needs_account" ? (
-          <>
-            <Select onValueChange={assign} disabled={pending}>
-              <SelectTrigger className="w-56 [&>span]:min-w-0" size="sm">
-                <SelectValue placeholder={t("row.whichAccount")} />
-              </SelectTrigger>
-              <SelectContent>
-                {accounts.map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    <AccountRef account={a} />
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button size="sm" variant="outline" onClick={() => setCreating(true)}>
-              <Plus /> {t("row.new")}
-            </Button>
-          </>
-        ) : (
-          <StatusBadge status={s.status} progress={s.progress} />
-        )}
-        {(s.status === "needs_review" || s.status === "confirmed") && (
-          <Button asChild size="sm" variant={s.status === "needs_review" ? "default" : "ghost"}>
-            <Link href={`/statements/${s.id}`}>
-              {s.status === "needs_review" ? tc("actions.review") : tc("actions.open")} <ArrowRight />
-            </Link>
-          </Button>
-        )}
-        {(s.status === "failed" || stuck) && (
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => retryStatementAction(s.id), t("toasts.retrying"))}>
-            {pending ? <Loader2 className="animate-spin" /> : <RotateCw />} {tc("actions.retry")}
-          </Button>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" className="size-8" aria-label={t("row.moreActions")}>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <a href={`/api/statements/${s.id}/file`} target="_blank" rel="noreferrer">
-                <FileText /> {t("row.viewPdf")}
-              </a>
-            </DropdownMenuItem>
-            {s.status !== "confirmed" && s.status !== "needs_account" && (
-              <DropdownMenuItem onSelect={() => run(() => retryStatementAction(s.id), t("toasts.reprocessing"))}>
-                <RotateCw /> {t("row.reprocess")}
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={() => setConfirmingDelete(true)}
-            >
-              <Trash2 /> {tc("actions.delete")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* Desktop: one line per statement, all actions inline. */}
+      <div className="hidden items-center gap-3 p-4 xl:flex">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <FileText className="mt-1 size-5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0">
+            <p className="truncate text-base font-medium" title={s.fileName}>
+              {s.fileName}
+            </p>
+            <p className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
+              {source}
+              {period && <span>· {period}</span>}
+            </p>
+            {hasNotes && <div className="mt-1 space-y-1">{notes}</div>}
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {accountPicker || <StatusBadge status={s.status} progress={s.progress} />}
+          {primary}
+          {secondary}
+        </div>
       </div>
 
       <Dialog open={confirmingDelete} onOpenChange={(o) => !pending && setConfirmingDelete(o)}>
@@ -448,5 +512,14 @@ function StatementRow({
         />
       )}
     </li>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-3 py-2.5">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="min-w-0">{children}</dd>
+    </div>
   );
 }

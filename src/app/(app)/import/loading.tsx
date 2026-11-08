@@ -53,7 +53,7 @@ export default function ImportLoading() {
           </div>
           <ul className="divide-y">
             {Array.from({ length: 3 }, (_, i) => (
-              <li key={i} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+              <li key={i} className="flex flex-col gap-3 p-4 xl:flex-row xl:items-center">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground/50" />
                   <div className="min-w-0 flex-1 space-y-1.5">
@@ -61,10 +61,11 @@ export default function ImportLoading() {
                     <Skeleton className="h-3 w-80 max-w-full" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-5 w-20 rounded-full" />
-                  <Skeleton className="h-8 w-20" />
-                  <Skeleton className="size-8" />
+                <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:justify-end">
+                  <Skeleton className="col-span-2 h-8 md:hidden xl:block xl:h-5 xl:w-20 xl:rounded-full" />
+                  <Skeleton className="col-span-2 h-8 md:w-20" />
+                  <Skeleton className="h-8 md:w-24" />
+                  <Skeleton className="h-8 md:w-20" />
                 </div>
               </li>
             ))}
