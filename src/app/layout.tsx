@@ -23,7 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   return (
     <html lang={locale} className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
-      <body className="min-h-full bg-muted/30">
+      <body className="min-h-full bg-muted/30 dark:bg-background">
         <NextIntlClientProvider>
           <ThemeProvider>
             <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
