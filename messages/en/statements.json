@@ -3,6 +3,7 @@
   "backToImport": "Import",
   "unknownDate": "?",
   "parsedBy": "parsed by {provider}",
+  "skippedBankSynced": "{count, plural, one {# transaction} other {# transactions}} skipped because bank sync already imported them. Your bank-synced data was not changed.",
   "openPdf": "Open PDF",
   "kpi": {
     "openingBalance": "Opening balance",

@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FileUp } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
+import { getBankSyncStatus } from "@/lib/bank-sync";
 import { getMembers } from "@/lib/households";
 import { formatDate } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
 import { getDashboard, parsePeriod, parseScope, parseView } from "@/lib/queries";
 import { requireContext } from "@/lib/server/auth";
 import { amountsHidden } from "@/lib/server/privacy";
+import { BankSyncStatus } from "@/components/bank-sync/sync-status";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +33,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const { db, user, household } = await requireContext();
   const [locale, hidden] = await Promise.all([getLocale(), amountsHidden()]);
   const [t, tc] = await Promise.all([getTranslations("dashboard"), getTranslations("common")]);
-  const [data, members] = await Promise.all([getDashboard(db, household.id, user.id, scope, period, locale, view), getMembers(db, household.id)]);
+  const [data, members, bankSync] = await Promise.all([
+    getDashboard(db, household.id, user.id, scope, period, locale, view),
+    getMembers(db, household.id),
+    getBankSyncStatus(db, household.id, user.id),
+  ]);
   const { kpis, previous, average } = data;
   const avg = average.active;
   const scopes = [
@@ -119,6 +125,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <DashboardFilters scopes={scopes} months={data.availableMonths} range={data.range} average={average} />
+      {bankSync && <BankSyncStatus status={bankSync} problemsOnly className="mb-4" />}
       <p className="mb-4 text-xs text-muted-foreground">
         {t("range.period", { start: formatDate(data.range.start, locale), end: formatDate(data.range.end, locale) })} ·{" "}
         {avg && <span className="font-medium text-emerald-700 dark:text-emerald-400">{t("range.average", { count: average.months })} · </span>}

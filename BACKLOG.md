@@ -64,3 +64,16 @@ The first version of `/budgets` has per-category monthly limits that carry forwa
 - **Dashboard widget:** a compact "budget left this month" card linking to `/budgets`.
 - **Income target and savings goal:** compare planned income vs. budgets to show what's left to save.
 - **Per-member scope:** budgets are household-wide today; allow budgeting only "my" or "shared" spending.
+
+## 5. Open banking (Enable Banking)
+
+Sync our household's bank transactions daily through Enable Banking (PSD2, read-only), so budgets stay current without PDF uploads. Bank sync takes over each account from a start date; PDFs remain for older history. Full plan: [`OPEN_BANKING.md`](OPEN_BANKING.md).
+
+Built and tested with the mock provider. Still to do:
+
+- **Phase 0:** create the Enable Banking app, link our accounts, set the env vars and verify each bank (consent length, history depth, `entry_reference`, description quality).
+- **Balance check:** flag an account when the bank balance and the last synced `balanceAfterCents` disagree.
+- **Statements grid:** months after `sync_from` show as "missing" in the statement completeness grid; show them as covered by the bank instead.
+- **Accounts page:** a "Bank sync" badge with the bank's latest balance.
+- **Issues:** count connections that expire soon or have expired.
+- **Deletion:** revoke the Enable Banking session when a user or household is deleted (ties into §3).

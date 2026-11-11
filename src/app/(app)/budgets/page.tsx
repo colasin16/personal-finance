@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
+import { getBankSyncStatus } from "@/lib/bank-sync";
 import { getBudgetMonth } from "@/lib/budgets";
 import { formatMonth } from "@/lib/labels";
 import { requireContext } from "@/lib/server/auth";
 import { isMonthParam, monthBounds, shiftMonth } from "@/lib/statement-months";
+import { BankSyncStatus } from "@/components/bank-sync/sync-status";
 import { BudgetsView } from "@/components/budgets/budgets-view";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -25,7 +27,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
   const month = isMonthParam(params.month) ? params.month : currentMonth;
   const { db, user, household } = await requireContext();
   const [locale, t] = await Promise.all([getLocale(), getTranslations("budgets")]);
-  const data = await getBudgetMonth(db, household.id, user.id, month, today, locale);
+  const [data, bankSync] = await Promise.all([getBudgetMonth(db, household.id, user.id, month, today, locale), getBankSyncStatus(db, household.id, user.id)]);
   const monthLabel = formatMonth(month, "long", locale);
 
   return (
@@ -33,6 +35,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
       <PageHeader title={t("title")} description={t("description")}>
         <MonthNav month={month} currentMonth={currentMonth} label={monthLabel} />
       </PageHeader>
+      {bankSync && <BankSyncStatus status={bankSync} problemsOnly={month !== currentMonth} className="-mt-2 mb-4" />}
       {!data.hasTransactions && month <= currentMonth && (
         <p className="mb-4 flex items-start gap-2 rounded-lg border bg-muted/40 px-3 py-2.5 text-sm text-muted-foreground">
           <Info className="mt-0.5 size-4 shrink-0" />

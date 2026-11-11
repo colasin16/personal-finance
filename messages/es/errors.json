@@ -33,5 +33,16 @@
   "already_processing": "Este extracto todavía se está procesando. Vuelve a intentarlo en unos minutos si no termina.",
   "invite_wrong_email": "Esta invitación se envió a otra dirección de correo. Inicia sesión con esa dirección para aceptarla.",
   "owner_only": "Solo el propietario del hogar puede hacer esto.",
-  "category_not_budgetable": "Solo las categorías de gasto pueden tener presupuesto."
+  "category_not_budgetable": "Solo las categorías de gasto pueden tener presupuesto.",
+  "bank_connection_not_found": "No se encontró la conexión bancaria.",
+  "bank_connection_not_yours": "Solo quien conectó este banco puede modificarlo.",
+  "bank_not_supported": "Este banco no está disponible para la sincronización.",
+  "bank_unavailable": "No pudimos conectar con tu banco. Inténtalo de nuevo en unos minutos.",
+  "bank_cancelled": "Cancelaste la conexión en tu banco. No se ha cambiado nada.",
+  "bank_link_invalid": "Este enlace del banco no es válido o ha caducado. Vuelve a empezar.",
+  "bank_sync_from_too_early": "La sincronización no puede empezar antes del {date}: las fechas anteriores vienen de tus extractos PDF revisados.",
+  "bank_sync_from_locked": "Esta cuenta ya tiene movimientos sincronizados, así que su fecha de inicio no puede cambiar. Desconecta el banco para empezar de nuevo.",
+  "bank_account_already_synced": "Esa cuenta ya se sincroniza desde otra conexión bancaria.",
+  "bank_sync_limit": "Tu banco solo permite unas pocas actualizaciones al día. Vuelve a intentarlo mañana.",
+  "bank_sync_expired": "El acceso a este banco ha caducado. Vuelve a conectarlo para seguir sincronizando."
 }

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Info, Tags, Users, WandSparkles } from "lucide-react";
+import { Info, Landmark, Tags, Users, WandSparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const SETTINGS_SECTIONS = [
   { href: "/settings/household", key: "household", icon: Users },
   { href: "/settings/categories", key: "categories", icon: Tags },
   { href: "/settings/rules", key: "rules", icon: WandSparkles },
+  { href: "/settings/bank-connections", key: "bankConnections", icon: Landmark },
   { href: "/settings/about", key: "about", icon: Info },
 ] as const;
 

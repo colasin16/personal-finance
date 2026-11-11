@@ -1,0 +1,80 @@
+{
+  "title": "Bank connections",
+  "description": "Connect your banks so transactions arrive every day, without uploading PDF statements. Access is read-only.",
+  "connect": "Connect a bank",
+  "empty": {
+    "title": "No banks connected yet",
+    "body": "Connect a bank to keep budgets up to date automatically. Your reviewed PDF statements stay exactly as they are: bank sync only adds transactions after them."
+  },
+  "mockNotice": "Offline mode: banks are simulated and transactions are generated. Set ENABLE_BANKING_APP_ID and ENABLE_BANKING_PRIVATE_KEY to connect real banks.",
+  "dialog": {
+    "title": "Connect a bank",
+    "description": "You'll go to your bank's website or app to approve read-only access. We never see your password.",
+    "search": "Search banks",
+    "loading": "Loading banks…",
+    "none": "No banks match “{query}”.",
+    "beta": "beta",
+    "how": "Access lasts up to 180 days (some banks allow 90). We'll remind you before it ends.",
+    "redirecting": "Opening {bank}…"
+  },
+  "status": {
+    "active": "Connected",
+    "expiring": "Expires in {days, plural, one {# day} other {# days}}",
+    "expired": "Expired",
+    "revoked": "Disconnected",
+    "error": "Error"
+  },
+  "connectedBy": "Connected by {name}",
+  "lastSynced": "Updated {when}",
+  "neverSynced": "Not synced yet",
+  "validUntil": "Access until {date}",
+  "lastError": "Last attempt failed. We'll retry on the next sync.",
+  "syncNow": "Sync now",
+  "syncing": "Syncing…",
+  "syncLimit": "Your bank allows a few updates a day. Next sync tomorrow.",
+  "synced": "{count, plural, =0 {Up to date. No new transactions.} one {# new transaction added.} other {# new transactions added.}}",
+  "reconnect": "Reconnect",
+  "setUp": "Choose accounts",
+  "disconnect": "Disconnect",
+  "disconnectTitle": "Disconnect {bank}?",
+  "disconnectBody": "We'll revoke access at your bank and stop syncing. Transactions already added stay in the app. You can import PDF statements for these accounts again from the day after the last synced transaction.",
+  "disconnected": "{bank} disconnected.",
+  "ownerOnly": "Only {name} can change this connection.",
+  "accounts": {
+    "notSynced": "Not synced",
+    "since": "Since {date}",
+    "balance": "Bank balance"
+  },
+  "setup": {
+    "title": "Choose what to sync from {bank}",
+    "description": "Pick the app account each bank account feeds, and the first day to import.",
+    "account": "App account",
+    "skip": "Don't sync",
+    "create": "Create a new account",
+    "taken": "already synced",
+    "from": "Import from",
+    "fromAfterPdf": "Your reviewed PDF statements cover up to {date}. Earlier days stay as they are.",
+    "fromNoPdf": "This account has no PDF statements. Banks usually share about 90 days of history.",
+    "fromLocked": "This account already has synced transactions, so its start date is fixed.",
+    "matched": "Matched by IBAN",
+    "save": "Start syncing",
+    "saving": "Importing…",
+    "done": "{count, plural, =0 {Bank sync is set up. No transactions to import yet.} one {Bank sync is set up. # transaction imported.} other {Bank sync is set up. # transactions imported.}}"
+  },
+  "banner": {
+    "expired": "Bank access to {bank} has expired, so its transactions stopped updating.",
+    "expiring": "Bank access to {bank} ends in {days, plural, one {# day} other {# days}}.",
+    "action": "Reconnect"
+  },
+  "budgets": {
+    "updated": "Bank data updated {when}",
+    "notYet": "Bank data not synced yet",
+    "stale": "{bank} stopped syncing {when}"
+  },
+  "mock": {
+    "title": "{bank} (simulated)",
+    "body": "This is a stand-in for your bank's consent screen. A real bank would ask you to sign in and choose which accounts to share.",
+    "approve": "Approve read-only access",
+    "cancel": "Cancel"
+  }
+}

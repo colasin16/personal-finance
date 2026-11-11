@@ -22,7 +22,7 @@ function masterKey() {
   return (master = key);
 }
 
-function subkey(purpose: "iban-hash" | "file-encryption") {
+function subkey(purpose: "iban-hash" | "file-encryption" | "secret-text" | "state-signing") {
   let key = subkeys.get(purpose);
   if (!key) subkeys.set(purpose, (key = Buffer.from(hkdfSync("sha256", masterKey(), Buffer.alloc(0), `personal-finance/${purpose}`, 32))));
   return key;
@@ -57,3 +57,23 @@ export function decryptBytes(data: Uint8Array, context: string): Uint8Array {
   decipher.setAuthTag(tag);
   return new Uint8Array(Buffer.concat([decipher.update(buf.subarray(MAGIC.length + IV_BYTES, buf.length - TAG_BYTES)), decipher.final()]));
 }
+
+/** Encrypts a short secret (e.g. a bank-sync session id) to base64url; `context` binds it to its row and purpose. */
+export function encryptText(plain: string, context: string): string {
+  const iv = randomBytes(IV_BYTES);
+  const cipher = createCipheriv("aes-256-gcm", subkey("secret-text"), iv);
+  cipher.setAAD(Buffer.from(context));
+  const body = Buffer.concat([cipher.update(plain, "utf8"), cipher.final()]);
+  return Buffer.concat([iv, body, cipher.getAuthTag()]).toString("base64url");
+}
+
+export function decryptText(data: string, context: string): string {
+  const buf = Buffer.from(data, "base64url");
+  const decipher = createDecipheriv("aes-256-gcm", subkey("secret-text"), buf.subarray(0, IV_BYTES));
+  decipher.setAAD(Buffer.from(context));
+  decipher.setAuthTag(buf.subarray(buf.length - TAG_BYTES));
+  return Buffer.concat([decipher.update(buf.subarray(IV_BYTES, buf.length - TAG_BYTES)), decipher.final()]).toString("utf8");
+}
+
+/** HMAC-signs a payload (e.g. OAuth `state`) with a key derived from DATA_ENCRYPTION_KEY. */
+export const signPayload = (payload: string) => createHmac("sha256", subkey("state-signing")).update(payload).digest("base64url");

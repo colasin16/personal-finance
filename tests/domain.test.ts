@@ -15,6 +15,7 @@ import { budgetStatus, effectiveBudgets, monthPace, planBudgetChange, suggestBud
 import { DEFAULT_PAGE_SIZE, pageRange, parsePageSize } from "@/lib/pagination";
 import { decryptBytes, encryptBytes, isEncrypted } from "@/lib/crypto";
 import { EncryptedFileStorage } from "@/lib/services/storage";
+import { bankFingerprints, coveredByBank, decimalToCents, dueReminder, matchBankId, minSyncFrom, syncWindow, toBankRow, type BankRow, type ProviderTransaction } from "@/lib/domain/bank-sync";
 import { isMonthParam, monthBounds, monthSlots, needsAttention, shiftMonth } from "@/lib/statement-months";
 
 describe("parseAmount", () => {
@@ -655,5 +656,81 @@ describe("budgets", () => {
     expect(suggestBudget(31234)).toBe(32000);
     expect(suggestBudget(32000)).toBe(32000);
     expect(suggestBudget(123456)).toBe(125000);
+  });
+});
+
+describe("bank sync", () => {
+  const tx = (over: Partial<ProviderTransaction> = {}): ProviderTransaction => ({
+    entry_reference: "ref-1",
+    transaction_amount: { currency: "EUR", amount: "12.30" },
+    credit_debit_indicator: "DBIT",
+    status: "BOOK",
+    booking_date: "2026-11-02",
+    value_date: "2026-11-03",
+    creditor: { name: "MERCADONA" },
+    remittance_information: ["Compra tarjeta 1234"],
+    ...over,
+  });
+
+  it("parses decimal amounts to cents without float errors", () => {
+    expect(decimalToCents("12.3")).toBe(1230);
+    expect(decimalToCents("-0.05")).toBe(-5);
+    expect(decimalToCents("1234,56")).toBe(123456);
+    expect(decimalToCents("0.29")).toBe(29);
+    expect(() => decimalToCents("abc")).toThrow();
+  });
+
+  it("maps provider transactions and skips pending or foreign-currency rows", () => {
+    const debit = toBankRow(tx());
+    expect(debit).toMatchObject({ bookedAt: "2026-11-02", valueDate: "2026-11-03", amountCents: -1230, externalId: "ref-1", description: "MERCADONA Compra tarjeta 1234" });
+    expect(toBankRow(tx({ credit_debit_indicator: "CRDT", transaction_amount: { currency: "EUR", amount: "-5" }, debtor: { name: "ACME" } }))).toMatchObject({ amountCents: 500 });
+    expect(toBankRow(tx({ status: "PDNG" }))).toEqual({ skip: "pending" });
+    expect(toBankRow(tx({ transaction_amount: { currency: "USD", amount: "1" } }))).toEqual({ skip: "currency" });
+    expect(toBankRow(tx({ booking_date: null, value_date: null, transaction_date: null }))).toEqual({ skip: "no_date" });
+  });
+
+  it("gives the same fingerprints when sync windows overlap", () => {
+    const rows = [tx({ entry_reference: null }), tx({ entry_reference: null }), tx({ entry_reference: null, booking_date: "2026-11-04" }), tx()].map((t) => toBankRow(t) as BankRow);
+    const full = bankFingerprints("acc", rows).map((r) => r.fingerprint);
+    const later = bankFingerprints("acc", rows.slice(2)).map((r) => r.fingerprint);
+    expect(new Set(full).size).toBe(4);
+    expect(later.every((f) => full.includes(f))).toBe(true);
+  });
+
+  it("starts syncing the day after PDF coverage and refetches a week of overlap", () => {
+    expect(minSyncFrom({ latestPeriodEnd: "2026-10-31", latestStatementTx: "2026-10-30" })).toBe("2026-11-01");
+    expect(minSyncFrom({ latestPeriodEnd: null, latestStatementTx: null })).toBeNull();
+    expect(syncWindow({ syncFrom: "2026-11-01", lastBankBookedAt: null, today: "2026-11-11" })).toEqual({ dateFrom: "2026-11-01", dateTo: "2026-11-11" });
+    expect(syncWindow({ syncFrom: "2026-11-01", lastBankBookedAt: "2026-11-10", today: "2026-11-11" }).dateFrom).toBe("2026-11-03");
+    expect(syncWindow({ syncFrom: "2026-11-01", lastBankBookedAt: "2026-11-03", today: "2026-11-11" }).dateFrom).toBe("2026-11-01");
+  });
+
+  it("sends each consent reminder once", () => {
+    const now = new Date("2026-11-11T00:00:00Z");
+    const inDays = (d: number) => new Date(now.getTime() + d * 86_400_000);
+    expect(dueReminder(inDays(30), now, null)).toBeNull();
+    expect(dueReminder(inDays(10), now, null)).toBe(14);
+    expect(dueReminder(inDays(10), now, 14)).toBeNull();
+    expect(dueReminder(inDays(2), now, 14)).toBe(3);
+    expect(dueReminder(inDays(2), now, 3)).toBeNull();
+    expect(dueReminder(inDays(-1), now, null)).toBeNull();
+  });
+
+  it("matches provider bank names to our banks", () => {
+    const banks = [
+      { id: "santander", name: "Santander", detectKeywords: ["SANTANDER"] },
+      { id: "bbva", name: "BBVA", detectKeywords: ["BBVA"] },
+      { id: "other", name: "Other", detectKeywords: [] },
+    ];
+    expect(matchBankId("Banco Santander", banks)).toBe("santander");
+    expect(matchBankId("BBVA", banks)).toBe("bbva");
+    expect(matchBankId("Revolut", banks)).toBe("other");
+  });
+
+  it("leaves PDF rows out where bank sync covers the date", () => {
+    expect(coveredByBank("2026-11-02", { syncFrom: "2026-11-01", bankRange: null })).toBe(true);
+    expect(coveredByBank("2026-10-31", { syncFrom: "2026-11-01", bankRange: null })).toBe(false);
+    expect(coveredByBank("2026-10-15", { syncFrom: null, bankRange: { min: "2026-10-10", max: "2026-10-20" } })).toBe(true);
+    expect(coveredByBank("2026-10-21", { syncFrom: null, bankRange: { min: "2026-10-10", max: "2026-10-20" } })).toBe(false);
   });
 });

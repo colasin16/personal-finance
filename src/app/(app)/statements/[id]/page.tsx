@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { and, eq } from "drizzle-orm";
-import { ArrowLeft, CircleCheck, FileText, TriangleAlert } from "lucide-react";
+import { ArrowLeft, CircleCheck, FileText, Landmark, TriangleAlert } from "lucide-react";
 import { statements } from "@/lib/db/schema";
 import type { StatementIssue } from "@/lib/domain/validation";
 import { formatDate } from "@/lib/labels";
@@ -95,6 +95,13 @@ export default async function StatementPage({ params }: { params: Promise<{ id: 
         </Button>
         {statement.status === "needs_review" && <ConfirmStatementButton statementId={statement.id} flagged={flagged} />}
       </PageHeader>
+
+      {!!statement.detected?.skippedBankSynced && (
+        <p className="mb-4 flex items-start gap-2 rounded-lg border bg-muted/40 px-3 py-2.5 text-sm text-muted-foreground">
+          <Landmark className="mt-0.5 size-4 shrink-0" />
+          {t("skippedBankSynced", { count: statement.detected.skippedBankSynced })}
+        </p>
+      )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[

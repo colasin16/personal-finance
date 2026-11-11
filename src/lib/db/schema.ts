@@ -35,6 +35,9 @@ export const statementStatus = pgEnum("statement_status", [
 export const categoryKind = pgEnum("category_kind", ["expense", "income", "transfer"]);
 export const categorizedBy = pgEnum("categorized_by", ["rule", "merchant", "llm", "user", "transfer"]);
 export const matchType = pgEnum("match_type", ["contains", "regex", "merchant"]);
+export const transactionSource = pgEnum("transaction_source", ["statement", "bank"]);
+export const bankConnectionStatus = pgEnum("bank_connection_status", ["active", "expired", "revoked", "error"]);
+export const bankSyncTrigger = pgEnum("bank_sync_trigger", ["initial", "cron", "manual"]);
 
 /** Mirrors Supabase `auth.users` ids (profiles table). */
 export const users = pgTable("users", {
@@ -134,6 +137,8 @@ export type DetectedStatementInfo = {
   /** The parser that read the statement: a bank id or "generic". */
   provider?: string;
   skippedDuplicates?: number;
+  /** Rows left out because bank sync covers their dates for this account. */
+  skippedBankSynced?: number;
 };
 
 export const statements = pgTable(
@@ -216,6 +221,10 @@ export const transactions = pgTable(
     // Set when the user removes the row: it stays so re-imports of the statement keep skipping it.
     excludedAt: timestamp("excluded_at", { withTimezone: true }),
     fingerprint: text("fingerprint").notNull(),
+    /** Where the row came from: a PDF statement or bank sync (open banking). */
+    source: transactionSource("source").notNull().default("statement"),
+    /** The bank's own id for the transaction (bank sync only), when it provides one. */
+    externalId: text("external_id"),
     createdAt: createdAt(),
   },
   (t) => [
@@ -289,6 +298,92 @@ export const budgets = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.categoryId, t.month] }), index("budgets_household_idx").on(t.householdId)],
+);
+
+/**
+ * A consent to read accounts at one bank through an open banking provider (see OPEN_BANKING.md). Only its creator
+ * can sync, reconnect or disconnect it. Provider ids are encrypted at rest.
+ */
+export const bankConnections = pgTable(
+  "bank_connections",
+  {
+    id: id(),
+    householdId: uuid("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    bankName: text("bank_name").notNull(),
+    bankCountry: text("bank_country").notNull(),
+    /** Matching row in `banks`, for logos and new accounts. */
+    bankId: text("bank_id")
+      .notNull()
+      .references(() => banks.id),
+    sessionIdEnc: text("session_id_enc"),
+    status: bankConnectionStatus("status").notNull().default("active"),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
+    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    /** Days-before-expiry of the last reminder sent (14 or 3), so each is sent once per consent. */
+    remindedDays: integer("reminded_days"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("bank_connections_household_idx").on(t.householdId)],
+);
+
+/** An account shared through a connection, and the app account it feeds once mapped. */
+export const bankConnectionAccounts = pgTable(
+  "bank_connection_accounts",
+  {
+    id: id(),
+    connectionId: uuid("connection_id")
+      .notNull()
+      .references(() => bankConnections.id, { onDelete: "cascade" }),
+    householdId: uuid("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
+    accountId: uuid("account_id").references(() => accounts.id, { onDelete: "set null" }),
+    providerAccountUidEnc: text("provider_account_uid_enc").notNull(),
+    ibanHash: text("iban_hash"),
+    ibanLast4: text("iban_last4"),
+    name: text("name").notNull(),
+    currency: text("currency").notNull().default("EUR"),
+    accountType: accountType("account_type").notNull().default("checking"),
+    /** First date bank sync imports. Always after the account's PDF coverage; null until the user confirms it. */
+    syncFrom: date("sync_from"),
+    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
+    lastBalanceCents: cents("last_balance_cents"),
+    lastBalanceAt: timestamp("last_balance_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("bank_connection_accounts_connection_idx").on(t.connectionId),
+    // One bank feed per app account.
+    uniqueIndex("bank_connection_accounts_account_idx").on(t.accountId),
+  ],
+);
+
+/** One sync attempt; used for "updated X ago", debugging and the daily access limit. */
+export const bankSyncRuns = pgTable(
+  "bank_sync_runs",
+  {
+    id: id(),
+    connectionId: uuid("connection_id")
+      .notNull()
+      .references(() => bankConnections.id, { onDelete: "cascade" }),
+    householdId: uuid("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
+    trigger: bankSyncTrigger("trigger").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    inserted: integer("inserted").notNull().default(0),
+    skipped: integer("skipped").notNull().default(0),
+    error: text("error"),
+  },
+  (t) => [index("bank_sync_runs_connection_idx").on(t.connectionId, t.startedAt)],
 );
 
 export type User = typeof users.$inferSelect;

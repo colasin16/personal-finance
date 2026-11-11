@@ -109,7 +109,8 @@
       "storage": "File storage",
       "auth": "Authentication",
       "jobs": "Background jobs",
-      "logos": "Bank logos"
+      "logos": "Bank logos",
+      "bankSync": "Bank sync"
     },
     "values": {
       "postgres": "Postgres",
@@ -120,7 +121,12 @@
       "supabaseAuth": "Supabase Auth (email link + code)",
       "inProcessQueue": "In-process queue",
       "brandfetch": "Brandfetch",
-      "lettermarks": "Lettermarks (offline)"
+      "lettermarks": "Lettermarks (offline)",
+      "enableBanking": "Enable Banking",
+      "mockBank": "Mock bank (offline)"
     }
+  },
+  "bankConnections": {
+    "title": "Bank connections"
   }
 }

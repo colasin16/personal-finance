@@ -27,6 +27,7 @@ Statements are read and categorized entirely in code, with no LLM or external AP
 | PDF storage | Local disk `.data/uploads` | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET` |
 | Auth | Signed-cookie session, instant "magic link" | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (Supabase Auth: email link + one-time code, see below) |
 | Background jobs | In-process queue | Inngest (planned) |
+| Bank sync | Simulated banks with generated transactions | `ENABLE_BANKING_APP_ID`, `ENABLE_BANKING_PRIVATE_KEY` ([Enable Banking](https://enablebanking.com), see [`OPEN_BANKING.md`](OPEN_BANKING.md)) |
 | Bank logos | Coloured lettermarks | `NEXT_PUBLIC_BRANDFETCH_CLIENT_ID` ([Brandfetch Logo API](https://docs.brandfetch.com/logo-api/overview), free). Logos are embedded from Brandfetch's CDN as its terms require. Bank domains are in `src/lib/banks.ts`. |
 
 Copy `.env.example` to `.env.local` to configure. Migrations in `drizzle/` run automatically on startup. Delete `.data/` to start from scratch.
@@ -34,6 +35,10 @@ Copy `.env.example` to `.env.local` to configure. Migrations in `drizzle/` run a
 Production refuses to start without Supabase Auth, because mock sign-in needs only an email. `ALLOW_MOCK_AUTH=1` overrides this for throwaway deployments; it then requires an `AUTH_SECRET` of 32+ characters, and demo login stays off unless `ENABLE_DEMO=1`. Demo login is never available with Supabase Auth.
 
 Production also requires `DATA_ENCRYPTION_KEY` (`openssl rand -base64 32`). Statement PDFs are encrypted with AES-256-GCM before they reach storage, and account IBANs are stored only as an HMAC keyed by it. Keep a backup of the key: without it, stored PDFs can't be read. Data stored before encryption is migrated by running `pnpm exec tsx --env-file=.env.production.local scripts/secure-existing-data.ts` once after deploying (it's safe to rerun).
+
+### Bank sync
+
+**Settings → Bank connections** links banks through Enable Banking (PSD2, read-only). A Vercel cron (`vercel.json`, daily at 05:00 UTC) calls `GET /api/cron/bank-sync`, which syncs every active connection and emails consent-expiry reminders. In production it requires `CRON_SECRET` (Vercel sends it as a bearer token). Locally, open `http://localhost:3000/api/cron/bank-sync` to run it by hand. Bank sync only adds transactions after each account's PDF coverage and never changes existing ones. Details in [`OPEN_BANKING.md`](OPEN_BANKING.md).
 
 ### Supabase Auth setup
 

@@ -64,6 +64,13 @@
       "when": 1794403045699,
       "tag": "0008_budgets",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794409975084,
+      "tag": "0009_bank_sync",
+      "breakpoints": true
     }
   ]
 }

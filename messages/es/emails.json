@@ -14,5 +14,13 @@
     "expiry": "Por seguridad, el código y el botón caducan al poco tiempo y solo funcionan una vez.",
     "ignore": "Si no lo has pedido tú, puedes ignorar este correo. Nadie puede entrar sin el código."
   },
+  "bankConsent": {
+    "subject": "Tu conexión con {bankName} termina en {days, plural, one {# día} other {# días}}",
+    "preview": "Vuelve a conectar {bankName} para mantener tus presupuestos al día.",
+    "heading": "Vuelve a conectar {bankName}",
+    "intro": "Tu banco solo permite que {appName} lea tus movimientos de {bankName} durante un tiempo limitado. El acceso termina en {days, plural, one {# día} other {# días}}. Vuelve a conectar ahora para mantener tus presupuestos al día; solo lleva un minuto en la app de tu banco.",
+    "button": "Volver a conectar",
+    "why": "Los bancos te piden renovar el acceso periódicamente por seguridad. Tus datos no cambian mientras vuelves a conectar."
+  },
   "footer": "{appName} · Enviado a {email}"
 }

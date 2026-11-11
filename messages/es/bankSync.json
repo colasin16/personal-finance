@@ -1,0 +1,80 @@
+{
+  "title": "Conexiones bancarias",
+  "description": "Conecta tus bancos para que los movimientos lleguen cada día, sin subir extractos PDF. El acceso es de solo lectura.",
+  "connect": "Conectar un banco",
+  "empty": {
+    "title": "Aún no hay bancos conectados",
+    "body": "Conecta un banco para mantener los presupuestos al día automáticamente. Tus extractos PDF revisados no cambian: la sincronización solo añade movimientos posteriores."
+  },
+  "mockNotice": "Modo sin conexión: los bancos son simulados y los movimientos se generan. Define ENABLE_BANKING_APP_ID y ENABLE_BANKING_PRIVATE_KEY para conectar bancos reales.",
+  "dialog": {
+    "title": "Conectar un banco",
+    "description": "Irás a la web o la app de tu banco para autorizar el acceso de solo lectura. Nunca vemos tu contraseña.",
+    "search": "Buscar bancos",
+    "loading": "Cargando bancos…",
+    "none": "Ningún banco coincide con «{query}».",
+    "beta": "beta",
+    "how": "El acceso dura hasta 180 días (algunos bancos permiten 90). Te avisaremos antes de que termine.",
+    "redirecting": "Abriendo {bank}…"
+  },
+  "status": {
+    "active": "Conectado",
+    "expiring": "Caduca en {days, plural, one {# día} other {# días}}",
+    "expired": "Caducado",
+    "revoked": "Desconectado",
+    "error": "Error"
+  },
+  "connectedBy": "Conectado por {name}",
+  "lastSynced": "Actualizado {when}",
+  "neverSynced": "Sin sincronizar todavía",
+  "validUntil": "Acceso hasta el {date}",
+  "lastError": "El último intento falló. Lo reintentaremos en la próxima sincronización.",
+  "syncNow": "Sincronizar ahora",
+  "syncing": "Sincronizando…",
+  "syncLimit": "Tu banco permite pocas actualizaciones al día. La próxima, mañana.",
+  "synced": "{count, plural, =0 {Todo al día. No hay movimientos nuevos.} one {Se ha añadido # movimiento nuevo.} other {Se han añadido # movimientos nuevos.}}",
+  "reconnect": "Volver a conectar",
+  "setUp": "Elegir cuentas",
+  "disconnect": "Desconectar",
+  "disconnectTitle": "¿Desconectar {bank}?",
+  "disconnectBody": "Revocaremos el acceso en tu banco y dejaremos de sincronizar. Los movimientos ya añadidos se quedan en la app. Podrás volver a importar extractos PDF de estas cuentas a partir del día siguiente al último movimiento sincronizado.",
+  "disconnected": "{bank} desconectado.",
+  "ownerOnly": "Solo {name} puede modificar esta conexión.",
+  "accounts": {
+    "notSynced": "Sin sincronizar",
+    "since": "Desde el {date}",
+    "balance": "Saldo en el banco"
+  },
+  "setup": {
+    "title": "Elige qué sincronizar de {bank}",
+    "description": "Elige la cuenta de la app que alimenta cada cuenta bancaria y el primer día que se importa.",
+    "account": "Cuenta en la app",
+    "skip": "No sincronizar",
+    "create": "Crear una cuenta nueva",
+    "taken": "ya sincronizada",
+    "from": "Importar desde",
+    "fromAfterPdf": "Tus extractos PDF revisados cubren hasta el {date}. Los días anteriores no cambian.",
+    "fromNoPdf": "Esta cuenta no tiene extractos PDF. Los bancos suelen compartir unos 90 días de historial.",
+    "fromLocked": "Esta cuenta ya tiene movimientos sincronizados, así que su fecha de inicio es fija.",
+    "matched": "Encontrada por IBAN",
+    "save": "Empezar a sincronizar",
+    "saving": "Importando…",
+    "done": "{count, plural, =0 {Sincronización configurada. Aún no hay movimientos que importar.} one {Sincronización configurada. Se ha importado # movimiento.} other {Sincronización configurada. Se han importado # movimientos.}}"
+  },
+  "banner": {
+    "expired": "El acceso a {bank} ha caducado, así que sus movimientos han dejado de actualizarse.",
+    "expiring": "El acceso a {bank} termina en {days, plural, one {# día} other {# días}}.",
+    "action": "Volver a conectar"
+  },
+  "budgets": {
+    "updated": "Datos del banco actualizados {when}",
+    "notYet": "Datos del banco sin sincronizar todavía",
+    "stale": "{bank} dejó de sincronizar {when}"
+  },
+  "mock": {
+    "title": "{bank} (simulado)",
+    "body": "Esto sustituye a la pantalla de autorización de tu banco. Un banco real te pediría iniciar sesión y elegir qué cuentas compartir.",
+    "approve": "Autorizar acceso de solo lectura",
+    "cancel": "Cancelar"
+  }
+}

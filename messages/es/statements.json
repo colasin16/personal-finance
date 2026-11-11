@@ -3,6 +3,7 @@
   "backToImport": "Importar",
   "unknownDate": "?",
   "parsedBy": "leído por {provider}",
+  "skippedBankSynced": "{count, plural, one {# movimiento omitido} other {# movimientos omitidos}} porque la sincronización bancaria ya los importó. Los datos sincronizados no se han modificado.",
   "openPdf": "Abrir PDF",
   "kpi": {
     "openingBalance": "Saldo inicial",

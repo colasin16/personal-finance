@@ -2,7 +2,7 @@
 
 import { UserError } from "@/lib/errors";
 import { fail } from "./result";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { eq } from "drizzle-orm";
@@ -15,6 +15,7 @@ import { ensureDemoHousehold } from "@/lib/dev/demo";
 import { ensureAuthUser, findOrCreateUser, userExists } from "@/lib/households";
 import { AUTH_NEXT_COOKIE, safeNext } from "@/lib/safe-next";
 import { authMode, endSession, startSession } from "@/lib/server/auth";
+import { appOrigin } from "@/lib/server/origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type SignInState = {
@@ -25,15 +26,6 @@ export type SignInState = {
   name?: string;
   isNew?: boolean;
 } | null;
-
-/** The public URL of the app, for links in emails. */
-async function appOrigin() {
-  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
-  const h = await headers();
-  const origin = h.get("origin");
-  if (origin) return origin;
-  return `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
-}
 
 /**
  * Email-first sign-in: a known email gets a one-time code straight away; a new one is first asked

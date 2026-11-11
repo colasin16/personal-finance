@@ -1,8 +1,9 @@
 import { UserError } from "@/lib/errors";
-import { and, eq, inArray, isNull, lt, ne, or, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt, max, min, ne, or, sql } from "drizzle-orm";
 import { hmacIban } from "@/lib/crypto";
 import type { Db } from "@/lib/db";
-import { accounts, banks, statements, transactions, type DetectedStatementInfo } from "@/lib/db/schema";
+import { accounts, bankConnectionAccounts, banks, statements, transactions, type DetectedStatementInfo } from "@/lib/db/schema";
+import { coveredByBank } from "@/lib/domain/bank-sync";
 import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { compactIban, findIbans, redactSensitive } from "@/lib/domain/redact";
 import { normalizeDescription, normalizeMerchant, sha256, transactionFingerprint, withOrdinals } from "@/lib/domain/text";
@@ -40,6 +41,19 @@ async function detectBank(db: Db, text: string): Promise<string | null> {
   const upper = normalizeDescription(text);
   const all = await db.select({ id: banks.id, keywords: banks.detectKeywords }).from(banks);
   return all.find((b) => b.keywords.some((k) => upper.includes(normalizeDescription(k))))?.id ?? null;
+}
+
+/** Dates bank sync owns for an account: from an active link's `syncFrom`, plus the span of rows it already added. */
+export async function bankCoverage(db: Db, accountId: string) {
+  const [link] = await db
+    .select({ syncFrom: bankConnectionAccounts.syncFrom })
+    .from(bankConnectionAccounts)
+    .where(eq(bankConnectionAccounts.accountId, accountId));
+  const [range] = await db
+    .select({ min: min(transactions.bookedAt), max: max(transactions.bookedAt) })
+    .from(transactions)
+    .where(and(eq(transactions.accountId, accountId), eq(transactions.source, "bank")));
+  return { syncFrom: link?.syncFrom ?? null, bankRange: range?.min && range.max ? { min: range.min, max: range.max } : null };
 }
 
 type Deps = { storage?: FileStorage };
@@ -189,7 +203,12 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
     await setProgress("deduplicating");
     // Removed rows are kept so their fingerprints keep them out of the re-import.
     await db.delete(transactions).where(and(eq(transactions.statementId, statementId), isNull(transactions.excludedAt)));
-    const values = withOrdinals(rows).map((row, position) => ({
+    // Bank sync owns these dates for this account: its rows are already there, so PDF rows would duplicate them.
+    const cover = await bankCoverage(db, account.id);
+    const values = withOrdinals(rows)
+      .map((row, position) => ({ row, position }))
+      .filter(({ row }) => !coveredByBank(row.bookedAt, cover))
+      .map(({ row, position }) => ({
       householdId: statement.householdId,
       accountId: account.id,
       statementId,
@@ -203,6 +222,7 @@ async function processSingleStatement(db: Db, statementId: string, deps: Deps): 
       position,
       fingerprint: transactionFingerprint({ accountId: account.id, ...row }),
     }));
+    detected.skippedBankSynced = rows.length - values.length || undefined;
     const inserted =
       values.length === 0
         ? []

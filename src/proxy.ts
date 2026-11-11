@@ -11,7 +11,8 @@ export async function proxy(request: NextRequest) {
   // sign-in code can land on any page; hand it to the right auth page instead of dropping it.
   const { pathname, searchParams } = request.nextUrl;
   const target = searchParams.has("token_hash") ? "/auth/confirm" : searchParams.has("code") ? "/auth/callback" : null;
-  if (target && pathname !== target && pathname !== "/auth/callback") {
+  // The open banking callback also receives `?code=` (from the bank, not Supabase).
+  if (target && pathname !== target && pathname !== "/auth/callback" && pathname !== "/api/bank-sync/callback") {
     const url = request.nextUrl.clone();
     url.pathname = target;
     return NextResponse.redirect(url);

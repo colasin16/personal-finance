@@ -14,5 +14,13 @@
     "expiry": "For your security, the code and button expire after a short time and work only once.",
     "ignore": "If you didn't ask for this, you can ignore this email. Nobody can sign in without the code."
   },
+  "bankConsent": {
+    "subject": "Your {bankName} connection ends in {days, plural, one {# day} other {# days}}",
+    "preview": "Reconnect {bankName} to keep your budgets up to date.",
+    "heading": "Reconnect {bankName}",
+    "intro": "Your bank only lets {appName} read your {bankName} transactions for a limited time. Access ends in {days, plural, one {# day} other {# days}}. Reconnect now to keep your budgets up to date; it takes a minute in your bank's app.",
+    "button": "Reconnect bank",
+    "why": "Banks ask you to renew access regularly for your security. Nothing changes in your data while you reconnect."
+  },
   "footer": "{appName} · Sent to {email}"
 }

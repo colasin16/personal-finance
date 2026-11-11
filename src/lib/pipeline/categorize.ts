@@ -272,12 +272,18 @@ export async function findTransferSuggestions(db: Db, householdId: string, accou
   });
 }
 
-/** Links pairs that are obviously transfers (both sides found and described as a transfer); others become suggestions. */
-export async function autoLinkTransfers(db: Db, householdId: string) {
+/**
+ * Links pairs that are obviously transfers (both sides found and described as a transfer); others become suggestions.
+ * With `onlyIds`, a pair is linked only when both sides are in it (bank sync never edits rows it didn't just add).
+ */
+export async function autoLinkTransfers(db: Db, householdId: string, options: { onlyIds?: string[] } = {}) {
+  const only = options.onlyIds ? new Set(options.onlyIds) : null;
+  if (only && only.size < 2) return 0;
   const suggestions = await findTransferSuggestions(db, householdId);
   let linked = 0;
   for (const s of suggestions) {
     if (!s.likely) continue;
+    if (only && !(only.has(s.outgoing.id) && only.has(s.incoming.id))) continue;
     await linkTransfer(db, householdId, s.outgoing.id, s.incoming.id);
     linked++;
   }
