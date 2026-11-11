@@ -62,8 +62,8 @@
     "description": "Reading your finances shouldn't mean handing them over.",
     "items": {
       "noLogin": {
-        "title": "No bank logins",
-        "description": "You upload statements yourself. We never ask for your banking credentials and can't move money."
+        "title": "Bank connection is optional",
+        "description": "Upload statements yourself, no bank logins needed. If you'd rather sync automatically, you log in on your bank's own site: we never see your credentials and can't move money."
       },
       "encrypted": {
         "title": "Encrypted at rest",

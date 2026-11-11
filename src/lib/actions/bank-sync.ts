@@ -38,7 +38,6 @@ export async function listBanksAction(): Promise<ActionResult<ProviderBankOption
       }),
     );
   } catch (error) {
-    if (!(error instanceof UserError)) console.error("[bank-sync] listing banks failed", error instanceof Error ? error.message : error);
     return fail(error instanceof UserError ? error : new UserError("bank_unavailable"));
   }
 }
@@ -53,9 +52,7 @@ export async function connectBankAction(input: { bankName?: string; bankCountry?
     const { url } = await startBankConnection(db, { householdId: household.id, userId: user.id, origin: await appOrigin(), language: await getLocale() }, data);
     return ok({ url });
   } catch (error) {
-    if (error instanceof UserError || error instanceof z.ZodError) return fail(error);
-    console.error("[bank-sync] starting the bank connection failed", error instanceof Error ? error.message : error);
-    return fail(new UserError("bank_unavailable"));
+    return fail(error instanceof UserError || error instanceof z.ZodError ? error : new UserError("bank_unavailable"));
   }
 }
 

@@ -62,8 +62,8 @@
     "description": "Entender tus finanzas no debería significar entregarlas.",
     "items": {
       "noLogin": {
-        "title": "Sin acceso a tu banco",
-        "description": "Tú subes los extractos. Nunca pedimos tus credenciales bancarias ni podemos mover dinero."
+        "title": "Conectar tu banco es opcional",
+        "description": "Sube tú los extractos, sin dar acceso a tu banco. Si prefieres sincronizar automáticamente, inicias sesión en la web de tu propio banco: nunca vemos tus credenciales ni podemos mover dinero."
       },
       "encrypted": {
         "title": "Cifrado en reposo",
