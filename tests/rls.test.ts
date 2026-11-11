@@ -4,6 +4,7 @@ import { asUser, createDb, schema, type Db } from "@/lib/db";
 import { ensureDemoHousehold } from "@/lib/dev/demo";
 import { createAccount, createHousehold, createInvite, findOrCreateUser, getMembership, updateAccount } from "@/lib/households";
 import { createStatementFromUpload } from "@/lib/pipeline/upload";
+import { getBudgetMonth, setBudgets } from "@/lib/budgets";
 import {
   decodeTransactionCursor,
   encodeTransactionCursor,
@@ -162,5 +163,26 @@ describe("row level security", () => {
     await createInvite(asUser(db, alex), householdId, alex, "friend@example.com");
     expect(await asUser(db, eve).select().from(schema.householdInvites)).toEqual([]);
     expect(await asUser(db, eve).select().from(schema.users).where(eq(schema.users.id, alex))).toEqual([]);
+  });
+
+  it("shares budgets within the household only, for its own expense categories", async () => {
+    const cats = await db.select().from(schema.categories).where(eq(schema.categories.householdId, householdId));
+    const groceries = cats.find((c) => c.slug === "groceries")!;
+    const salary = cats.find((c) => c.kind === "income")!;
+    await setBudgets(asUser(db, alex), householdId, "2026-07", [{ categoryId: groceries.id, amountCents: 30000 }], true);
+    await expect(setBudgets(asUser(db, alex), householdId, "2026-07", [{ categoryId: salary.id, amountCents: 100 }], true)).rejects.toThrow("category_not_budgetable");
+
+    const month = await getBudgetMonth(asUser(db, sam), householdId, sam, "2026-08", "2026-08-15");
+    expect(month).toEqual(await getBudgetMonth(db, householdId, sam, "2026-08", "2026-08-15"));
+    const row = month.categories.find((c) => c.id === groceries.id)!;
+    expect(row).toMatchObject({ budget: 30000, lastMonthBudget: 30000 });
+    expect(row.spent).toBeGreaterThan(0);
+    expect(month.pace).toEqual({ fraction: 15 / 31, daysLeft: 17 });
+
+    expect(await asUser(db, eve).select().from(schema.budgets)).toEqual([]);
+    const eveHousehold = (await getMembership(db, eve))!.household.id;
+    await expect(
+      asUser(db, eve).insert(schema.budgets).values({ householdId: eveHousehold, categoryId: groceries.id, month: "2026-07-01", amountCents: 1 }),
+    ).rejects.toThrow();
   });
 });

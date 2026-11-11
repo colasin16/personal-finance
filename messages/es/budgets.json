@@ -1,0 +1,85 @@
+{
+  "title": "Presupuestos",
+  "description": "Planifica cuánto gastar por categoría cada mes. Un presupuesto se mantiene en los meses siguientes hasta que lo cambies.",
+  "month": {
+    "label": "Mes",
+    "previous": "Mes anterior",
+    "next": "Mes siguiente",
+    "current": "Este mes"
+  },
+  "noData": "Aún no hay movimientos importados de {month}. El gasto aparecerá aquí cuando importes sus extractos.",
+  "importLink": "Importar extractos",
+  "summary": {
+    "title": "Resumen",
+    "left": "Quedan {amount}",
+    "over": "{amount} por encima del presupuesto",
+    "ofBudgeted": "de {amount} presupuestados",
+    "budgeted": "Presupuestado",
+    "spent": "Gastado",
+    "remaining": "Disponible",
+    "perDay": "{amount} al día durante {count, plural, one {el día que queda} other {los # días que quedan}}",
+    "onTrack": "Vas bien",
+    "withinBudget": "Dentro del presupuesto",
+    "aheadOfPace": "Gastas más rápido de lo previsto",
+    "overBudget": "Por encima del presupuesto",
+    "outside": "{amount} gastados fuera de tus presupuestos",
+    "income": "Ingresos este mes: {amount}",
+    "pace": "Donde estarías hoy si gastaras de forma uniforme durante el mes"
+  },
+  "list": {
+    "title": "Categorías con presupuesto",
+    "description": "Toca una categoría para cambiar su presupuesto.",
+    "spentOf": "{spent} de {budget}",
+    "left": "Quedan {amount}",
+    "over": "{amount} de más",
+    "paceLegend": "La marca indica dónde estarías hoy gastando de forma uniforme durante el mes.",
+    "edit": "Editar el presupuesto de {name}"
+  },
+  "unbudgeted": {
+    "title": "Sin presupuesto",
+    "description": "Categorías con gasto este mes pero sin presupuesto.",
+    "setBudget": "Fijar presupuesto",
+    "uncategorized": "Sin categoría",
+    "categorize": "Categorizar",
+    "transactions": "{count, plural, one {# movimiento} other {# movimientos}}",
+    "showOthers": "Otras categorías ({count})",
+    "hideOthers": "Ocultar otras categorías",
+    "noSpending": "Sin gasto este mes"
+  },
+  "empty": {
+    "title": "Planifica tu gasto mensual",
+    "description": "Fija un límite mensual para las categorías que quieras vigilar. Empieza por lo que sueles gastar y ajústalo después.",
+    "suggest": "Empezar con mi gasto medio",
+    "noHistory": "Importa unos meses de extractos para recibir sugerencias, o fija los presupuestos uno a uno más abajo."
+  },
+  "suggest": {
+    "button": "Sugerir presupuestos",
+    "title": "Presupuestos sugeridos",
+    "description": "Según tu gasto medio {count, plural, one {del último mes} other {de los últimos # meses}}, redondeado al alza. Ajusta los importes o desmarca las categorías que no quieras presupuestar.",
+    "average": "media {amount}",
+    "apply": "{count, plural, =0 {Crear presupuestos} one {Crear # presupuesto} other {Crear # presupuestos}}",
+    "created": "{count, plural, one {# presupuesto creado} other {# presupuestos creados}}",
+    "none": "No hay sugerencias: todas las categorías con gasto ya tienen presupuesto."
+  },
+  "editor": {
+    "title": "Presupuesto de {name}",
+    "description": "{month}",
+    "amount": "Presupuesto mensual",
+    "spentThisMonth": "Gastado este mes",
+    "lastMonth": "Mes anterior",
+    "average": "Media de {count} meses",
+    "suggestions": "Rellenar con",
+    "useLastMonthSpent": "Gasto del mes anterior",
+    "useAverage": "Media",
+    "useLastMonthBudget": "Presupuesto del mes anterior",
+    "applyForward": "Aplicar también a los meses siguientes",
+    "applyForwardHint": "Si no, solo cambia {month}.",
+    "invalidAmount": "Introduce un importe, por ejemplo 250 o 249,90.",
+    "remove": "Quitar presupuesto",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saved": "Presupuesto guardado",
+    "removed": "Presupuesto eliminado",
+    "viewTransactions": "Ver movimientos"
+  }
+}

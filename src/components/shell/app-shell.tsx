@@ -14,6 +14,7 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
+  PiggyBank,
   Settings,
   Upload,
   X,
@@ -57,6 +58,7 @@ const NAV = [
   { href: "/accounts", key: "accounts", icon: Landmark },
   { href: "/import", key: "import", icon: FileUp },
   { href: "/transactions", key: "transactions", icon: ArrowLeftRight },
+  { href: "/budgets", key: "budgets", icon: PiggyBank },
   { href: "/issues", key: "issues", icon: CircleAlert },
   { href: "/settings", key: "settings", icon: Settings },
 ] as const;

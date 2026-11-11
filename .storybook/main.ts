@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import type { StorybookConfig } from "@storybook/nextjs-vite";
 
 // Server actions reach the database, so stories get in-browser stand-ins from .storybook/mocks/actions.
-const MOCKED_ACTIONS = ["auth", "household", "preferences", "transactions"];
+const MOCKED_ACTIONS = ["auth", "budgets", "household", "preferences", "transactions"];
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(ts|tsx)"],

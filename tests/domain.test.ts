@@ -11,6 +11,7 @@ import { findSectionIbans, selectAccountText } from "@/lib/domain/sections";
 import { parseDate, parseStatement, selectParser } from "@/lib/parsers";
 import { keywordCategorize } from "@/lib/domain/keywords";
 import { netCashFlow } from "@/lib/domain/cashflow";
+import { budgetStatus, effectiveBudgets, monthPace, planBudgetChange, suggestBudget, type BudgetRow } from "@/lib/domain/budgets";
 import { DEFAULT_PAGE_SIZE, pageRange, parsePageSize } from "@/lib/pagination";
 import { decryptBytes, encryptBytes, isEncrypted } from "@/lib/crypto";
 import { EncryptedFileStorage } from "@/lib/services/storage";
@@ -599,5 +600,60 @@ describe("netCashFlow", () => {
     expect(r).toMatchObject({ income: 3000, expenses: 4000 });
     expect(r.byCategory.get("restaurants")?.cents).toBe(0);
     expect(r.income - r.expenses).toBe(flows.reduce((s, f) => s + f.amount, 0));
+  });
+});
+
+describe("budgets", () => {
+  const rows: BudgetRow[] = [
+    { categoryId: "food", month: "2026-03", amountCents: 40000 },
+    { categoryId: "food", month: "2026-06", amountCents: 50000 },
+    { categoryId: "fun", month: "2026-04", amountCents: 10000 },
+    { categoryId: "fun", month: "2026-05", amountCents: 0 },
+  ];
+
+  it("carries each budget forward until the next change, and 0 ends it", () => {
+    expect(effectiveBudgets(rows, "2026-02")).toEqual(new Map());
+    expect(effectiveBudgets(rows, "2026-04")).toEqual(new Map([["food", 40000], ["fun", 10000]]));
+    expect(effectiveBudgets(rows, "2026-05")).toEqual(new Map([["food", 40000]]));
+    expect(effectiveBudgets(rows, "2027-01")).toEqual(new Map([["food", 50000]]));
+  });
+
+  it("replaces later months when applying forward", () => {
+    expect(planBudgetChange(rows, "food", "2026-04", 45000, true)).toEqual({ upserts: [{ month: "2026-04", amountCents: 45000 }], deleteAfter: "2026-04" });
+  });
+
+  it("keeps the following month unchanged when editing a single month", () => {
+    expect(planBudgetChange(rows, "food", "2026-04", 45000, false).upserts).toEqual([
+      { month: "2026-04", amountCents: 45000 },
+      { month: "2026-05", amountCents: 40000 },
+    ]);
+    // The next month already has its own row (or would end up with the same amount): nothing else to write.
+    expect(planBudgetChange(rows, "food", "2026-05", 30000, false).upserts).toEqual([{ month: "2026-05", amountCents: 30000 }]);
+    expect(planBudgetChange(rows, "new", "2026-04", 20000, false).upserts).toEqual([
+      { month: "2026-04", amountCents: 20000 },
+      { month: "2026-05", amountCents: 0 },
+    ]);
+    expect(planBudgetChange(rows, "food", "2026-12", 50000, false).upserts).toEqual([{ month: "2026-12", amountCents: 50000 }]);
+  });
+
+  it("rates spending against the budget", () => {
+    expect(budgetStatus(5000, 10000)).toBe("ok");
+    expect(budgetStatus(8500, 10000)).toBe("near");
+    expect(budgetStatus(10000, 10000)).toBe("near");
+    expect(budgetStatus(10001, 10000)).toBe("over");
+  });
+
+  it("paces only the current month", () => {
+    expect(monthPace("2026-11", "2026-11-11")).toEqual({ fraction: 11 / 30, daysLeft: 20 });
+    expect(monthPace("2026-02", "2026-02-28")).toEqual({ fraction: 1, daysLeft: 1 });
+    expect(monthPace("2026-10", "2026-11-11")).toBeNull();
+  });
+
+  it("suggests round budgets at or above the spending", () => {
+    expect(suggestBudget(0)).toBe(0);
+    expect(suggestBudget(4210)).toBe(4500);
+    expect(suggestBudget(31234)).toBe(32000);
+    expect(suggestBudget(32000)).toBe(32000);
+    expect(suggestBudget(123456)).toBe(125000);
   });
 });

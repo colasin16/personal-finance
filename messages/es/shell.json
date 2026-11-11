@@ -3,6 +3,7 @@
     "dashboard": "Panel",
     "import": "Importar",
     "transactions": "Movimientos",
+    "budgets": "Presupuestos",
     "issues": "Pendientes",
     "accounts": "Cuentas",
     "settings": "Ajustes"

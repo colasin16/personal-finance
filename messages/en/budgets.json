@@ -1,0 +1,85 @@
+{
+  "title": "Budgets",
+  "description": "Plan how much to spend per category each month. A budget carries over to the following months until you change it.",
+  "month": {
+    "label": "Month",
+    "previous": "Previous month",
+    "next": "Next month",
+    "current": "This month"
+  },
+  "noData": "No transactions imported for {month} yet. Spending appears here once you import its statements.",
+  "importLink": "Import statements",
+  "summary": {
+    "title": "Overview",
+    "left": "{amount} left",
+    "over": "{amount} over budget",
+    "ofBudgeted": "of {amount} budgeted",
+    "budgeted": "Budgeted",
+    "spent": "Spent",
+    "remaining": "Left",
+    "perDay": "{amount} a day for {count, plural, one {the last day} other {the remaining # days}}",
+    "onTrack": "On track",
+    "withinBudget": "Within budget",
+    "aheadOfPace": "Spending faster than planned",
+    "overBudget": "Over budget",
+    "outside": "{amount} spent outside your budgets",
+    "income": "Income this month: {amount}",
+    "pace": "Where you'd be today if you spent evenly through the month"
+  },
+  "list": {
+    "title": "Budgeted categories",
+    "description": "Tap a category to change its budget.",
+    "spentOf": "{spent} of {budget}",
+    "left": "{amount} left",
+    "over": "{amount} over",
+    "paceLegend": "The tick marks where you'd be today spending evenly through the month.",
+    "edit": "Edit the budget for {name}"
+  },
+  "unbudgeted": {
+    "title": "Not budgeted",
+    "description": "Categories with spending this month but no budget.",
+    "setBudget": "Set budget",
+    "uncategorized": "Uncategorized",
+    "categorize": "Categorize",
+    "transactions": "{count, plural, one {# transaction} other {# transactions}}",
+    "showOthers": "Other categories ({count})",
+    "hideOthers": "Hide other categories",
+    "noSpending": "No spending this month"
+  },
+  "empty": {
+    "title": "Plan your monthly spending",
+    "description": "Set a monthly limit for the categories you want to keep an eye on. Start from what you usually spend and adjust from there.",
+    "suggest": "Start from my average spending",
+    "noHistory": "Import a few months of statements to get suggestions, or set budgets one by one below."
+  },
+  "suggest": {
+    "button": "Suggest budgets",
+    "title": "Suggested budgets",
+    "description": "Based on your average spending over {count, plural, one {the last month} other {the last # months}}, rounded up. Adjust the amounts or untick categories you don't want to budget.",
+    "average": "avg. {amount}",
+    "apply": "{count, plural, =0 {Create budgets} one {Create # budget} other {Create # budgets}}",
+    "created": "{count, plural, one {# budget created} other {# budgets created}}",
+    "none": "No suggestions: every category with spending already has a budget."
+  },
+  "editor": {
+    "title": "Budget for {name}",
+    "description": "{month}",
+    "amount": "Monthly budget",
+    "spentThisMonth": "Spent this month",
+    "lastMonth": "Last month",
+    "average": "{count}-month average",
+    "suggestions": "Quick fill",
+    "useLastMonthSpent": "Last month's spending",
+    "useAverage": "Average",
+    "useLastMonthBudget": "Last month's budget",
+    "applyForward": "Also apply to the following months",
+    "applyForwardHint": "Otherwise only {month} changes.",
+    "invalidAmount": "Enter an amount, for example 250 or 249,90.",
+    "remove": "Remove budget",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Budget saved",
+    "removed": "Budget removed",
+    "viewTransactions": "View transactions"
+  }
+}

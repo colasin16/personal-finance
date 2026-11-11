@@ -32,5 +32,6 @@
   "invalid_email": "Enter a valid email address.",
   "already_processing": "This statement is still being processed. Try again in a few minutes if it doesn't finish.",
   "invite_wrong_email": "This invitation was sent to a different email address. Sign in with that address to accept it.",
-  "owner_only": "Only the household owner can do this."
+  "owner_only": "Only the household owner can do this.",
+  "category_not_budgetable": "Only expense categories can have a budget."
 }

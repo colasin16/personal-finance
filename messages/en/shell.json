@@ -3,6 +3,7 @@
     "dashboard": "Dashboard",
     "import": "Import",
     "transactions": "Transactions",
+    "budgets": "Budgets",
     "issues": "Issues",
     "accounts": "Accounts",
     "settings": "Settings"

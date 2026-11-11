@@ -271,7 +271,7 @@ Concrete upcoming work lives in [`BACKLOG.md`](./BACKLOG.md).
 
 ### Phase 5 — Nice to have
 - OCR for scanned PDFs, CSV/XLS import, deterministic parsers per bank.
-- Budgets & alerts, recurring payment detection, multi-currency conversion.
+- Budget alerts, recurring payment detection, multi-currency conversion.
 - Settle-up between partners for shared expenses.
 - PWA/mobile-friendly upload, export to CSV.
 
@@ -305,4 +305,5 @@ What was built differs from the plan above in a few deliberate ways:
   - Auth: a signed-cookie session with an instant "magic link"; invites are shared as links instead of emails.
 - **Authorization lives in the server layer** (every query is scoped by household and visible accounts). Row Level Security (migration `drizzle/0006_row_level_security.sql`) applies the same rules again to every signed-in request; only sign-in, onboarding, invites and the background pipeline use the privileged connection.
 - Assumed answers to §13 until confirmed: English and Spanish UI (next-intl, cookie-based locale, no URL prefix), light/dark/system theme, EUR only, Spanish banks with text-based PDFs, personal accounts visible to the partner unless marked private.
-- Not built yet: OCR, Sentry, Google login, real email sending, settle-up, budgets.
+- Not built yet: OCR, Sentry, Google login, real email sending, settle-up.
+- **Budgets** (`/budgets`): a monthly limit per expense category, stored in `budgets` (one row per category and month). A row applies from its month until the next row for that category, so a budget carries forward until changed; amount 0 removes it. Spending uses the dashboard's rules (net of reimbursements, transfers excluded). Logic lives in `src/lib/domain/budgets.ts` and `src/lib/budgets.ts`. Follow-ups are in `BACKLOG.md`.

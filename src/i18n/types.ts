@@ -1,5 +1,6 @@
 import type accounts from "../../messages/en/accounts.json";
 import type auth from "../../messages/en/auth.json";
+import type budgets from "../../messages/en/budgets.json";
 import type common from "../../messages/en/common.json";
 import type dashboard from "../../messages/en/dashboard.json";
 import type errors from "../../messages/en/errors.json";
@@ -22,6 +23,7 @@ type Messages = {
   import: typeof importNs;
   statements: typeof statements;
   transactions: typeof transactions;
+  budgets: typeof budgets;
   issues: typeof issues;
   errors: typeof errors;
   landing: typeof landing;

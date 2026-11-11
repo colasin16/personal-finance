@@ -271,6 +271,26 @@ export const dismissedSuggestions = pgTable(
   (t) => [primaryKey({ columns: [t.householdId, t.key] })],
 );
 
+/**
+ * Monthly spending budgets per expense category. A row applies from `month` (first day of the month) until the next
+ * row for the same category, so a budget carries forward without a row per month; amount 0 means "no budget".
+ */
+export const budgets = pgTable(
+  "budgets",
+  {
+    householdId: uuid("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+    month: date("month").notNull(),
+    amountCents: cents("amount_cents").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.categoryId, t.month] }), index("budgets_household_idx").on(t.householdId)],
+);
+
 export type User = typeof users.$inferSelect;
 export type Household = typeof households.$inferSelect;
 export type Account = typeof accounts.$inferSelect;

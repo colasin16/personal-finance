@@ -54,3 +54,13 @@ Deleting a user in the Supabase dashboard (Authentication → Users) only remove
 4. Optional: add a migration so deleting the auth user also deletes the app user, as a safety net for dashboard deletions. Use a foreign key `users.id → auth.users(id) ON DELETE CASCADE`, guarded like `auth.uid()` in `drizzle/0006` for non-Supabase databases. Also stop `ensureAuthUser` from silently re-linking an orphaned profile by email.
 5. Add an owner-only "Delete household" action that wipes everything, including the files of every member.
 6. Tests: cascade coverage for both the sole-member and shared-household cases; storage cleanup is called; the auth user is deleted; the last-owner rule.
+
+## 4. Budget follow-ups
+
+The first version of `/budgets` has per-category monthly limits that carry forward, suggestions from average spending, and pace tracking. Not built yet:
+
+- **Rollover:** an opt-in per category, carrying unspent (or overspent) money into the next month, like YNAB or Monarch.
+- **Alerts:** notify (in-app, later email) when a category reaches ~85% or goes over.
+- **Dashboard widget:** a compact "budget left this month" card linking to `/budgets`.
+- **Income target and savings goal:** compare planned income vs. budgets to show what's left to save.
+- **Per-member scope:** budgets are household-wide today; allow budgeting only "my" or "shared" spending.
