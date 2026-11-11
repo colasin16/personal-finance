@@ -20,6 +20,7 @@ export const NAMESPACES = [
   "issues",
   "errors",
   "landing",
+  "legal",
 ] as const;
 
 /** Message files that only the server uses (email templates in src/emails), so they aren't sent to the browser. */

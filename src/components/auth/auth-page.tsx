@@ -1,6 +1,7 @@
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitch } from "@/components/theme/language-switch";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { LegalLinks } from "@/components/legal/legal-page";
 import { Card } from "@/components/ui/card";
 
 /** The centred card layout of the signed-out pages (sign in, email link confirmation). */
@@ -13,6 +14,7 @@ export function AuthPage({ children }: { children: React.ReactNode }) {
       </div>
       <Logo className="text-lg" />
       <Card className="w-full max-w-sm">{children}</Card>
+      <LegalLinks />
     </main>
   );
 }

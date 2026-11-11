@@ -1,0 +1,88 @@
+{
+  "back": "Volver al inicio",
+  "lastUpdated": "Última actualización: {date}",
+  "links": {
+    "privacy": "Privacidad",
+    "terms": "Términos"
+  },
+  "privacy": {
+    "title": "Política de privacidad",
+    "intro": "Esta política explica qué datos personales recoge {appName}, para qué y qué derechos tienes sobre ellos. Contacto: {email}.",
+    "sections": {
+      "controller": {
+        "title": "Responsable",
+        "body": "{appName} (personal-finance.space) es el responsable del tratamiento de los datos descritos aquí. Para cualquier duda o solicitud sobre privacidad, escribe a {email}."
+      },
+      "data": {
+        "title": "Qué datos recogemos",
+        "body": "Datos de la cuenta: tu correo electrónico, nombre y pertenencia al hogar.\n\nDatos financieros que aportas: los extractos bancarios que subes y las cuentas, movimientos, categorías y presupuestos que se obtienen de ellos o que introduces.\n\nDatos de conexión bancaria: si conectas un banco, recibimos en modo solo lectura los datos de la cuenta (nombre, IBAN, saldo) y los movimientos a través de nuestro proveedor de open banking. Nunca vemos ni guardamos tus credenciales del banco y no podemos hacer pagos.\n\nDatos técnicos: cookies esenciales, registros del servidor y estadísticas de uso anónimas y sin cookies."
+      },
+      "purpose": {
+        "title": "Para qué los usamos",
+        "body": "Solo para prestarte el servicio que pides: mostrar tus cuentas, gastos y presupuestos, compartirlos con los miembros de tu hogar y enviarte correos del servicio (enlaces de acceso, invitaciones, avisos de la conexión bancaria). La base legal es la ejecución de nuestro contrato contigo y, para conectar un banco, tu consentimiento explícito, que puedes retirar en cualquier momento. No vendemos tus datos, no mostramos anuncios ni los usamos para entrenar modelos de IA."
+      },
+      "processors": {
+        "title": "Quién los trata por nosotros",
+        "body": "Supabase (base de datos e inicio de sesión), Vercel (alojamiento y analítica anónima), Resend (envío de correos) y Enable Banking Oy, proveedor autorizado de servicios de información sobre cuentas, para las conexiones bancarias. Solo tratan los datos siguiendo nuestras instrucciones. Algunos proveedores pueden tratar datos fuera del EEE con las garantías que exige el RGPD, como las Cláusulas Contractuales Tipo."
+      },
+      "security": {
+        "title": "Cómo los protegemos",
+        "body": "Los datos viajan por conexiones cifradas. Los extractos y los tokens de conexión bancaria se guardan cifrados, los números de cuenta no se guardan en claro y cada hogar solo puede acceder a sus propios datos."
+      },
+      "retention": {
+        "title": "Cuánto tiempo los guardamos",
+        "body": "Guardamos tus datos mientras tu cuenta esté activa. Una conexión bancaria dura como máximo 180 días; puedes desconectarla antes en la app o en tu banco. Cuando nos pidas eliminar tu cuenta, borraremos tus datos en un plazo de 30 días, salvo los que la ley nos obligue a conservar."
+      },
+      "rights": {
+        "title": "Tus derechos",
+        "body": "Puedes solicitar el acceso, la rectificación, la supresión o una copia de tus datos, y oponerte a su tratamiento o limitarlo, escribiendo a {email}. También puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es)."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "body": "Solo usamos las cookies necesarias para que la app funcione: tu sesión, idioma, tema y preferencias de diseño. No usamos cookies publicitarias ni de seguimiento."
+      },
+      "changes": {
+        "title": "Cambios",
+        "body": "Si cambiamos esta política actualizaremos esta página y, si los cambios son importantes, te avisaremos por correo."
+      }
+    }
+  },
+  "terms": {
+    "title": "Términos del servicio",
+    "intro": "Al usar {appName} aceptas estos términos. Si no estás de acuerdo, no uses el servicio. Contacto: {email}.",
+    "sections": {
+      "service": {
+        "title": "El servicio",
+        "body": "{appName} te ayuda a ver y organizar las finanzas de tu hogar a partir de los extractos que subes o de las cuentas bancarias que conectas. Se ofrece de forma gratuita."
+      },
+      "account": {
+        "title": "Tu cuenta",
+        "body": "Debes ser mayor de 18 años. Protege el acceso a tu correo, ya que es como inicias sesión. Eres responsable de los datos que subes y de añadir a tu hogar solo a personas de confianza."
+      },
+      "banks": {
+        "title": "Conexiones bancarias",
+        "body": "Las conexiones bancarias son opcionales, de solo lectura y se prestan a través de Enable Banking Oy, proveedor autorizado de servicios de información sobre cuentas. Autorizas el acceso directamente con tu banco y puedes revocarlo en cualquier momento. {appName} no puede hacer pagos ni mover dinero."
+      },
+      "advice": {
+        "title": "Sin asesoramiento financiero",
+        "body": "La información mostrada es solo para tu referencia personal y no constituye asesoramiento financiero, fiscal ni legal. La categorización y las importaciones automáticas pueden contener errores; comprueba las cifras importantes con tu banco."
+      },
+      "use": {
+        "title": "Uso aceptable",
+        "body": "No hagas un mal uso del servicio: no accedas a datos de otras personas, no intentes romperlo ni sobrecargarlo y no lo uses con fines ilícitos. Podemos suspender las cuentas que lo hagan."
+      },
+      "liability": {
+        "title": "Disponibilidad y responsabilidad",
+        "body": "El servicio se ofrece tal cual, sin garantías de disponibilidad ni de exactitud. En la medida en que lo permita la ley, no somos responsables de pérdidas indirectas ni de decisiones tomadas a partir de la información mostrada."
+      },
+      "termination": {
+        "title": "Fin del servicio",
+        "body": "Puedes dejar de usar {appName} en cualquier momento y pedirnos que eliminemos tu cuenta escribiendo a {email}. Podemos interrumpir el servicio avisando con antelación razonable."
+      },
+      "law": {
+        "title": "Cambios y ley aplicable",
+        "body": "Podemos actualizar estos términos y te avisaremos de los cambios importantes. Estos términos se rigen por la ley española, sin perjuicio de tus derechos como consumidor."
+      }
+    }
+  }
+}

@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { BankLogo } from "@/components/brand/bank-logo";
 import { Logo } from "@/components/brand/logo";
 import { DashboardPreview } from "@/components/landing/dashboard-preview";
+import { LegalLinks } from "@/components/legal/legal-page";
 import { LanguageSwitch } from "@/components/theme/language-switch";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -168,7 +169,10 @@ export default async function Home() {
       <footer className="border-t">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:px-6">
           <Logo className="text-foreground" />
-          <span>{t("footer.rights", { year: new Date().getFullYear(), appName })}</span>
+          <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+            <LegalLinks />
+            <span>{t("footer.rights", { year: new Date().getFullYear(), appName })}</span>
+          </div>
         </div>
       </footer>
     </div>

@@ -1,0 +1,88 @@
+{
+  "back": "Back to home",
+  "lastUpdated": "Last updated: {date}",
+  "links": {
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "This policy explains what personal data {appName} collects, why, and the rights you have over it. Contact: {email}.",
+    "sections": {
+      "controller": {
+        "title": "Who is responsible",
+        "body": "{appName} (personal-finance.space) is the data controller for the data described here. For any privacy question or request, write to {email}."
+      },
+      "data": {
+        "title": "What we collect",
+        "body": "Account data: your email address, name and household membership.\n\nFinancial data you provide: the bank statements you upload and the accounts, transactions, categories and budgets derived from them or that you enter.\n\nBank connection data: if you connect a bank, we receive read-only account details (name, IBAN, balance) and transactions through our open banking provider. We never see or store your bank login credentials and cannot make payments.\n\nTechnical data: essential cookies, server logs and anonymous, cookie-free usage statistics."
+      },
+      "purpose": {
+        "title": "Why we use it",
+        "body": "Only to provide the service you ask for: showing your accounts, spending and budgets, sharing them with the members of your household, and sending you service emails (sign-in links, invitations, bank connection reminders). The legal basis is the performance of our contract with you and, for connecting a bank, your explicit consent, which you can withdraw at any time. We do not sell your data, show ads or use it to train AI models."
+      },
+      "processors": {
+        "title": "Who processes it for us",
+        "body": "Supabase (database and sign-in), Vercel (hosting and anonymous analytics), Resend (email delivery) and Enable Banking Oy, a licensed account information service provider, for bank connections. They only process data on our instructions. Some providers may process data outside the EEA under the safeguards required by the GDPR, such as Standard Contractual Clauses."
+      },
+      "security": {
+        "title": "How we protect it",
+        "body": "Data is sent over encrypted connections. Statement files and bank connection tokens are encrypted at rest, account numbers are not stored in plain text, and each household can only access its own data."
+      },
+      "retention": {
+        "title": "How long we keep it",
+        "body": "We keep your data while your account is active. A bank connection lasts at most 180 days; you can disconnect it sooner in the app or at your bank. When you ask us to delete your account, we delete your data within 30 days, except where the law requires us to keep it."
+      },
+      "rights": {
+        "title": "Your rights",
+        "body": "You can request access to, correction, deletion or a copy of your data, and object to or restrict its processing, by writing to {email}. You can also complain to the Spanish Data Protection Agency (aepd.es)."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "body": "We only use cookies needed for the app to work: your session, language, theme and layout preferences. We don't use advertising or tracking cookies."
+      },
+      "changes": {
+        "title": "Changes",
+        "body": "If we change this policy we will update this page and, for important changes, let you know by email."
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "intro": "By using {appName} you agree to these terms. If you don't agree, please don't use the service. Contact: {email}.",
+    "sections": {
+      "service": {
+        "title": "The service",
+        "body": "{appName} helps you see and organize your household finances from the bank statements you upload or the bank accounts you connect. It is provided free of charge."
+      },
+      "account": {
+        "title": "Your account",
+        "body": "You must be at least 18 years old. Keep access to your email secure, as it is how you sign in. You are responsible for the data you upload and for only adding people you trust to your household."
+      },
+      "banks": {
+        "title": "Bank connections",
+        "body": "Bank connections are optional, read-only and provided through Enable Banking Oy, a licensed account information service provider. You authorize access directly with your bank, and can revoke it at any time. {appName} cannot make payments or move money."
+      },
+      "advice": {
+        "title": "No financial advice",
+        "body": "The information shown is for your personal reference only and is not financial, tax or legal advice. Automatic categorization and imports may contain errors; check important figures against your bank."
+      },
+      "use": {
+        "title": "Acceptable use",
+        "body": "Don't misuse the service: don't access other people's data, attempt to break or overload it, or use it for unlawful purposes. We may suspend accounts that do."
+      },
+      "liability": {
+        "title": "Availability and liability",
+        "body": "The service is provided as is, without guarantees of availability or accuracy. To the extent permitted by law, we are not liable for indirect losses or for decisions made based on the information shown."
+      },
+      "termination": {
+        "title": "Ending the service",
+        "body": "You can stop using {appName} at any time and ask us to delete your account by writing to {email}. We may discontinue the service with reasonable notice."
+      },
+      "law": {
+        "title": "Changes and applicable law",
+        "body": "We may update these terms and will tell you about important changes. These terms are governed by Spanish law, without prejudice to your rights as a consumer."
+      }
+    }
+  }
+}

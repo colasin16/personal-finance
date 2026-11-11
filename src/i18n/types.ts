@@ -8,6 +8,7 @@ import type errors from "../../messages/en/errors.json";
 import type importNs from "../../messages/en/import.json";
 import type issues from "../../messages/en/issues.json";
 import type landing from "../../messages/en/landing.json";
+import type legal from "../../messages/en/legal.json";
 import type settings from "../../messages/en/settings.json";
 import type shell from "../../messages/en/shell.json";
 import type statements from "../../messages/en/statements.json";
@@ -29,6 +30,7 @@ type Messages = {
   issues: typeof issues;
   errors: typeof errors;
   landing: typeof landing;
+  legal: typeof legal;
 };
 
 declare module "next-intl" {
