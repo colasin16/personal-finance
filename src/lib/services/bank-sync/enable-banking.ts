@@ -110,6 +110,10 @@ export class EnableBankingProvider implements BankSyncProvider {
       redirect_url: input.redirectUrl,
       psu_type: "personal",
       ...(input.language ? { language: input.language } : {}),
+    }).catch((error: unknown) => {
+      // The redirect URL must match one whitelisted in the Enable Banking control panel exactly.
+      if (error instanceof BankSyncError && /REDIRECT/i.test(error.message)) throw new BankSyncError(error.kind, `${error.message} (${JSON.stringify(input.redirectUrl)})`);
+      throw error;
     });
     return { url: data.url };
   }
